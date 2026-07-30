@@ -1,0 +1,343 @@
+@use "variables" as *;
+
+.fretboard{
+    margin-top: 40px;
+    position: relative;
+    display: grid;
+    grid-template-columns: 40px 1fr;
+    grid-template-rows: auto;
+    grid-template-areas: 
+    "tuning fretboard-notes"
+    "tuning fretboard-numbers";
+
+    &:before{
+        content: '';
+        height: calc(var(--string-count) * 44px);
+        width: 4px;
+        background: $white;
+        position: absolute;
+        top: 0;
+        left: 38px;
+        z-index: 3;
+    }
+
+    &__dashboard{
+        display: grid;
+        grid-template-columns: repeat(12, minmax(0, 1fr));
+        gap: 28px 32px;
+        margin: 10px;
+        padding: 28px;
+        border-radius: 5px;
+        background: $black;
+        box-shadow:  inset -10px 10px 20px $black-dark,
+             inset 10px -10px 10px $black-light;
+        border: 1px solid $black-dark;
+
+        > * {
+            min-width: 0;
+        }
+
+        > .availableKeys {
+            grid-column: span 8;
+        }
+
+        > .availableScales {
+            grid-column: span 4;
+        }
+
+        > .stringCountSelector {
+            grid-column: span 3;
+        }
+
+        > .scaleShapes {
+            grid-column: span 4;
+        }
+
+        > .displayModeSelector {
+            grid-column: span 5;
+        }
+
+        > .scaleNotes {
+            grid-column: span 5;
+        }
+
+        > .scaleChords {
+            grid-column: span 7;
+        }
+    }
+
+    &__notes{
+        grid-area: fretboard-notes;
+        max-width: $fretBoardWidth;
+    }
+    
+    &__string{
+        display: flex;
+    }
+
+    &__fret-piece{
+        height: 44px;
+        width: calc(98vw / 24);
+        border-right: 1px solid $white;
+        position: relative;
+
+        &:before{
+            content: '';
+            width: 100%;
+            height: 1px;
+            background: $white;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+
+        &:after{
+            content: attr(data-note);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 30px;
+            height: 30px;      
+            border-radius: 30px;
+            left: 50%;
+            top: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            transition:
+                opacity 220ms ease,
+                filter 220ms ease,
+                box-shadow 220ms ease,
+                color 220ms ease;
+        }
+
+        &--double-note{
+            &:after{
+                font-size: 12px !important;
+            }
+        }
+
+        &--S1{
+            background-color: rgb(150, 183, 0);
+            z-index: 1;
+        }
+        
+        &--S2{
+            background-color: rgb(0, 21, 183);
+            z-index: 2;
+        }
+
+        &--S3{
+            background-color: rgb(171, 0, 183);
+            z-index: 2;
+        }
+
+        &--S4{
+            background-color: rgb(49, 183, 0);
+            z-index: 2;
+        }
+
+        &--S5{
+            background-color: rgb(183, 6, 0);
+            z-index: 2;
+        }
+
+        &--S6{
+            background-color: rgb(0, 159, 183);
+            z-index: 2;
+        }
+
+        &--S7{
+            background-color: rgb(183, 131, 0);
+            z-index: 2;
+        }
+
+        &--note{
+            &:after{
+                background-size: cover;
+                background-position: center;
+                height: 40px;
+                width: 40px;
+                font-weight: 700;
+                font-size: 22px;
+            }
+        }
+
+        &--note-1{
+            &:after{
+                color: $note-1-color;
+                filter: drop-shadow(0 0 3px $note-1-color)
+                        drop-shadow(0px 0px 2px $note-1-color);
+                background-image: url('../../lib/assets/icons/shape-circle.svg');
+                border: 1px solid $note-1-color;
+            }
+        }
+
+        &--note-2{
+            &:after{
+                color: $note-2-color;
+                filter: drop-shadow(0 0 3px $note-2-color);
+                background-image: url('../../lib/assets/icons/shape-square.svg');
+            }
+        }
+
+        &--note-3{
+            &:after{
+                color: $note-3-color;
+                filter: drop-shadow(0 0 2px $note-3-color);
+                background-image: url('../../lib/assets/icons/shape-square.svg');
+            }
+        }
+
+        &--note-4{
+            &:after{
+                color: $note-4-color;
+                filter: drop-shadow(0 0 2px $note-4-color);
+                background-image: url('../../lib/assets/icons/shape-square.svg');
+            }
+        }
+
+        &--note-5{
+            &:after{
+                color: $note-5-color;
+                filter: drop-shadow(0 0 2px $note-5-color);
+                background-image: url('../../lib/assets/icons/shape-square.svg');
+            }
+        }
+
+        &--note-6{
+            &:after{
+                color: $note-6-color;
+                filter: drop-shadow(0 0 2px $note-6-color);
+                background-image: url('../../lib/assets/icons/shape-square.svg');
+            }
+        }
+
+        &--note-7{
+            &:after{
+                color: $note-7-color;
+                filter: drop-shadow(0 0 2px $note-7-color);
+                background-image: url('../../lib/assets/icons/shape-square.svg');
+            }
+        }
+
+        &--muted{
+            &:after{
+                opacity: 0.13;
+                filter: grayscale(1);
+            }
+        }
+
+        &--chord-tone{
+            &:after{
+                opacity: 1;
+                border: 2px solid currentColor;
+                background-image: none;
+                background-color: $black-dark;
+            }
+        }
+
+        &--chord-root{
+            &:after{
+                color: $note-1-color;
+                filter: drop-shadow(0 0 5px $note-1-color);
+                box-shadow: inset 0 0 8px rgba($note-1-color, 0.18);
+            }
+        }
+
+        &--chord-third{
+            &:after{
+                color: $note-4-color;
+                filter: drop-shadow(0 0 4px $note-4-color);
+                box-shadow: inset 0 0 8px rgba($note-4-color, 0.16);
+            }
+        }
+
+        &--chord-fifth{
+            &:after{
+                color: $note-5-color;
+                filter: drop-shadow(0 0 4px $note-5-color);
+                box-shadow: inset 0 0 8px rgba($note-5-color, 0.16);
+            }
+        }
+    }
+
+    &__numbers{
+        grid-area: fretboard-numbers;
+        display: flex;
+        max-width: $fretBoardWidth;
+        color: $white;
+    }
+
+    &__number{
+        width: calc(98vw / 24);
+        display: flex;
+        justify-content: center;
+        margin-top: 40px;
+        position: relative;
+        font-size: 16px;
+        font-weight: 300;
+        padding-top: 5px;
+
+        &:after{
+            // content: url('../../lib/assets/icons/shape-triangle.svg');
+            content: "";
+            background: url('../../lib/assets/icons/shape-triangle.svg');
+            background-size: contain;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 40px;
+            height: 40px;      
+            // border-radius: 30px;
+            left: 50%;
+            top: 50%;
+            position: absolute;
+            transform: translate(-50%, -50%);
+            filter: drop-shadow(0 0 1px $white);
+            z-index: -1;
+        }
+
+        &:before{
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: -36px;
+            transform: translateX(-50%);
+            width: 1px;
+            height: 16px;
+            background: $white;
+        }
+    }
+}
+
+@media (max-width: 1100px) {
+    .fretboard__dashboard {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+
+        > .availableKeys,
+        > .availableScales,
+        > .displayModeSelector,
+        > .scaleNotes,
+        > .scaleChords {
+            grid-column: 1 / -1;
+        }
+
+        > .stringCountSelector,
+        > .scaleShapes {
+            grid-column: span 3;
+        }
+    }
+}
+
+@media (max-width: 700px) {
+    .fretboard__dashboard {
+        grid-template-columns: minmax(0, 1fr);
+        gap: 24px;
+        margin-inline: 8px;
+        padding: 20px;
+
+        > * {
+            grid-column: 1 / -1;
+        }
+    }
+}

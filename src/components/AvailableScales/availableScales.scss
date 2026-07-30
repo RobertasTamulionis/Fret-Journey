@@ -1,0 +1,17 @@
+@use "mixins" as *;
+
+.availableScales {
+  &__heading {
+    text-align: center;
+  }
+
+  &__scales {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  &__scale {
+    @include list-item($width: 140px, $margin-right: 0);
+  }
+}

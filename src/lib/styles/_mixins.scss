@@ -1,0 +1,100 @@
+@use "variables" as *;
+
+@mixin neomorphic-button(
+  $width: auto,
+  $height: 40px,
+  $radius: $control-radius,
+  $accent: $white
+) {
+  --button-accent: #{$accent};
+  appearance: none;
+  min-width: $width;
+  height: $height;
+  padding: 0 16px;
+  border: 1px solid rgba($black-dark, 0.9);
+  border-radius: $radius;
+  background: linear-gradient(145deg, $black-light 0%, $black 42%, $black-dark 100%);
+  box-shadow:
+    -4px -4px 8px rgba($black-light, 0.72),
+    5px 5px 10px rgba($black-dark, 0.9),
+    inset 1px 1px 1px $control-highlight;
+  color: $white;
+  font: inherit;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    color 220ms ease,
+    box-shadow 220ms ease,
+    border-color 220ms ease;
+
+  &:hover {
+    border-color: color-mix(in srgb, var(--button-accent) 35%, $black-dark);
+    color: var(--button-accent);
+    box-shadow:
+      -5px -5px 10px rgba($black-light, 0.78),
+      6px 6px 12px rgba($black-dark, 0.95),
+      0 0 12px color-mix(in srgb, var(--button-accent) 18%, transparent),
+      inset 1px 1px 1px $control-highlight;
+  }
+
+  &:active {
+    transform: translateY(1px);
+    box-shadow:
+      inset 5px 5px 8px rgba($black-dark, 0.95),
+      inset -4px -4px 8px rgba($black-light, 0.62),
+      0 0 8px color-mix(in srgb, var(--button-accent) 14%, transparent);
+  }
+
+  &:focus-visible {
+    outline: 2px solid var(--button-accent);
+    outline-offset: 3px;
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.45;
+  }
+}
+
+@mixin list-item(
+  $bg: $black,
+  $color: $white,
+  $border-color: $white,
+  $active-bg: $note-1-color,
+  $active-color: $black,
+  $shadow-color: $note-1-color,
+  $width: 60px,
+  $height: 40px,
+  $font-size: 18px,
+  $font-weight: 500,
+  $radius: 10px,
+  $margin-right: 10px,
+  $transition: 0.6s
+) {
+  @include neomorphic-button(
+    $width: $width,
+    $height: $height,
+    $radius: $radius,
+    $accent: $shadow-color
+  );
+  color: $color;
+  font-size: $font-size;
+  font-weight: $font-weight;
+  margin-right: $margin-right;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  &--active {
+    border-color: color-mix(in srgb, var(--button-accent) 42%, $black-dark);
+    background: linear-gradient(145deg, $black-dark, $black 72%, $black-light);
+    color: var(--button-accent);
+    box-shadow:
+      inset 5px 5px 9px rgba($black-dark, 0.96),
+      inset -4px -4px 8px rgba($black-light, 0.65),
+      0 0 8px color-mix(in srgb, var(--button-accent) 28%, transparent),
+      0 0 20px color-mix(in srgb, var(--button-accent) 12%, transparent);
+  }
+}

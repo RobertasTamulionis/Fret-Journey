@@ -1,0 +1,28 @@
+@use "variables" as *;
+@use "mixins" as *;
+
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: $black;
+  color: $white;
+}
+
+button {
+  @include neomorphic-button;
+
+  &[aria-pressed="true"] {
+    border-color: color-mix(in srgb, var(--button-accent) 42%, $black-dark);
+    color: var(--button-accent);
+    box-shadow:
+      inset 5px 5px 9px rgba($black-dark, 0.96),
+      inset -4px -4px 8px rgba($black-light, 0.65),
+      0 0 12px color-mix(in srgb, var(--button-accent) 20%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+}

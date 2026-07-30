@@ -1,5 +1,5 @@
 {
-  "name": "guitar-gpt",
+  "name": "fret-journey",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -10,15 +10,22 @@
     "format": "biome format --write"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.9.0",
+    "next": "15.5.3",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "next": "15.5.3"
+    "react-redux": "^9.2.0",
+    "sass": "^1.92.1",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@biomejs/biome": "2.2.0",
     "@types/node": "^20",
-    "@types/react": "^19",
+    "@types/react": "^19.1.13",
     "@types/react-dom": "^19",
-    "@biomejs/biome": "2.2.0"
+    "@types/uuid": "^10.0.0",
+    "sass-loader": "^16.0.5",
+    "style-resources-loader": "^1.5.0",
+    "typescript": "^5"
   }
 }

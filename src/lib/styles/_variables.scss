@@ -1,0 +1,24 @@
+ //___ Global Colors  ___//
+ $black-light: rgb(65, 65, 65);
+ $black: rgb(41, 41, 41);
+ $black-dark: rgb(19, 19, 19);
+ $white: rgb(225, 225, 225);
+ 
+
+ //___ Note Colors  ___// 
+ $note-1-color: #81fb8d;
+ $note-2-color: #58f1ff;
+ $note-3-color: #a3c4f3;
+ $note-4-color: #b78aff;
+ $note-5-color: #ffbf8b;
+ $note-6-color: #fff891;
+ $note-7-color: #ff6b98;
+
+ //___ Global Variables  ___// 
+ $transition: 0.5s;
+ $fretBoardWidth: calc(100vw - 50px);
+
+ //___ Neomorphic Controls  ___//
+ $control-radius: 12px;
+ $control-highlight: rgba($white, 0.12);
+ $control-glow: rgba($white, 0.18);

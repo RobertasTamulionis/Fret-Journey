@@ -1,7 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+ // lets you write @use "variables" instead of long relative paths
+  sassOptions: { includePaths: ["./src/lib/styles"] },
 };
 
 export default nextConfig;
