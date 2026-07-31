@@ -6,34 +6,21 @@
   flex-direction: column;
   align-items: flex-start;
 
-  &__heading {
-    padding: 0;
-    margin-bottom: 12px;
-    font-size: 2em;
-    font-weight: 700;
-  }
-
   &__options {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
     min-inline-size: 0;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(105px, 1fr));
+    gap: 10px;
     margin: 0;
     padding: 0;
     border: 0;
   }
 
+  &__heading { padding: 0; }
+
   &__option {
-    @include list-item(
-      $width: 112px,
-      $margin-right: 0,
-      $shadow-color: $note-4-color
-    );
+    @include list-item($width: 108px, $height: 40px, $radius: 10px, $margin-right: 0);
   }
 
-  &__hint {
-    margin: 10px 0 0;
-    color: rgba($white, 0.68);
-    font-size: 12px;
-  }
+  &__hint { margin: 12px 0 0; color: $muted; font-size: 11px; line-height: 1.5; }
 }

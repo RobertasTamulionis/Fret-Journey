@@ -1,24 +1,58 @@
-@use "variables" as *;
 @use "mixins" as *;
+@use "variables" as *;
 
-.scaleShapes{
+.scaleShapes {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  &__systems {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin-bottom: 16px;
+    padding: 0;
+    border: 0;
+  }
+
+  &__system {
+    @include list-item(
+      $width: 0,
+      $height: 36px,
+      $radius: 10px,
+      $margin-right: 0,
+      $shadow-color: $shape-color
+    );
+    min-width: 0;
+    padding: 0 10px;
+    font-size: 12px;
+  }
+
+  &__controls {
+    min-height: 34px;
     display: flex;
-    flex-direction: column;
-    align-items: start;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
 
-    &__controls{
-        display: flex;
-        flex-wrap: wrap;
-        gap: 12px 20px;
-    }
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
 
-    &__list{
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    &__list-item{
-       @include list-item($margin-right: 0);
-    }
+  &__list-item {
+    @include list-item(
+      $width: 36px,
+      $height: 34px,
+      $margin-right: 0,
+      $shadow-color: $shape-color
+    );
+    padding: 0;
+  }
 }

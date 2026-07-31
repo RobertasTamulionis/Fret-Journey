@@ -1,21 +1,9 @@
-@use "variables" as *;
 @use "mixins" as *;
 
-.scaleChords{
-
-    &__chordsWrapper{
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    &__chord{
-        @include list-item(
-            $width: 72px,
-            $height: 42px,
-            $margin-right: 0,
-            $shadow-color: $note-5-color
-        );
-        padding: 0 10px;
-    }
+.scaleChords {
+  &__chordsWrapper { display: flex; flex-wrap: wrap; gap: 10px; }
+  &__chord {
+    @include list-item($width: 88px, $height: 40px, $radius: 999px, $margin-right: 0);
+    padding: 0 14px;
+  }
 }

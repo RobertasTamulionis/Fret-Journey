@@ -1,24 +1,27 @@
- //___ Global Colors  ___//
- $black-light: rgb(65, 65, 65);
- $black: rgb(41, 41, 41);
- $black-dark: rgb(19, 19, 19);
- $white: rgb(225, 225, 225);
- 
+// Premium graphite application palette
+$black-light: #1b2631;
+$black: #111922;
+$black-dark: #070b10;
+$white: #e8edf2;
+$muted: #84909c;
+$cyan: #58d8f0;
+$shape-color: #a78bfa;
+$panel: #121b25;
+$panel-light: #17222d;
+$border: rgba(154, 177, 197, 0.14);
 
- //___ Note Colors  ___// 
- $note-1-color: #81fb8d;
- $note-2-color: #58f1ff;
- $note-3-color: #a3c4f3;
- $note-4-color: #b78aff;
- $note-5-color: #ffbf8b;
- $note-6-color: #fff891;
- $note-7-color: #ff6b98;
+// Scale-degree colors remain distinct for learning, but share the cool UI palette.
+$note-1-color: #61def3;
+$note-2-color: #7ad8eb;
+$note-3-color: #8ecfe8;
+$note-4-color: #9ec8e3;
+$note-5-color: #83d5e8;
+$note-6-color: #75dbe8;
+$note-7-color: #a0c6dd;
 
- //___ Global Variables  ___// 
- $transition: 0.5s;
- $fretBoardWidth: calc(100vw - 50px);
+$transition: 0.22s ease;
+$fretBoardWidth: 100%;
 
- //___ Neomorphic Controls  ___//
- $control-radius: 12px;
- $control-highlight: rgba($white, 0.12);
- $control-glow: rgba($white, 0.18);
+$control-radius: 12px;
+$control-highlight: rgba(255, 255, 255, 0.055);
+$control-glow: rgba($cyan, 0.2);

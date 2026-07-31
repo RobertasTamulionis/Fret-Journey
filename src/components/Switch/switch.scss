@@ -1,199 +1,66 @@
 @use "variables" as *;
 
-/* Palette (from your variables for reference)
-$black-light: rgb(65, 65, 65);
-$black: rgb(41, 41, 41);
-$black-dark: rgb(19, 19, 19);
-$white: rgb(225, 225, 225);
-*/
-
 .container {
   display: flex;
   align-items: center;
-  justify-content: center;
-  --width: 100px;
-  --duration: 0.3s;
-  --easing: linear;
+  gap: 10px;
 
-  /* Active accent (soft white for glow) */
-  --active: rgb(225, 225, 225);
-  --active-glow-strong: rgba(225, 225, 225, 0.35);
-  --active-glow: rgba(225, 225, 225, 0.18);
-  --active-glow-soft: rgba(225, 225, 225, 0.10);
-}
-
-.togglesw {
-  display: none;
+  p {
+    margin: 0;
+    color: $muted;
+    font-size: 12px;
+  }
 }
 
 .switch {
-  --shadow-offset: calc(var(--width) / 20);
   position: relative;
+  width: 52px;
+  height: 28px;
+  display: block;
+  flex: 0 0 auto;
   cursor: pointer;
-  display: flex;
-  align-items: center;
-  width: var(--width);
-  height: calc(var(--width) / 2.5);
-  border-radius: var(--width);
-  background: rgb(41, 41, 41); /* $black */
-  box-shadow:
-    inset 10px 10px 10px rgb(19, 19, 19),    /* $black-dark */
-    inset -10px -10px 10px rgb(65, 65, 65);  /* $black-light */
+  border: 1px solid rgba(145, 166, 182, 0.18);
+  border-radius: 999px;
+  background: #0c141b;
+  box-shadow: inset 3px 3px 7px rgba(0, 0, 0, 0.6), inset -2px -2px 5px rgba(62, 82, 97, 0.13);
 }
 
-/* Indicator rails */
-.indicator {
-  content: '';
+.togglesw {
   position: absolute;
-  width: 40%;
-  height: 60%;
-  transition: all var(--duration) var(--easing);
-  box-shadow:
-    inset 0 0 2px rgb(19, 19, 19),
-    inset 0 0 3px 2px rgb(41, 41, 41),
-    inset 0 0 5px 2px rgb(65, 65, 65);
+  width: 1px;
+  height: 1px;
+  opacity: 0;
 }
 
-.indicator.left {
-  overflow: hidden;
-  left: 10%;
-  border-radius: 100px 0 0 100px;
-  background: linear-gradient(
-    180deg,
-    rgb(65, 65, 65) 10%,
-    rgb(41, 41, 41) 50%,
-    rgb(19, 19, 19) 90%
-  );
-}
+.indicator { display: none; }
 
-.indicator.left::after {
-  content: '';
-  position: absolute;
-  opacity: 0.3;
-  width: 100%;
-  height: 100%;
-  background: rgba(225, 225, 225, 0.05); /* subtle soft light */
-}
-
-.indicator.right {
-  right: 10%;
-  border-radius: 0 100px 100px 0;
-  background: linear-gradient(
-    180deg,
-    rgb(65, 65, 65) 10%,
-    rgb(41, 41, 41) 60%,
-    rgb(19, 19, 19) 90%
-  );
-}
-
-/* The knob */
 .button {
   position: absolute;
-  z-index: 1;
-  width: 55%;
-  height: 80%;
-  left: 5%;
-  border-radius: 100px;
-  background: linear-gradient(
-    160deg,
-    rgb(65, 65, 65) 20%,
-    rgb(41, 41, 41) 80%
-  );
-  transition: all var(--duration) var(--easing);
-  box-shadow:
-    2px 2px 3px rgb(19, 19, 19),
-    2px 2px 6px rgba(19, 19, 19, 0.6),
-    10px 20px 10px rgba(19, 19, 19, 0.5),
-    20px 30px 30px rgba(19, 19, 19, 0.4);
+  top: 4px;
+  left: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #71808b, #3b4852);
+  box-shadow: 0 3px 7px rgba(0, 0, 0, 0.48), inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition: left $transition, background $transition, box-shadow $transition;
 }
 
-.button::before,
-.button::after {
-  content: '';
-  position: absolute;
-  top: 10%;
-  width: 41%;
-  height: 80%;
-  border-radius: 100%;
-}
-
-.button::before {
-  left: 5%;
-  box-shadow: inset 1px 1px 2px rgb(65, 65, 65);
-  background: linear-gradient(
-    -50deg,
-    rgb(65, 65, 65) 20%,
-    rgb(41, 41, 41) 80%
-  );
-}
-
-.button::after {
-  right: 5%;
-  box-shadow: inset 1px 1px 3px rgb(19, 19, 19);
-  background: linear-gradient(
-    -50deg,
-    rgb(65, 65, 65) 20%,
-    rgb(41, 41, 41) 80%
-  );
-}
-
-/* ACTIVE STATE — glow + active color */
 .togglesw:checked ~ .button {
-  left: 40%;
-  /* white-ish rim light on active side */
-  box-shadow:
-    0 0 8px var(--active-glow),
-    0 6px 18px var(--active-glow),
-    0 0 28px var(--active-glow-soft),
-    2px 2px 3px rgb(19, 19, 19),
-    2px 2px 6px rgba(19, 19, 19, 0.6);
-  outline: 1px solid rgba(225, 225, 225, 0.15);
-}
-
-/* Rail gets brighter on the active side */
-.togglesw:not(:checked) ~ .indicator.left,
-.togglesw:checked ~ .indicator.right {
-  /* deep inner contour + bright inner glow */
-  box-shadow:
-    inset 0 0 5px rgb(19, 19, 19),
-    inset 20px 20px 10px rgb(19, 19, 19),
-    inset 20px 20px 15px rgb(65, 65, 65),
-    inset 0 0 20px var(--active-glow),
-    0 0 18px var(--active-glow-soft);
-  /* subtle surface tint towards active white */
-  background-image: linear-gradient(
-    180deg,
-    rgba(225, 225, 225, 0.10),
-    rgba(225, 225, 225, 0.06) 60%,
-    rgba(225, 225, 225, 0.03)
-  );
-}
-
-/* Optional: outer halo on the entire switch when active */
-.togglesw:checked ~ .switch-outer-glow,
-.switch:has(.togglesw:checked) {
-  /* :has fallback included by duplicating on .switch itself when possible */
+  left: 27px;
+  background: linear-gradient(145deg, #70e5f6, #42bdd5);
+  box-shadow: 0 0 11px rgba($cyan, 0.48), 0 3px 7px rgba(0, 0, 0, 0.44);
 }
 
 .switch:has(.togglesw:checked) {
-  box-shadow:
-    inset 10px 10px 10px rgb(19, 19, 19),
-    inset -10px -10px 10px rgb(65, 65, 65),
-    0 0 10px var(--active-glow),
-    0 0 32px var(--active-glow-soft);
+  border-color: rgba($cyan, 0.36);
 }
 
-/* Focus ring for accessibility (keyboard users) */
-.togglesw:focus-visible + .button,
-.switch:focus-within {
-  outline: 2px solid var(--active);
+.togglesw:focus-visible ~ .button {
+  outline: 2px solid $cyan;
   outline-offset: 3px;
 }
 
-/* Reduced motion nicety */
 @media (prefers-reduced-motion: reduce) {
-  .button,
-  .indicator {
-    transition: none;
-  }
+  .button { transition: none; }
 }

@@ -2,7 +2,7 @@
 import { type CSSProperties, Fragment } from "react";
 import {
   buildFretPositions,
-  buildThreeNotesPerStringShape,
+  buildScaleShape,
   getChordToneIntervalName,
   getScaleChords,
   guitarStringIds,
@@ -14,7 +14,6 @@ import AvailableScales from "../AvailableScales/AvailableScales";
 import DisplayModeSelector from "../DisplayModeSelector/DisplayModeSelector";
 import FretboardNumbers from "../FretboardNumbers/FretboardNumbers";
 import ScaleChords from "../ScaleChords/ScaleChords";
-import ScaleNotes from "../ScaleNotes/ScaleNotes";
 import ScaleShapes from "../ScaleShapes/ScaleShapes";
 import StringCountSelector from "../StringCountSelector/StringCountSelector";
 import Tuning from "../Tuning/Tuning";
@@ -27,6 +26,7 @@ export default function Fretboard() {
     currentKey,
     currentScale,
     activeShape,
+    shapeSystem,
     showShapes,
     displayMode,
     selectedChordDegree,
@@ -38,7 +38,8 @@ export default function Fretboard() {
     currentKey,
     currentScale,
   );
-  const activeShapePositions = buildThreeNotesPerStringShape(
+  const activeShapePositions = buildScaleShape(
+    shapeSystem,
     tuning,
     fretCount,
     currentKey,
@@ -152,7 +153,6 @@ export default function Fretboard() {
         <StringCountSelector />
         <ScaleShapes />
         <DisplayModeSelector />
-        <ScaleNotes />
         <ScaleChords />
       </div>
       <div

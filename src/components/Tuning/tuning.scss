@@ -1,113 +1,85 @@
 @use "variables" as *;
 @use "mixins" as *;
 
-.tuning{
-    grid-area: tuning;
+.tuning {
+  grid-area: tuning;
+  padding-right: 8px;
 
-    &__noteWrapper{
-        position: relative;
+  &__noteWrapper { position: relative; height: var(--fret-height); }
+
+  &__note {
+    width: 40px;
+    height: var(--fret-height);
+    padding: 0;
+    border: 1px solid rgba(151, 176, 194, 0.2);
+    border-radius: 10px;
+    background: linear-gradient(145deg, #1b2833, #0d151d);
+    box-shadow:
+      0 5px 10px rgba(0, 0, 0, 0.34),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
+    color: #d5dde3;
+    font-size: 13px;
+    font-weight: 650;
+
+    &:hover {
+      transform: translateY(-1px);
+      border-color: rgba($cyan, 0.56);
+      background: linear-gradient(145deg, #213541, #10202a);
+      color: $cyan;
+      box-shadow:
+        0 7px 14px rgba(0, 0, 0, 0.4),
+        0 0 11px rgba($cyan, 0.16),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
     }
 
-    &__note{
-        @include neomorphic-button($width: 40px, $height: 44px, $radius: 8px);
-        padding: 0;
-        width: 100%;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        cursor: pointer;
-        transition: $transition;
-        position: relative;
-
-        &--1{
-            --button-accent: #{$note-1-color};
-            color: $note-1-color;
-        }
-
-        &--2{
-            --button-accent: #{$note-2-color};
-            color: $note-2-color;
-        }
-
-        &--3{
-            --button-accent: #{$note-3-color};
-            color: $note-3-color;
-        }
-
-        &--4{
-            --button-accent: #{$note-4-color};
-            color: $note-4-color;
-        }
-
-        &--5{
-            --button-accent: #{$note-5-color};
-            color: $note-5-color;
-        }
-
-        &--6{
-            --button-accent: #{$note-6-color};
-            color: $note-6-color;
-        }
-
-        &--7{
-            --button-accent: #{$note-7-color};
-            color: $note-7-color;
-        }
+    &[aria-expanded="true"] {
+      border-color: rgba($cyan, 0.74);
+      background: linear-gradient(145deg, #1d3540, #0d2029);
+      color: $cyan;
+      box-shadow:
+        inset 2px 2px 6px rgba(0, 0, 0, 0.46),
+        0 0 12px rgba($cyan, 0.24);
     }
 
-    &__selection{
-        position: absolute;
-        top: 0;
-        left: calc(100% + 4px);
-        background: $black;
-        height: 44px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        box-sizing: border-box;
-        padding: 6px 12px;
-        z-index: 2;
-        overflow: hidden;
-        width: max-content;
-        opacity: 0;
-        transform: translateX(0);
-        pointer-events: none;
-        background-color: $black;
-        filter: drop-shadow(0 0 3px $black)
-                drop-shadow(0px 0px 2px $white);
-        transition: $transition;
-        z-index: 100;
+    &--1,
+    &--2,
+    &--3,
+    &--4,
+    &--5,
+    &--6,
+    &--7 { color: #dce4ea; }
+  }
 
-        &--active{
-            opacity: 1;
-            transform: translateX(1);
-            pointer-events: all;
-        }
-    }
+  &__selection {
+    position: absolute;
+    top: 1px;
+    left: calc(100% + 10px);
+    z-index: 100;
+    width: max-content;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 9px;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    border: 1px solid rgba($cyan, 0.2);
+    border-radius: 12px;
+    background: rgba(8, 14, 20, 0.97);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.52), 0 0 18px rgba($cyan, 0.08);
+    transform: translateX(-4px);
+    transition: $transition;
 
-    &__selection-note{
-        @include neomorphic-button($width: 38px, $height: 32px, $radius: 16px, $accent: $note-1-color);
-        min-width: 38px;
-        padding: 0 6px;
-        color: $white;
-        display: flex;
-        justify-content: center;
-        align-items: center;
+    &--active { opacity: 1; transform: translateX(0); pointer-events: all; }
+  }
 
-        &:hover{
-            cursor: pointer;
-            color: $note-1-color;
-        }
+  &__selection-note {
+    @include neomorphic-button($width: 36px, $height: 28px, $radius: 999px);
+    min-width: 36px;
+    padding: 0 6px;
+    font-size: 11px;
 
-        &--active {
-            border-color: color-mix(in srgb, var(--button-accent) 55%, $black-dark);
-            color: var(--button-accent);
-            box-shadow:
-                inset 4px 4px 7px rgba($black-dark, 0.96),
-                inset -3px -3px 6px rgba($black-light, 0.62),
-                0 0 8px color-mix(in srgb, var(--button-accent) 32%, transparent),
-                0 0 18px color-mix(in srgb, var(--button-accent) 14%, transparent);
-        }
-
-    }
+    &--active { color: $cyan; border-color: rgba($cyan, 0.7); box-shadow: 0 0 9px rgba($cyan, 0.22); }
+  }
 }

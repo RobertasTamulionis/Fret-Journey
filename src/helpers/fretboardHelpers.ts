@@ -5,6 +5,7 @@ import type {
   Note,
   ScaleDegree,
   ScaleName,
+  ScaleShapeSystem,
 } from "./typesHelpers";
 
 type ScaleDefinition = {
@@ -36,6 +37,38 @@ export type FretPosition = {
   note: Note;
   scaleDegree?: ScaleDegree;
   intervalName?: IntervalName;
+};
+
+export type ScaleShapeOption = {
+  label: string;
+  shortLabel: string;
+};
+
+export const scaleShapeSystems: Record<
+  ScaleShapeSystem,
+  { label: string; shapes: ScaleShapeOption[] }
+> = {
+  "3nps": {
+    label: "3NPS",
+    shapes: Array.from({ length: 7 }, (_, index) => ({
+      label: `Position ${index + 1}`,
+      shortLabel: String(index + 1),
+    })),
+  },
+  caged: {
+    label: "CAGED",
+    shapes: Array.from({ length: 5 }, (_, index) => ({
+      label: `Position ${index + 1}`,
+      shortLabel: String(index + 1),
+    })),
+  },
+  pentatonic: {
+    label: "Pentatonic",
+    shapes: Array.from({ length: 5 }, (_, index) => ({
+      label: `Box ${index + 1}`,
+      shortLabel: String(index + 1),
+    })),
+  },
 };
 
 export const allNotes: Note[] = [
@@ -348,4 +381,299 @@ export const buildThreeNotesPerStringShape = (
   }
 
   return positions;
+};
+
+const getNextFretForNote = (openNote: Note, targetNote: Note): number => {
+  const openNoteIndex = allNotes.indexOf(openNote);
+  const targetNoteIndex = allNotes.indexOf(targetNote);
+  const fret =
+    (targetNoteIndex - openNoteIndex + allNotes.length) % allNotes.length;
+
+  return fret === 0 ? allNotes.length : fret;
+};
+
+const cagedFretOffsetsByScale: Record<ScaleName, number[][][]> = {
+  major: [
+    [
+      [-1, 0, 2],
+      [0, 2],
+      [-1, 1, 2],
+      [-1, 1, 2],
+      [-1, 0, 2],
+      [-1, 0, 2],
+    ],
+    [
+      [2, 4, 5],
+      [2, 4, 5],
+      [1, 2, 4],
+      [1, 2, 4],
+      [2, 4],
+      [2, 4, 5],
+    ],
+    [
+      [4, 5, 7],
+      [4, 5, 7],
+      [4, 6],
+      [4, 6, 7],
+      [4, 6, 7],
+      [4, 5, 7],
+    ],
+    [
+      [7, 9],
+      [7, 9, 10],
+      [6, 8, 9],
+      [6, 7, 9],
+      [6, 7, 9],
+      [5, 7, 9],
+    ],
+    [
+      [9, 11, 12],
+      [9, 10, 12],
+      [8, 9, 11],
+      [9, 11],
+      [9, 11, 12],
+      [9, 11, 12],
+    ],
+  ],
+  minor: [
+    [
+      [0, 2, 3],
+      [0, 1, 3],
+      [-1, 0, 2],
+      [0, 2],
+      [0, 2, 3],
+      [0, 2, 3],
+    ],
+    [
+      [2, 3, 5],
+      [3, 5],
+      [2, 4, 5],
+      [2, 4, 5],
+      [2, 3, 5],
+      [2, 3, 5],
+    ],
+    [
+      [5, 7, 8],
+      [5, 7, 8],
+      [4, 5, 7],
+      [4, 5, 7],
+      [5, 7],
+      [5, 7, 8],
+    ],
+    [
+      [7, 8, 10],
+      [7, 8, 10],
+      [7, 9],
+      [7, 9, 10],
+      [7, 9, 10],
+      [7, 8, 10],
+    ],
+    [
+      [10, 12],
+      [10, 12, 13],
+      [9, 11, 12],
+      [9, 10, 12],
+      [9, 10, 12],
+      [8, 10, 12],
+    ],
+  ],
+};
+
+const getClosestFretForNote = (
+  openNote: Note,
+  targetNote: Note,
+  referenceFret: number,
+  fretCount: number,
+): number | undefined => {
+  const matchingFrets = Array.from(
+    { length: fretCount },
+    (_, index) => index + 1,
+  )
+    .filter((fret) => getFretNote(openNote, fret) === targetNote)
+    .sort(
+      (firstFret, secondFret) =>
+        Math.abs(firstFret - referenceFret) -
+        Math.abs(secondFret - referenceFret),
+    );
+
+  return matchingFrets[0];
+};
+
+export const buildCagedScaleShape = (
+  tuning: Note[],
+  fretCount: number,
+  currentKey: Note,
+  currentScale: ScaleName,
+  shapeIndex: number,
+): Set<string> => {
+  const shapeOffsets = cagedFretOffsetsByScale[currentScale][shapeIndex];
+
+  if (!shapeOffsets || tuning.length < 6) {
+    return new Set();
+  }
+
+  const offsets = shapeOffsets.flat();
+  let referenceRootFret = getNextFretForNote("E", currentKey);
+
+  while (referenceRootFret + Math.min(...offsets) < 1) {
+    referenceRootFret += allNotes.length;
+  }
+
+  const positions = new Set<string>();
+
+  shapeOffsets.forEach((stringOffsets, stringIndex) => {
+    stringOffsets.forEach((offset) => {
+      const referenceFret = referenceRootFret + offset;
+      const targetNote = getFretNote(
+        standardTuning[stringIndex],
+        referenceFret,
+      );
+      const fret = getClosestFretForNote(
+        tuning[stringIndex],
+        targetNote,
+        referenceFret,
+        fretCount,
+      );
+
+      if (fret !== undefined) {
+        positions.add(`${stringIndex}-${fret}`);
+      }
+    });
+  });
+
+  if (tuning.length > standardTuning.length) {
+    const scaleNotes = getNotesInCurrentScale(currentKey, currentScale);
+    const startFret = referenceRootFret + Math.min(...offsets);
+    const endFret = referenceRootFret + Math.max(...offsets);
+
+    for (
+      let stringIndex = standardTuning.length;
+      stringIndex < tuning.length;
+      stringIndex++
+    ) {
+      for (let fret = startFret; fret <= Math.min(fretCount, endFret); fret++) {
+        if (scaleNotes.includes(getFretNote(tuning[stringIndex], fret))) {
+          positions.add(`${stringIndex}-${fret}`);
+        }
+      }
+    }
+  }
+
+  return positions;
+};
+
+const pentatonicIntervalsByScale: Record<ScaleName, number[]> = {
+  major: [0, 2, 4, 7, 9],
+  minor: [0, 3, 5, 7, 10],
+};
+
+const buildTwoNotesPerStringShape = (
+  tuning: Note[],
+  fretCount: number,
+  scaleNotes: Note[],
+  shapeIndex: number,
+): Set<string> => {
+  if (
+    tuning.length === 0 ||
+    shapeIndex < 0 ||
+    shapeIndex >= scaleNotes.length
+  ) {
+    return new Set();
+  }
+
+  const openStringPitches = getDescendingOpenStringPitches(tuning);
+  const positions = new Set<string>();
+  let scaleNoteIndex = shapeIndex;
+  let previousPitch = Number.NEGATIVE_INFINITY;
+
+  for (let stringIndex = tuning.length - 1; stringIndex >= 0; stringIndex--) {
+    const openPitch = openStringPitches[stringIndex];
+
+    for (let noteOnString = 0; noteOnString < 2; noteOnString++) {
+      const targetNote = scaleNotes[scaleNoteIndex % scaleNotes.length];
+      const targetPitchClass = allNotes.indexOf(targetNote);
+      let selectedFret: number | undefined;
+      let selectedPitch: number | undefined;
+
+      for (let fret = 1; fret <= fretCount; fret++) {
+        const pitch = openPitch + fret;
+
+        if (
+          pitch > previousPitch &&
+          ((pitch % allNotes.length) + allNotes.length) % allNotes.length ===
+            targetPitchClass
+        ) {
+          selectedFret = fret;
+          selectedPitch = pitch;
+          break;
+        }
+      }
+
+      if (selectedFret === undefined || selectedPitch === undefined) {
+        return positions;
+      }
+
+      positions.add(`${stringIndex}-${selectedFret}`);
+      previousPitch = selectedPitch;
+      scaleNoteIndex++;
+    }
+  }
+
+  return positions;
+};
+
+export const buildPentatonicScaleShape = (
+  tuning: Note[],
+  fretCount: number,
+  currentKey: Note,
+  currentScale: ScaleName,
+  shapeIndex: number,
+): Set<string> => {
+  const pentatonicNotes = pentatonicIntervalsByScale[currentScale].map(
+    (interval) => getNoteAtSemitoneOffset(currentKey, interval),
+  );
+
+  return buildTwoNotesPerStringShape(
+    tuning,
+    fretCount,
+    pentatonicNotes,
+    shapeIndex,
+  );
+};
+
+export const buildScaleShape = (
+  shapeSystem: ScaleShapeSystem,
+  tuning: Note[],
+  fretCount: number,
+  currentKey: Note,
+  currentScale: ScaleName,
+  shapeIndex: number,
+): Set<string> => {
+  if (shapeSystem === "caged") {
+    return buildCagedScaleShape(
+      tuning,
+      fretCount,
+      currentKey,
+      currentScale,
+      shapeIndex,
+    );
+  }
+
+  if (shapeSystem === "pentatonic") {
+    return buildPentatonicScaleShape(
+      tuning,
+      fretCount,
+      currentKey,
+      currentScale,
+      shapeIndex,
+    );
+  }
+
+  return buildThreeNotesPerStringShape(
+    tuning,
+    fretCount,
+    currentKey,
+    currentScale,
+    shapeIndex,
+  );
 };

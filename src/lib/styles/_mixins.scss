@@ -4,51 +4,52 @@
   $width: auto,
   $height: 40px,
   $radius: $control-radius,
-  $accent: $white
+  $accent: $cyan
 ) {
   --button-accent: #{$accent};
   appearance: none;
   min-width: $width;
   height: $height;
   padding: 0 16px;
-  border: 1px solid rgba($black-dark, 0.9);
+  border: 1px solid rgba(155, 177, 195, 0.13);
   border-radius: $radius;
-  background: linear-gradient(145deg, $black-light 0%, $black 42%, $black-dark 100%);
+  background: linear-gradient(145deg, rgba(27, 38, 49, 0.96), rgba(13, 20, 28, 0.98));
   box-shadow:
-    -4px -4px 8px rgba($black-light, 0.72),
-    5px 5px 10px rgba($black-dark, 0.9),
-    inset 1px 1px 1px $control-highlight;
-  color: $white;
+    0 8px 16px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 $control-highlight;
+  color: #cbd3da;
   font: inherit;
-  font-weight: 600;
-  letter-spacing: 0.01em;
+  font-size: 13px;
+  font-weight: 560;
+  letter-spacing: -0.01em;
   cursor: pointer;
   transition:
-    transform 160ms ease,
-    color 220ms ease,
-    box-shadow 220ms ease,
-    border-color 220ms ease;
+    transform $transition,
+    color $transition,
+    box-shadow $transition,
+    border-color $transition,
+    background $transition;
 
   &:hover {
-    border-color: color-mix(in srgb, var(--button-accent) 35%, $black-dark);
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--button-accent) 42%, transparent);
     color: var(--button-accent);
+    background: linear-gradient(145deg, rgba(31, 44, 56, 0.98), rgba(15, 24, 33, 0.98));
     box-shadow:
-      -5px -5px 10px rgba($black-light, 0.78),
-      6px 6px 12px rgba($black-dark, 0.95),
-      0 0 12px color-mix(in srgb, var(--button-accent) 18%, transparent),
-      inset 1px 1px 1px $control-highlight;
+      0 10px 22px rgba(0, 0, 0, 0.34),
+      0 0 15px color-mix(in srgb, var(--button-accent) 10%, transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.07);
   }
 
   &:active {
-    transform: translateY(1px);
+    transform: translateY(0);
     box-shadow:
-      inset 5px 5px 8px rgba($black-dark, 0.95),
-      inset -4px -4px 8px rgba($black-light, 0.62),
-      0 0 8px color-mix(in srgb, var(--button-accent) 14%, transparent);
+      inset 3px 3px 8px rgba(0, 0, 0, 0.48),
+      inset -2px -2px 6px rgba(58, 77, 93, 0.18);
   }
 
   &:focus-visible {
-    outline: 2px solid var(--button-accent);
+    outline: 2px solid color-mix(in srgb, var(--button-accent) 80%, white);
     outline-offset: 3px;
   }
 
@@ -64,14 +65,14 @@
   $border-color: $white,
   $active-bg: $note-1-color,
   $active-color: $black,
-  $shadow-color: $note-1-color,
+  $shadow-color: $cyan,
   $width: 60px,
   $height: 40px,
-  $font-size: 18px,
-  $font-weight: 500,
-  $radius: 10px,
+  $font-size: 14px,
+  $font-weight: 560,
+  $radius: 999px,
   $margin-right: 10px,
-  $transition: 0.6s
+  $transition: 0.22s
 ) {
   @include neomorphic-button(
     $width: $width,
@@ -88,13 +89,14 @@
   align-items: center;
 
   &--active {
-    border-color: color-mix(in srgb, var(--button-accent) 42%, $black-dark);
-    background: linear-gradient(145deg, $black-dark, $black 72%, $black-light);
+    border-color: color-mix(in srgb, var(--button-accent) 72%, transparent);
+    background:
+      linear-gradient(145deg, rgba(22, 46, 57, 0.92), rgba(10, 24, 33, 0.98));
     color: var(--button-accent);
     box-shadow:
-      inset 5px 5px 9px rgba($black-dark, 0.96),
-      inset -4px -4px 8px rgba($black-light, 0.65),
-      0 0 8px color-mix(in srgb, var(--button-accent) 28%, transparent),
-      0 0 20px color-mix(in srgb, var(--button-accent) 12%, transparent);
+      inset 3px 3px 8px rgba(0, 0, 0, 0.52),
+      inset -2px -2px 7px rgba(70, 105, 119, 0.16),
+      0 0 10px color-mix(in srgb, var(--button-accent) 26%, transparent),
+      0 0 26px color-mix(in srgb, var(--button-accent) 10%, transparent);
   }
 }

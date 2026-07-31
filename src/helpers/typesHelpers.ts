@@ -39,3 +39,5 @@ export type FretboardDisplayMode =
   | "degrees"
   | "intervals"
   | "chord-tones";
+
+export type ScaleShapeSystem = "3nps" | "caged" | "pentatonic";

@@ -1,6 +1,9 @@
 import type React from "react";
+import { scaleShapeSystems } from "@/helpers/fretboardHelpers";
+import type { ScaleShapeSystem } from "@/helpers/typesHelpers";
 import {
   setActiveShape,
+  setShapeSystem,
   setShowShapes,
 } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
@@ -9,38 +12,64 @@ import "./scaleShapes.scss";
 
 function ScaleShapes() {
   const dispatch = useAppDispatch();
-  const { showShapes, activeShape } = useAppSelector(
+  const { showShapes, shapeSystem, activeShape } = useAppSelector(
     (state) => state.fretboard,
   );
+  const activeShapeSystem = scaleShapeSystems[shapeSystem];
 
-  const renderButtons = (arr: number[]): React.ReactElement[] => {
-    return arr.map((nr) => (
+  const renderShapeButtons = (): React.ReactElement[] => {
+    return activeShapeSystem.shapes.map(({ label, shortLabel }, index) => (
       <button
-        aria-label={`Show three-notes-per-string shape ${nr}`}
-        key={nr}
+        aria-label={`Show ${label}`}
+        aria-pressed={activeShape === index}
+        key={label}
         className={`scaleShapes__list-item ${
-          activeShape === nr - 1 ? "scaleShapes__list-item--active" : ""
+          activeShape === index ? "scaleShapes__list-item--active" : ""
         }`}
-        onClick={() => dispatch(setActiveShape(nr - 1))}
+        onClick={() => dispatch(setActiveShape(index))}
         type="button"
       >
-        {nr}
+        {shortLabel}
       </button>
     ));
   };
 
   return (
     <section className="scaleShapes">
-      <h1>3NPS Shapes</h1>
+      <h1>Scale Shapes</h1>
+      <fieldset aria-label="Shape system" className="scaleShapes__systems">
+        {(Object.keys(scaleShapeSystems) as ScaleShapeSystem[]).map(
+          (system) => {
+            const isActive = shapeSystem === system;
+
+            return (
+              <button
+                aria-pressed={isActive}
+                className={`scaleShapes__system ${
+                  isActive ? "scaleShapes__system--active" : ""
+                }`}
+                key={system}
+                onClick={() => dispatch(setShapeSystem(system))}
+                type="button"
+              >
+                {scaleShapeSystems[system].label}
+              </button>
+            );
+          },
+        )}
+      </fieldset>
       <div className="scaleShapes__controls">
         <Switch
           switchAction={() => dispatch(setShowShapes(!showShapes))}
           states={["Hide", "Show"]}
         />
         {showShapes && (
-          <div className="scaleShapes__list">
-            {renderButtons([1, 2, 3, 4, 5, 6, 7])}
-          </div>
+          <fieldset
+            aria-label={`${activeShapeSystem.label} shapes`}
+            className="scaleShapes__list"
+          >
+            {renderShapeButtons()}
+          </fieldset>
         )}
       </div>
     </section>

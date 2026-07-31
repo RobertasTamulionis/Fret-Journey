@@ -6,26 +6,7 @@
   flex-direction: column;
   align-items: flex-start;
 
-  &__heading {
-    margin-bottom: 12px;
-  }
-
-  &__options {
-    display: flex;
-    gap: 12px;
-  }
-
-  &__option {
-    @include list-item(
-      $width: 60px,
-      $margin-right: 0,
-      $shadow-color: $note-2-color
-    );
-  }
-
-  &__hint {
-    margin: 10px 0 0;
-    color: rgba($white, 0.62);
-    font-size: 12px;
-  }
+  &__options { display: flex; gap: 10px; }
+  &__option { @include list-item($width: 44px, $height: 40px, $margin-right: 0); padding: 0; }
+  &__hint { margin: 14px 0 0; color: $muted; font-size: 11px; }
 }

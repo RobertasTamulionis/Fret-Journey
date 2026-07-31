@@ -1,26 +1,8 @@
-@use "variables" as *;
 @use "mixins" as *;
 
-.availableKeys{
-
-    &__heading{
-        text-align: center;
-    }
-
-    &__keys{
-        display: flex;
-        flex-wrap: wrap;
-        gap: 10px;
-    }
-
-    &__key{
-        @include list-item($margin-right: 0);
-    }
-
-    &__notes{
-        width: 400px;
-        margin-top: 40px;
-        display: flex;
-        justify-content: space-evenly;
-    }
+.availableKeys {
+  &__heading { text-align: left; }
+  &__keys { display: flex; flex-wrap: wrap; gap: 10px; }
+  &__key { @include list-item($width: 54px, $height: 40px, $margin-right: 0); padding-inline: 12px; }
+  &__notes { display: flex; gap: 10px; margin-top: 20px; }
 }

@@ -6,6 +6,7 @@ import type {
   Note,
   ScaleDegree,
   ScaleName,
+  ScaleShapeSystem,
 } from "@/helpers/typesHelpers";
 
 interface FretboardState {
@@ -15,6 +16,7 @@ interface FretboardState {
   currentScale: ScaleName;
   tuning: Note[];
   showShapes: boolean;
+  shapeSystem: ScaleShapeSystem;
   activeShape: number;
   displayMode: FretboardDisplayMode;
   selectedChordDegree: ScaleDegree;
@@ -27,6 +29,7 @@ const initialState: FretboardState = {
   currentScale: "major",
   tuning: standardTuning,
   showShapes: false,
+  shapeSystem: "3nps",
   activeShape: 0,
   displayMode: "notes",
   selectedChordDegree: 1,
@@ -62,6 +65,10 @@ const fretboardSlice = createSlice({
     setShowShapes: (state, action: PayloadAction<boolean>) => {
       state.showShapes = action.payload;
     },
+    setShapeSystem: (state, action: PayloadAction<ScaleShapeSystem>) => {
+      state.shapeSystem = action.payload;
+      state.activeShape = 0;
+    },
     setActiveShape: (state, action: PayloadAction<number>) => {
       state.activeShape = action.payload;
     },
@@ -86,6 +93,7 @@ export const {
   setTuningNote,
   setFretNoteCount,
   setShowShapes,
+  setShapeSystem,
   setActiveShape,
   setDisplayMode,
   setSelectedChordDegree,
