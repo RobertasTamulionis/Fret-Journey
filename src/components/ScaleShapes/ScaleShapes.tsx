@@ -1,5 +1,8 @@
 import type React from "react";
-import { scaleShapeSystems } from "@/helpers/fretboardHelpers";
+import {
+  getScaleShapeSystem,
+  scaleShapeSystems,
+} from "@/helpers/fretboardHelpers";
 import type { ScaleShapeSystem } from "@/helpers/typesHelpers";
 import {
   setActiveShape,
@@ -12,10 +15,10 @@ import "./scaleShapes.scss";
 
 function ScaleShapes() {
   const dispatch = useAppDispatch();
-  const { showShapes, shapeSystem, activeShape } = useAppSelector(
+  const { showShapes, shapeSystem, activeShape, currentScale } = useAppSelector(
     (state) => state.fretboard,
   );
-  const activeShapeSystem = scaleShapeSystems[shapeSystem];
+  const activeShapeSystem = getScaleShapeSystem(shapeSystem, currentScale);
 
   const renderShapeButtons = (): React.ReactElement[] => {
     return activeShapeSystem.shapes.map(({ label, shortLabel }, index) => (

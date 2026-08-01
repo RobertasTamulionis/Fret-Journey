@@ -35,9 +35,6 @@ export default function StringCountSelector() {
           );
         })}
       </div>
-      <p className="stringCountSelector__hint">
-        Changing strings loads standard tuning.
-      </p>
     </section>
   );
 }

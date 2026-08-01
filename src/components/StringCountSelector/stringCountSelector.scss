@@ -8,5 +8,4 @@
 
   &__options { display: flex; gap: 10px; }
   &__option { @include list-item($width: 44px, $height: 40px, $margin-right: 0); padding: 0; }
-  &__hint { margin: 14px 0 0; color: $muted; font-size: 11px; }
 }

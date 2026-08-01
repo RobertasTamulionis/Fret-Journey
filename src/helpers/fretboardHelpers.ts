@@ -13,7 +13,7 @@ type ScaleDefinition = {
   label: string;
   intervals: number[];
   intervalNames: IntervalName[];
-  triadQualities: ChordQuality[];
+  chordStrategy: "diatonic-triads" | "blues-dominant-sevenths";
 };
 
 export type GuitarConfiguration = {
@@ -29,7 +29,14 @@ export type ScaleChord = {
   degree: ScaleDegree;
 };
 
-export type ChordToneIntervalName = "R" | "M3" | "m3" | "P5" | "d5";
+export type ChordToneIntervalName =
+  | "R"
+  | "M3"
+  | "m3"
+  | "P5"
+  | "d5"
+  | "A5"
+  | "m7";
 
 export type FretPosition = {
   stringIndex: number;
@@ -71,6 +78,28 @@ export const scaleShapeSystems: Record<
   },
 };
 
+export const getScaleShapeSystem = (
+  shapeSystem: ScaleShapeSystem,
+  currentScale: ScaleName,
+): { label: string; shapes: ScaleShapeOption[] } => {
+  const system = scaleShapeSystems[shapeSystem];
+
+  if (shapeSystem !== "3nps") {
+    return system;
+  }
+
+  return {
+    ...system,
+    shapes: Array.from(
+      { length: scaleDefinitions[currentScale].intervals.length },
+      (_, index) => ({
+        label: `Position ${index + 1}`,
+        shortLabel: String(index + 1),
+      }),
+    ),
+  };
+};
+
 export const allNotes: Note[] = [
   "A",
   "A#/Bb",
@@ -107,30 +136,35 @@ export const scaleDefinitions: Record<ScaleName, ScaleDefinition> = {
     label: "Major",
     intervals: [0, 2, 4, 5, 7, 9, 11],
     intervalNames: ["R", "M2", "M3", "P4", "P5", "M6", "M7"],
-    triadQualities: [
-      "major",
-      "minor",
-      "minor",
-      "major",
-      "major",
-      "minor",
-      "diminished",
-    ],
+    chordStrategy: "diatonic-triads",
   },
   minor: {
     name: "minor",
     label: "Natural Minor",
     intervals: [0, 2, 3, 5, 7, 8, 10],
     intervalNames: ["R", "M2", "m3", "P4", "P5", "m6", "m7"],
-    triadQualities: [
-      "minor",
-      "diminished",
-      "major",
-      "minor",
-      "minor",
-      "major",
-      "major",
-    ],
+    chordStrategy: "diatonic-triads",
+  },
+  blues: {
+    name: "blues",
+    label: "Blues Scale",
+    intervals: [0, 3, 5, 6, 7, 10],
+    intervalNames: ["R", "m3", "P4", "TT", "P5", "m7"],
+    chordStrategy: "blues-dominant-sevenths",
+  },
+  "harmonic-minor": {
+    name: "harmonic-minor",
+    label: "Harmonic Minor",
+    intervals: [0, 2, 3, 5, 7, 8, 11],
+    intervalNames: ["R", "M2", "m3", "P4", "P5", "m6", "M7"],
+    chordStrategy: "diatonic-triads",
+  },
+  "phrygian-dominant": {
+    name: "phrygian-dominant",
+    label: "Phrygian Dominant",
+    intervals: [0, 1, 4, 5, 7, 8, 10],
+    intervalNames: ["R", "m2", "M3", "P4", "P5", "m6", "m7"],
+    chordStrategy: "diatonic-triads",
   },
 };
 
@@ -238,6 +272,39 @@ export const getDiatonicTriadNotes = (
   scaleNotes[(rootIndex + 4) % scaleNotes.length],
 ];
 
+const getSemitoneDistance = (root: Note, note: Note): number =>
+  (allNotes.indexOf(note) - allNotes.indexOf(root) + allNotes.length) %
+  allNotes.length;
+
+const getTriadQuality = (notes: Note[]): ChordQuality => {
+  const intervals = notes
+    .slice(1)
+    .map((note) => getSemitoneDistance(notes[0], note))
+    .sort((firstInterval, secondInterval) => firstInterval - secondInterval)
+    .join("-");
+
+  const qualitiesByIntervals: Record<string, ChordQuality> = {
+    "3-6": "diminished",
+    "3-7": "minor",
+    "4-7": "major",
+    "4-8": "augmented",
+  };
+  const quality = qualitiesByIntervals[intervals];
+
+  if (!quality) {
+    throw new Error(`Unsupported diatonic triad intervals: ${intervals}`);
+  }
+
+  return quality;
+};
+
+// Minor-blues harmony is represented by the practical I7-IV7-V7 progression.
+const bluesChordDefinitions = [
+  { degree: 1, rootInterval: 0 },
+  { degree: 4, rootInterval: 5 },
+  { degree: 5, rootInterval: 7 },
+] as const;
+
 export const getScaleChords = (
   currentKey: Note,
   currentScale: ScaleName,
@@ -245,21 +312,42 @@ export const getScaleChords = (
   const scaleDefinition = scaleDefinitions[currentScale];
   const scaleNotes = getNotesInCurrentScale(currentKey, currentScale);
 
-  return scaleNotes.map((root, index) => ({
-    root,
-    quality: scaleDefinition.triadQualities[index],
-    notes: getDiatonicTriadNotes(scaleNotes, index),
-    degree: (index + 1) as ScaleDegree,
-  }));
+  if (scaleDefinition.chordStrategy === "blues-dominant-sevenths") {
+    return bluesChordDefinitions.map(({ degree, rootInterval }) => {
+      const root = getNoteAtSemitoneOffset(currentKey, rootInterval);
+
+      return {
+        root,
+        quality: "dominant7",
+        notes: [0, 4, 7, 10].map((interval) =>
+          getNoteAtSemitoneOffset(root, interval),
+        ),
+        degree,
+      };
+    });
+  }
+
+  return scaleNotes.map((root, index) => {
+    const notes = getDiatonicTriadNotes(scaleNotes, index);
+
+    return {
+      root,
+      quality: getTriadQuality(notes),
+      notes,
+      degree: (index + 1) as ScaleDegree,
+    };
+  });
 };
 
 const chordToneIntervalsByQuality: Record<
   ChordQuality,
-  [ChordToneIntervalName, ChordToneIntervalName, ChordToneIntervalName]
+  readonly ChordToneIntervalName[]
 > = {
   major: ["R", "M3", "P5"],
   minor: ["R", "m3", "P5"],
   diminished: ["R", "m3", "d5"],
+  augmented: ["R", "M3", "A5"],
+  dominant7: ["R", "M3", "P5", "m7"],
 };
 
 export const getChordToneIntervalName = (
@@ -392,7 +480,8 @@ const getNextFretForNote = (openNote: Note, targetNote: Note): number => {
   return fret === 0 ? allNotes.length : fret;
 };
 
-const cagedFretOffsetsByScale: Record<ScaleName, number[][][]> = {
+// Preserve the hand-authored major and natural-minor CAGED positions.
+const cagedFretOffsetsByScale: Partial<Record<ScaleName, number[][][]>> = {
   major: [
     [
       [-1, 0, 2],
@@ -479,6 +568,50 @@ const cagedFretOffsetsByScale: Record<ScaleName, number[][][]> = {
   ],
 };
 
+// Other scales use five overlapping CAGED-style fretboard regions.
+const cagedWindowOffsets = [
+  [-1, 3],
+  [2, 6],
+  [4, 8],
+  [7, 11],
+  [9, 13],
+] as const;
+
+const buildScaleShapeInFretWindow = (
+  tuning: Note[],
+  fretCount: number,
+  currentKey: Note,
+  currentScale: ScaleName,
+  shapeIndex: number,
+): Set<string> => {
+  const windowOffsets = cagedWindowOffsets[shapeIndex];
+
+  if (!windowOffsets) {
+    return new Set();
+  }
+
+  let referenceRootFret = getNextFretForNote("E", currentKey);
+
+  while (referenceRootFret + windowOffsets[0] < 1) {
+    referenceRootFret += allNotes.length;
+  }
+
+  const startFret = referenceRootFret + windowOffsets[0];
+  const endFret = Math.min(fretCount, referenceRootFret + windowOffsets[1]);
+  const scaleNotes = getNotesInCurrentScale(currentKey, currentScale);
+  const positions = new Set<string>();
+
+  tuning.forEach((openNote, stringIndex) => {
+    for (let fret = startFret; fret <= endFret; fret++) {
+      if (scaleNotes.includes(getFretNote(openNote, fret))) {
+        positions.add(`${stringIndex}-${fret}`);
+      }
+    }
+  });
+
+  return positions;
+};
+
 const getClosestFretForNote = (
   openNote: Note,
   targetNote: Note,
@@ -506,9 +639,19 @@ export const buildCagedScaleShape = (
   currentScale: ScaleName,
   shapeIndex: number,
 ): Set<string> => {
-  const shapeOffsets = cagedFretOffsetsByScale[currentScale][shapeIndex];
+  const shapeOffsets = cagedFretOffsetsByScale[currentScale]?.[shapeIndex];
 
-  if (!shapeOffsets || tuning.length < 6) {
+  if (!shapeOffsets) {
+    return buildScaleShapeInFretWindow(
+      tuning,
+      fretCount,
+      currentKey,
+      currentScale,
+      shapeIndex,
+    );
+  }
+
+  if (tuning.length < 6) {
     return new Set();
   }
 
@@ -562,9 +705,13 @@ export const buildCagedScaleShape = (
   return positions;
 };
 
+// Five-note cores keep the Pentatonic system at two notes per string.
 const pentatonicIntervalsByScale: Record<ScaleName, number[]> = {
   major: [0, 2, 4, 7, 9],
   minor: [0, 3, 5, 7, 10],
+  blues: [0, 3, 5, 7, 10],
+  "harmonic-minor": [0, 3, 5, 7, 11],
+  "phrygian-dominant": [0, 1, 4, 7, 10],
 };
 
 const buildTwoNotesPerStringShape = (

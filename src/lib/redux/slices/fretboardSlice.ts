@@ -44,6 +44,8 @@ const fretboardSlice = createSlice({
     },
     setScale: (state, action: PayloadAction<ScaleName>) => {
       state.currentScale = action.payload;
+      state.activeShape = 0;
+      state.selectedChordDegree = 1;
     },
     setStringCount: (state, action: PayloadAction<GuitarStringCount>) => {
       state.stringCount = action.payload;

@@ -8,6 +8,8 @@ const chordQualityLabels = {
   major: "Maj",
   minor: "Min",
   diminished: "Dim",
+  augmented: "Aug",
+  dominant7: "7",
 };
 
 function ScaleChords(): React.ReactElement {

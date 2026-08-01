@@ -12,7 +12,12 @@ export type Note =
   | "G"
   | "G#/Ab";
 
-export type ScaleName = "major" | "minor";
+export type ScaleName =
+  | "major"
+  | "minor"
+  | "blues"
+  | "harmonic-minor"
+  | "phrygian-dominant";
 
 export type IntervalName =
   | "R"
@@ -28,7 +33,12 @@ export type IntervalName =
   | "m7"
   | "M7";
 
-export type ChordQuality = "major" | "minor" | "diminished";
+export type ChordQuality =
+  | "major"
+  | "minor"
+  | "diminished"
+  | "augmented"
+  | "dominant7";
 
 export type ScaleDegree = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 

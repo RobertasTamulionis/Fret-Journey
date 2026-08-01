@@ -208,6 +208,11 @@
       color: #ffc185;
       filter: drop-shadow(0 0 4px #ffc185);
     }
+
+    &--chord-seventh::after {
+      color: #8de1ad;
+      filter: drop-shadow(0 0 4px #8de1ad);
+    }
   }
 
   &__fret-piece--note-1#{&}__fret-piece--chord-root::after {

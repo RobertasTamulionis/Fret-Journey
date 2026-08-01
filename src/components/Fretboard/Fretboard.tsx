@@ -46,9 +46,10 @@ export default function Fretboard() {
     currentScale,
     activeShape,
   );
-  const selectedChord = getScaleChords(currentKey, currentScale)[
-    selectedChordDegree - 1
-  ];
+  const scaleChords = getScaleChords(currentKey, currentScale);
+  const selectedChord =
+    scaleChords.find(({ degree }) => degree === selectedChordDegree) ??
+    scaleChords[0];
 
   const buildCurrentNoteClassName = (scaleDegree?: ScaleDegree) => {
     if (scaleDegree) {
@@ -71,6 +72,16 @@ export default function Fretboard() {
     scaleDegree?: ScaleDegree,
     intervalName?: IntervalName,
   ): string | undefined => {
+    if (displayMode === "chord-tones") {
+      const chordToneName = getChordToneIntervalName(selectedChord, note);
+
+      if (chordToneName) {
+        return chordToneName;
+      }
+
+      return scaleDegree ? note : undefined;
+    }
+
     if (!scaleDegree) {
       return undefined;
     }
@@ -83,10 +94,6 @@ export default function Fretboard() {
       return intervalName;
     }
 
-    if (displayMode === "chord-tones") {
-      return getChordToneIntervalName(selectedChord, note) ?? note;
-    }
-
     return note;
   };
 
@@ -94,17 +101,17 @@ export default function Fretboard() {
     note: Note,
     isScaleNote: boolean,
   ): string => {
-    if (displayMode !== "chord-tones" || !isScaleNote) {
+    if (displayMode !== "chord-tones") {
       return "";
     }
 
     const chordToneIndex = selectedChord.notes.indexOf(note);
 
     if (chordToneIndex === -1) {
-      return "fretboard__fret-piece--muted";
+      return isScaleNote ? "fretboard__fret-piece--muted" : "";
     }
 
-    const chordToneClasses = ["root", "third", "fifth"];
+    const chordToneClasses = ["root", "third", "fifth", "seventh"];
     return `fretboard__fret-piece--chord-tone fretboard__fret-piece--chord-${chordToneClasses[chordToneIndex]}`;
   };
 
@@ -124,10 +131,13 @@ export default function Fretboard() {
       >
         {stringPositions.map(({ fret, note, scaleDegree, intervalName }) => {
           const isScaleNote = Boolean(scaleDegree);
+          const isChordTone =
+            displayMode === "chord-tones" && selectedChord.notes.includes(note);
+          const isVisibleNote = isScaleNote || isChordTone;
           const fretLabel = getFretLabel(note, scaleDegree, intervalName);
           const noteClassName = `
             fretboard__fret-piece
-            ${isScaleNote ? "fretboard__fret-piece--note" : ""}
+            ${isVisibleNote ? "fretboard__fret-piece--note" : ""}
             ${buildCurrentNoteClassName(scaleDegree)}
             ${buildNoteFontSizeClassName(fretLabel)}
             ${buildShapesClassName(stringIndex, fret)}
