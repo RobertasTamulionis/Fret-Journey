@@ -2,11 +2,12 @@
 import type React from "react";
 import { useState } from "react";
 import {
-  allNotes,
+  chromaticPitchClasses,
+  formatPitchClass,
   getScaleDegree,
   guitarStringIds,
 } from "@/helpers/fretboardHelpers";
-import type { Note } from "@/helpers/typesHelpers";
+import type { PitchClass } from "@/helpers/typesHelpers";
 import { setTuningNote } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import "./tuning.scss";
@@ -22,10 +23,13 @@ export default function Tuning(): React.ReactElement {
     null,
   );
 
-  const selectTuningNote = (note: Note, tuningNoteIndex: number): void => {
+  const selectTuningNote = (
+    pitchClass: PitchClass,
+    tuningNoteIndex: number,
+  ): void => {
     dispatch(
       setTuningNote({
-        note,
+        pitchClass,
         tuningNoteIndex,
       }),
     );
@@ -33,20 +37,20 @@ export default function Tuning(): React.ReactElement {
   };
 
   const tuningSelection = (tuningNoteIndex: number): React.ReactElement[] => {
-    return allNotes.map((note: Note) => {
-      const isSelected = tuning[tuningNoteIndex] === note;
+    return chromaticPitchClasses.map((pitchClass) => {
+      const isSelected = tuning[tuningNoteIndex] === pitchClass;
 
       return (
         <button
           aria-pressed={isSelected}
-          key={note}
-          onClick={() => selectTuningNote(note, tuningNoteIndex)}
+          key={pitchClass}
+          onClick={() => selectTuningNote(pitchClass, tuningNoteIndex)}
           className={`tuning__selection-note ${
             isSelected ? "tuning__selection-note--active" : ""
           }`}
           type="button"
         >
-          {note}
+          {formatPitchClass(pitchClass)}
         </button>
       );
     });
@@ -60,8 +64,12 @@ export default function Tuning(): React.ReactElement {
 
   return (
     <div className="tuning">
-      {tuning.map((tuningNote: Note, index: number) => {
-        const noteIndex = getScaleDegree(tuningNote, currentKey, currentScale);
+      {tuning.map((tuningPitchClass, index: number) => {
+        const noteIndex = getScaleDegree(
+          tuningPitchClass,
+          currentKey,
+          currentScale,
+        );
         const isSelectionOpen = activeStringIndex === index;
         const selectionId = `tuning-selection-${index}`;
         const tuningNoteClassName: string = `
@@ -74,12 +82,12 @@ export default function Tuning(): React.ReactElement {
             <button
               aria-controls={selectionId}
               aria-expanded={isSelectionOpen}
-              aria-label={`Change tuning for string ${index + 1}, currently ${tuningNote}`}
+              aria-label={`Change tuning for string ${index + 1}, currently ${formatPitchClass(tuningPitchClass)}`}
               onClick={() => setActiveNoteSelection(index)}
               className={tuningNoteClassName}
               type="button"
             >
-              {tuningNote}
+              {formatPitchClass(tuningPitchClass)}
             </button>
             <div
               aria-hidden={!isSelectionOpen}

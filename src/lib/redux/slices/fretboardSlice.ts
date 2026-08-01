@@ -1,20 +1,25 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
-import { getDefaultTuning, standardTuning } from "@/helpers/fretboardHelpers";
+import {
+  getAvailableScaleShapeSystems,
+  getDefaultTuning,
+  standardTuning,
+} from "@/helpers/fretboardHelpers";
 import type {
   FretboardDisplayMode,
   GuitarStringCount,
-  Note,
+  PitchClass,
   ScaleDegree,
   ScaleName,
   ScaleShapeSystem,
+  TonicName,
 } from "@/helpers/typesHelpers";
 
 interface FretboardState {
   stringCount: GuitarStringCount;
   fretCount: number;
-  currentKey: Note;
+  currentKey: TonicName;
   currentScale: ScaleName;
-  tuning: Note[];
+  tuning: PitchClass[];
   showShapes: boolean;
   shapeSystem: ScaleShapeSystem;
   activeShape: number;
@@ -39,13 +44,20 @@ const fretboardSlice = createSlice({
   name: "fretBoard",
   initialState,
   reducers: {
-    setKey: (state, action: PayloadAction<Note>) => {
+    setKey: (state, action: PayloadAction<TonicName>) => {
       state.currentKey = action.payload;
     },
     setScale: (state, action: PayloadAction<ScaleName>) => {
       state.currentScale = action.payload;
       state.activeShape = 0;
       state.selectedChordDegree = 1;
+      const availableShapeSystems = getAvailableScaleShapeSystems(
+        action.payload,
+      );
+
+      if (!availableShapeSystems.includes(state.shapeSystem)) {
+        state.shapeSystem = availableShapeSystems[0];
+      }
     },
     setStringCount: (state, action: PayloadAction<GuitarStringCount>) => {
       state.stringCount = action.payload;
@@ -53,12 +65,15 @@ const fretboardSlice = createSlice({
     },
     setTuningNote: (
       state,
-      action: PayloadAction<{ note: Note; tuningNoteIndex: number }>,
+      action: PayloadAction<{
+        pitchClass: PitchClass;
+        tuningNoteIndex: number;
+      }>,
     ) => {
-      const { note, tuningNoteIndex } = action.payload;
+      const { pitchClass, tuningNoteIndex } = action.payload;
 
       if (tuningNoteIndex >= 0 && tuningNoteIndex < state.tuning.length) {
-        state.tuning[tuningNoteIndex] = note;
+        state.tuning[tuningNoteIndex] = pitchClass;
       }
     },
     setFretNoteCount: (state, action: PayloadAction<number>) => {
@@ -82,7 +97,7 @@ const fretboardSlice = createSlice({
       state.displayMode = "chord-tones";
     },
     // TO DO - MAYBE Optional: replace entire tuning at once, keeping it typed
-    // setTuning: (state, action: PayloadAction<Note[]>) => {
+    // setTuning: (state, action: PayloadAction<PitchClass[]>) => {
     //   state.tuning = action.payload;
     // },
   },

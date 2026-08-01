@@ -1,47 +1,59 @@
+import {
+  chromaticPitchClasses,
+  getPitchClass,
+  getPitchClassAtOffset,
+  getScaleTone,
+  getScaleTones,
+  scaleDefinitions,
+} from "./musicTheory";
 import type {
-  ChordQuality,
   GuitarStringCount,
   IntervalName,
-  Note,
+  PitchClass,
   ScaleDegree,
+  ScaleDegreeLabel,
   ScaleName,
   ScaleShapeSystem,
+  TonicName,
 } from "./typesHelpers";
 
-type ScaleDefinition = {
-  name: ScaleName;
-  label: string;
-  intervals: number[];
-  intervalNames: IntervalName[];
-  chordStrategy: "diatonic-triads" | "blues-dominant-sevenths";
-};
+export type {
+  ChordToneIntervalName,
+  ScaleChord,
+  ScaleDefinition,
+  ScaleTone,
+} from "./musicTheory";
+export {
+  chromaticPitchClasses,
+  formatNoteName,
+  formatPitchClass,
+  getChordTone,
+  getChordToneIntervalName,
+  getDiatonicTriadNotes,
+  getIntervalName,
+  getNotesInCurrentScale,
+  getPitchClass,
+  getPitchClassAtOffset,
+  getScaleChords,
+  getScaleDegree,
+  getScaleTone,
+  getScaleTones,
+  scaleDefinitions,
+  tonicOptions,
+} from "./musicTheory";
 
 export type GuitarConfiguration = {
   stringCount: GuitarStringCount;
   label: string;
-  defaultTuning: Note[];
+  defaultTuning: PitchClass[];
 };
-
-export type ScaleChord = {
-  root: Note;
-  quality: ChordQuality;
-  notes: Note[];
-  degree: ScaleDegree;
-};
-
-export type ChordToneIntervalName =
-  | "R"
-  | "M3"
-  | "m3"
-  | "P5"
-  | "d5"
-  | "A5"
-  | "m7";
 
 export type FretPosition = {
   stringIndex: number;
   fret: number;
-  note: Note;
+  degreeLabel?: ScaleDegreeLabel;
+  noteName?: string;
+  pitchClass: PitchClass;
   scaleDegree?: ScaleDegree;
   intervalName?: IntervalName;
 };
@@ -62,8 +74,8 @@ export const scaleShapeSystems: Record<
       shortLabel: String(index + 1),
     })),
   },
-  caged: {
-    label: "CAGED",
+  position: {
+    label: "Positions",
     shapes: Array.from({ length: 5 }, (_, index) => ({
       label: `Position ${index + 1}`,
       shortLabel: String(index + 1),
@@ -84,88 +96,40 @@ export const getScaleShapeSystem = (
 ): { label: string; shapes: ScaleShapeOption[] } => {
   const system = scaleShapeSystems[shapeSystem];
 
-  if (shapeSystem !== "3nps") {
-    return system;
+  if (shapeSystem === "3nps") {
+    return {
+      ...system,
+      shapes: Array.from(
+        { length: scaleDefinitions[currentScale].tones.length },
+        (_, index) => ({
+          label: `Position ${index + 1}`,
+          shortLabel: String(index + 1),
+        }),
+      ),
+    };
   }
 
-  return {
-    ...system,
-    shapes: Array.from(
-      { length: scaleDefinitions[currentScale].intervals.length },
-      (_, index) => ({
-        label: `Position ${index + 1}`,
-        shortLabel: String(index + 1),
-      }),
-    ),
-  };
+  if (shapeSystem === "pentatonic" && currentScale === "blues") {
+    return { ...system, label: "Blues Boxes" };
+  }
+
+  return system;
 };
 
-export const allNotes: Note[] = [
-  "A",
-  "A#/Bb",
-  "B",
-  "C",
-  "C#/Db",
-  "D",
-  "D#/Eb",
-  "E",
-  "F",
-  "F#/Gb",
-  "G",
-  "G#/Ab",
-];
+export const allNotes = chromaticPitchClasses;
 
-export const intervalNamesBySemitone: IntervalName[] = [
-  "R",
-  "m2",
-  "M2",
-  "m3",
-  "M3",
-  "P4",
-  "TT",
-  "P5",
-  "m6",
-  "M6",
-  "m7",
-  "M7",
-];
+export const getAvailableScaleShapeSystems = (
+  currentScale: ScaleName,
+): ScaleShapeSystem[] => {
+  if (currentScale === "blues") {
+    return ["position", "pentatonic"];
+  }
 
-export const scaleDefinitions: Record<ScaleName, ScaleDefinition> = {
-  major: {
-    name: "major",
-    label: "Major",
-    intervals: [0, 2, 4, 5, 7, 9, 11],
-    intervalNames: ["R", "M2", "M3", "P4", "P5", "M6", "M7"],
-    chordStrategy: "diatonic-triads",
-  },
-  minor: {
-    name: "minor",
-    label: "Natural Minor",
-    intervals: [0, 2, 3, 5, 7, 8, 10],
-    intervalNames: ["R", "M2", "m3", "P4", "P5", "m6", "m7"],
-    chordStrategy: "diatonic-triads",
-  },
-  blues: {
-    name: "blues",
-    label: "Blues Scale",
-    intervals: [0, 3, 5, 6, 7, 10],
-    intervalNames: ["R", "m3", "P4", "TT", "P5", "m7"],
-    chordStrategy: "blues-dominant-sevenths",
-  },
-  "harmonic-minor": {
-    name: "harmonic-minor",
-    label: "Harmonic Minor",
-    intervals: [0, 2, 3, 5, 7, 8, 11],
-    intervalNames: ["R", "M2", "m3", "P4", "P5", "m6", "M7"],
-    chordStrategy: "diatonic-triads",
-  },
-  "phrygian-dominant": {
-    name: "phrygian-dominant",
-    label: "Phrygian Dominant",
-    intervals: [0, 1, 4, 5, 7, 8, 10],
-    intervalNames: ["R", "m2", "M3", "P4", "P5", "m6", "m7"],
-    chordStrategy: "diatonic-triads",
-  },
+  if (["harmonic-minor", "phrygian-dominant"].includes(currentScale)) {
+    return ["3nps", "position"];
+  }
+
+  return ["3nps", "position", "pentatonic"];
 };
 
 export const guitarConfigurations: Record<
@@ -175,17 +139,17 @@ export const guitarConfigurations: Record<
   6: {
     stringCount: 6,
     label: "6 String",
-    defaultTuning: ["E", "B", "G", "D", "A", "E"],
+    defaultTuning: [4, 11, 7, 2, 9, 4],
   },
   7: {
     stringCount: 7,
     label: "7 String",
-    defaultTuning: ["E", "B", "G", "D", "A", "E", "B"],
+    defaultTuning: [4, 11, 7, 2, 9, 4, 11],
   },
   8: {
     stringCount: 8,
     label: "8 String",
-    defaultTuning: ["E", "B", "G", "D", "A", "E", "B", "F#/Gb"],
+    defaultTuning: [4, 11, 7, 2, 9, 4, 11, 6],
   },
 };
 
@@ -200,211 +164,60 @@ export const guitarStringIds = [
   "string-8",
 ] as const;
 
-export const standardTuning: Note[] = [
+export const standardTuning: PitchClass[] = [
   ...guitarConfigurations[6].defaultTuning,
 ];
 
-export const getDefaultTuning = (stringCount: GuitarStringCount): Note[] => [
-  ...guitarConfigurations[stringCount].defaultTuning,
-];
+export const getDefaultTuning = (
+  stringCount: GuitarStringCount,
+): PitchClass[] => [...guitarConfigurations[stringCount].defaultTuning];
 
-export const getNoteAtSemitoneOffset = (
-  rootNote: Note,
-  semitoneOffset: number,
-): Note => {
-  const rootNoteIndex = allNotes.indexOf(rootNote);
+export const getFretPitchClass = (
+  tuningPitchClass: PitchClass,
+  fret: number,
+): PitchClass => getPitchClassAtOffset(tuningPitchClass, fret);
 
-  if (rootNoteIndex === -1) {
-    throw new Error(`Unknown root note: ${rootNote}`);
-  }
-
-  const noteIndex = (rootNoteIndex + semitoneOffset) % allNotes.length;
-  return allNotes[noteIndex < 0 ? noteIndex + allNotes.length : noteIndex];
-};
-
-export const getNotesInCurrentScale = (
-  currentKey: Note,
-  currentScale: ScaleName,
-): Note[] => {
-  const scaleDefinition = scaleDefinitions[currentScale];
-
-  return scaleDefinition.intervals.map((interval) =>
-    getNoteAtSemitoneOffset(currentKey, interval),
-  );
-};
-
-export const getScaleDegree = (
-  note: Note,
-  currentKey: Note,
-  currentScale: ScaleName,
-): ScaleDegree | undefined => {
-  const noteIndex = getNotesInCurrentScale(currentKey, currentScale).indexOf(
-    note,
-  );
-
-  if (noteIndex === -1) {
-    return undefined;
-  }
-
-  return (noteIndex + 1) as ScaleDegree;
-};
-
-export const getIntervalName = (
-  note: Note,
-  currentKey: Note,
-  currentScale: ScaleName,
-): IntervalName | undefined => {
-  const scaleDegree = getScaleDegree(note, currentKey, currentScale);
-
-  if (!scaleDegree) {
-    return undefined;
-  }
-
-  return scaleDefinitions[currentScale].intervalNames[scaleDegree - 1];
-};
-
-export const getDiatonicTriadNotes = (
-  scaleNotes: Note[],
-  rootIndex: number,
-): Note[] => [
-  scaleNotes[rootIndex],
-  scaleNotes[(rootIndex + 2) % scaleNotes.length],
-  scaleNotes[(rootIndex + 4) % scaleNotes.length],
-];
-
-const getSemitoneDistance = (root: Note, note: Note): number =>
-  (allNotes.indexOf(note) - allNotes.indexOf(root) + allNotes.length) %
-  allNotes.length;
-
-const getTriadQuality = (notes: Note[]): ChordQuality => {
-  const intervals = notes
-    .slice(1)
-    .map((note) => getSemitoneDistance(notes[0], note))
-    .sort((firstInterval, secondInterval) => firstInterval - secondInterval)
-    .join("-");
-
-  const qualitiesByIntervals: Record<string, ChordQuality> = {
-    "3-6": "diminished",
-    "3-7": "minor",
-    "4-7": "major",
-    "4-8": "augmented",
-  };
-  const quality = qualitiesByIntervals[intervals];
-
-  if (!quality) {
-    throw new Error(`Unsupported diatonic triad intervals: ${intervals}`);
-  }
-
-  return quality;
-};
-
-// Minor-blues harmony is represented by the practical I7-IV7-V7 progression.
-const bluesChordDefinitions = [
-  { degree: 1, rootInterval: 0 },
-  { degree: 4, rootInterval: 5 },
-  { degree: 5, rootInterval: 7 },
-] as const;
-
-export const getScaleChords = (
-  currentKey: Note,
-  currentScale: ScaleName,
-): ScaleChord[] => {
-  const scaleDefinition = scaleDefinitions[currentScale];
-  const scaleNotes = getNotesInCurrentScale(currentKey, currentScale);
-
-  if (scaleDefinition.chordStrategy === "blues-dominant-sevenths") {
-    return bluesChordDefinitions.map(({ degree, rootInterval }) => {
-      const root = getNoteAtSemitoneOffset(currentKey, rootInterval);
-
-      return {
-        root,
-        quality: "dominant7",
-        notes: [0, 4, 7, 10].map((interval) =>
-          getNoteAtSemitoneOffset(root, interval),
-        ),
-        degree,
-      };
-    });
-  }
-
-  return scaleNotes.map((root, index) => {
-    const notes = getDiatonicTriadNotes(scaleNotes, index);
-
-    return {
-      root,
-      quality: getTriadQuality(notes),
-      notes,
-      degree: (index + 1) as ScaleDegree,
-    };
-  });
-};
-
-const chordToneIntervalsByQuality: Record<
-  ChordQuality,
-  readonly ChordToneIntervalName[]
-> = {
-  major: ["R", "M3", "P5"],
-  minor: ["R", "m3", "P5"],
-  diminished: ["R", "m3", "d5"],
-  augmented: ["R", "M3", "A5"],
-  dominant7: ["R", "M3", "P5", "m7"],
-};
-
-export const getChordToneIntervalName = (
-  chord: ScaleChord,
-  note: Note,
-): ChordToneIntervalName | undefined => {
-  const chordToneIndex = chord.notes.indexOf(note);
-
-  if (chordToneIndex === -1) {
-    return undefined;
-  }
-
-  return chordToneIntervalsByQuality[chord.quality][chordToneIndex];
-};
-
-export const getFretNote = (tuningNote: Note, fret: number): Note =>
-  getNoteAtSemitoneOffset(tuningNote, fret);
+export const getFretNote = getFretPitchClass;
 
 export const buildFretPositions = (
-  tuning: Note[],
+  tuning: PitchClass[],
   fretCount: number,
-  currentKey: Note,
+  currentKey: TonicName,
   currentScale: ScaleName,
 ): FretPosition[][] =>
-  tuning.map((tuningNote, stringIndex) =>
+  tuning.map((tuningPitchClass, stringIndex) =>
     Array.from({ length: fretCount }, (_, fretIndex) => {
       const fret = fretIndex + 1;
-      const note = getFretNote(tuningNote, fret);
-      const scaleDegree = getScaleDegree(note, currentKey, currentScale);
+      const pitchClass = getFretPitchClass(tuningPitchClass, fret);
+      const scaleTone = getScaleTone(pitchClass, currentKey, currentScale);
 
       return {
         stringIndex,
         fret,
-        note,
-        scaleDegree,
-        intervalName: scaleDegree
-          ? scaleDefinitions[currentScale].intervalNames[scaleDegree - 1]
-          : undefined,
+        pitchClass,
+        degreeLabel: scaleTone?.degreeLabel,
+        noteName: scaleTone?.name,
+        scaleDegree: scaleTone?.ordinal,
+        intervalName: scaleTone?.intervalName,
       };
     }),
   );
 
-const getDescendingOpenStringPitches = (tuning: Note[]): number[] => {
+const getDescendingOpenStringPitches = (tuning: PitchClass[]): number[] => {
   if (tuning.length === 0) {
     return [];
   }
 
-  const highStringPitch = allNotes.indexOf(tuning[0]);
+  const highStringPitch = tuning[0];
   const pitches = [highStringPitch];
 
   for (let stringIndex = 1; stringIndex < tuning.length; stringIndex++) {
-    const pitchClass = allNotes.indexOf(tuning[stringIndex]);
+    const pitchClass = tuning[stringIndex];
     const previousPitch = pitches[stringIndex - 1];
     let pitch = pitchClass;
 
     while (pitch >= previousPitch) {
-      pitch -= allNotes.length;
+      pitch -= chromaticPitchClasses.length;
     }
 
     pitches.push(pitch);
@@ -414,18 +227,20 @@ const getDescendingOpenStringPitches = (tuning: Note[]): number[] => {
 };
 
 export const buildThreeNotesPerStringShape = (
-  tuning: Note[],
+  tuning: PitchClass[],
   fretCount: number,
-  currentKey: Note,
+  currentKey: TonicName,
   currentScale: ScaleName,
   shapeIndex: number,
 ): Set<string> => {
-  const scaleNotes = getNotesInCurrentScale(currentKey, currentScale);
+  const scalePitchClasses = getScaleTones(currentKey, currentScale).map(
+    (tone) => tone.pitchClass,
+  );
 
   if (
     tuning.length === 0 ||
     shapeIndex < 0 ||
-    shapeIndex >= scaleNotes.length
+    shapeIndex >= scalePitchClasses.length
   ) {
     return new Set();
   }
@@ -439,8 +254,8 @@ export const buildThreeNotesPerStringShape = (
     const openPitch = openStringPitches[stringIndex];
 
     for (let noteOnString = 0; noteOnString < 3; noteOnString++) {
-      const targetNote = scaleNotes[scaleNoteIndex % scaleNotes.length];
-      const targetPitchClass = allNotes.indexOf(targetNote);
+      const targetPitchClass =
+        scalePitchClasses[scaleNoteIndex % scalePitchClasses.length];
       let selectedFret: number | undefined;
       let selectedPitch: number | undefined;
 
@@ -449,7 +264,9 @@ export const buildThreeNotesPerStringShape = (
 
         if (
           pitch > previousPitch &&
-          ((pitch % allNotes.length) + allNotes.length) % allNotes.length ===
+          ((pitch % chromaticPitchClasses.length) +
+            chromaticPitchClasses.length) %
+            chromaticPitchClasses.length ===
             targetPitchClass
         ) {
           selectedFret = fret;
@@ -471,17 +288,19 @@ export const buildThreeNotesPerStringShape = (
   return positions;
 };
 
-const getNextFretForNote = (openNote: Note, targetNote: Note): number => {
-  const openNoteIndex = allNotes.indexOf(openNote);
-  const targetNoteIndex = allNotes.indexOf(targetNote);
+const getNextFretForPitchClass = (
+  openPitchClass: PitchClass,
+  targetPitchClass: PitchClass,
+): number => {
   const fret =
-    (targetNoteIndex - openNoteIndex + allNotes.length) % allNotes.length;
+    (targetPitchClass - openPitchClass + chromaticPitchClasses.length) %
+    chromaticPitchClasses.length;
 
-  return fret === 0 ? allNotes.length : fret;
+  return fret === 0 ? chromaticPitchClasses.length : fret;
 };
 
-// Preserve the hand-authored major and natural-minor CAGED positions.
-const cagedFretOffsetsByScale: Partial<Record<ScaleName, number[][][]>> = {
+// Preserve the hand-authored major and natural-minor position layouts.
+const positionFretOffsetsByScale: Partial<Record<ScaleName, number[][][]>> = {
   major: [
     [
       [-1, 0, 2],
@@ -568,8 +387,8 @@ const cagedFretOffsetsByScale: Partial<Record<ScaleName, number[][][]>> = {
   ],
 };
 
-// Other scales use five overlapping CAGED-style fretboard regions.
-const cagedWindowOffsets = [
+// Other scales use five overlapping position regions.
+const positionWindowOffsets = [
   [-1, 3],
   [2, 6],
   [4, 8],
@@ -578,32 +397,37 @@ const cagedWindowOffsets = [
 ] as const;
 
 const buildScaleShapeInFretWindow = (
-  tuning: Note[],
+  tuning: PitchClass[],
   fretCount: number,
-  currentKey: Note,
+  currentKey: TonicName,
   currentScale: ScaleName,
   shapeIndex: number,
 ): Set<string> => {
-  const windowOffsets = cagedWindowOffsets[shapeIndex];
+  const windowOffsets = positionWindowOffsets[shapeIndex];
 
   if (!windowOffsets) {
     return new Set();
   }
 
-  let referenceRootFret = getNextFretForNote("E", currentKey);
+  let referenceRootFret = getNextFretForPitchClass(
+    4,
+    getPitchClass(currentKey),
+  );
 
   while (referenceRootFret + windowOffsets[0] < 1) {
-    referenceRootFret += allNotes.length;
+    referenceRootFret += chromaticPitchClasses.length;
   }
 
   const startFret = referenceRootFret + windowOffsets[0];
   const endFret = Math.min(fretCount, referenceRootFret + windowOffsets[1]);
-  const scaleNotes = getNotesInCurrentScale(currentKey, currentScale);
+  const scalePitchClasses = getScaleTones(currentKey, currentScale).map(
+    (tone) => tone.pitchClass,
+  );
   const positions = new Set<string>();
 
-  tuning.forEach((openNote, stringIndex) => {
+  tuning.forEach((openPitchClass, stringIndex) => {
     for (let fret = startFret; fret <= endFret; fret++) {
-      if (scaleNotes.includes(getFretNote(openNote, fret))) {
+      if (scalePitchClasses.includes(getFretPitchClass(openPitchClass, fret))) {
         positions.add(`${stringIndex}-${fret}`);
       }
     }
@@ -613,8 +437,8 @@ const buildScaleShapeInFretWindow = (
 };
 
 const getClosestFretForNote = (
-  openNote: Note,
-  targetNote: Note,
+  openPitchClass: PitchClass,
+  targetPitchClass: PitchClass,
   referenceFret: number,
   fretCount: number,
 ): number | undefined => {
@@ -622,7 +446,9 @@ const getClosestFretForNote = (
     { length: fretCount },
     (_, index) => index + 1,
   )
-    .filter((fret) => getFretNote(openNote, fret) === targetNote)
+    .filter(
+      (fret) => getFretPitchClass(openPitchClass, fret) === targetPitchClass,
+    )
     .sort(
       (firstFret, secondFret) =>
         Math.abs(firstFret - referenceFret) -
@@ -632,14 +458,14 @@ const getClosestFretForNote = (
   return matchingFrets[0];
 };
 
-export const buildCagedScaleShape = (
-  tuning: Note[],
+export const buildPositionScaleShape = (
+  tuning: PitchClass[],
   fretCount: number,
-  currentKey: Note,
+  currentKey: TonicName,
   currentScale: ScaleName,
   shapeIndex: number,
 ): Set<string> => {
-  const shapeOffsets = cagedFretOffsetsByScale[currentScale]?.[shapeIndex];
+  const shapeOffsets = positionFretOffsetsByScale[currentScale]?.[shapeIndex];
 
   if (!shapeOffsets) {
     return buildScaleShapeInFretWindow(
@@ -656,10 +482,13 @@ export const buildCagedScaleShape = (
   }
 
   const offsets = shapeOffsets.flat();
-  let referenceRootFret = getNextFretForNote("E", currentKey);
+  let referenceRootFret = getNextFretForPitchClass(
+    4,
+    getPitchClass(currentKey),
+  );
 
   while (referenceRootFret + Math.min(...offsets) < 1) {
-    referenceRootFret += allNotes.length;
+    referenceRootFret += chromaticPitchClasses.length;
   }
 
   const positions = new Set<string>();
@@ -667,13 +496,13 @@ export const buildCagedScaleShape = (
   shapeOffsets.forEach((stringOffsets, stringIndex) => {
     stringOffsets.forEach((offset) => {
       const referenceFret = referenceRootFret + offset;
-      const targetNote = getFretNote(
+      const targetPitchClass = getFretPitchClass(
         standardTuning[stringIndex],
         referenceFret,
       );
       const fret = getClosestFretForNote(
         tuning[stringIndex],
-        targetNote,
+        targetPitchClass,
         referenceFret,
         fretCount,
       );
@@ -685,7 +514,9 @@ export const buildCagedScaleShape = (
   });
 
   if (tuning.length > standardTuning.length) {
-    const scaleNotes = getNotesInCurrentScale(currentKey, currentScale);
+    const scalePitchClasses = getScaleTones(currentKey, currentScale).map(
+      (tone) => tone.pitchClass,
+    );
     const startFret = referenceRootFret + Math.min(...offsets);
     const endFret = referenceRootFret + Math.max(...offsets);
 
@@ -695,7 +526,11 @@ export const buildCagedScaleShape = (
       stringIndex++
     ) {
       for (let fret = startFret; fret <= Math.min(fretCount, endFret); fret++) {
-        if (scaleNotes.includes(getFretNote(tuning[stringIndex], fret))) {
+        if (
+          scalePitchClasses.includes(
+            getFretPitchClass(tuning[stringIndex], fret),
+          )
+        ) {
           positions.add(`${stringIndex}-${fret}`);
         }
       }
@@ -706,24 +541,22 @@ export const buildCagedScaleShape = (
 };
 
 // Five-note cores keep the Pentatonic system at two notes per string.
-const pentatonicIntervalsByScale: Record<ScaleName, number[]> = {
+const pentatonicIntervalsByScale: Partial<Record<ScaleName, number[]>> = {
   major: [0, 2, 4, 7, 9],
   minor: [0, 3, 5, 7, 10],
   blues: [0, 3, 5, 7, 10],
-  "harmonic-minor": [0, 3, 5, 7, 11],
-  "phrygian-dominant": [0, 1, 4, 7, 10],
 };
 
 const buildTwoNotesPerStringShape = (
-  tuning: Note[],
+  tuning: PitchClass[],
   fretCount: number,
-  scaleNotes: Note[],
+  scalePitchClasses: PitchClass[],
   shapeIndex: number,
 ): Set<string> => {
   if (
     tuning.length === 0 ||
     shapeIndex < 0 ||
-    shapeIndex >= scaleNotes.length
+    shapeIndex >= scalePitchClasses.length
   ) {
     return new Set();
   }
@@ -737,8 +570,8 @@ const buildTwoNotesPerStringShape = (
     const openPitch = openStringPitches[stringIndex];
 
     for (let noteOnString = 0; noteOnString < 2; noteOnString++) {
-      const targetNote = scaleNotes[scaleNoteIndex % scaleNotes.length];
-      const targetPitchClass = allNotes.indexOf(targetNote);
+      const targetPitchClass =
+        scalePitchClasses[scaleNoteIndex % scalePitchClasses.length];
       let selectedFret: number | undefined;
       let selectedPitch: number | undefined;
 
@@ -747,7 +580,9 @@ const buildTwoNotesPerStringShape = (
 
         if (
           pitch > previousPitch &&
-          ((pitch % allNotes.length) + allNotes.length) % allNotes.length ===
+          ((pitch % chromaticPitchClasses.length) +
+            chromaticPitchClasses.length) %
+            chromaticPitchClasses.length ===
             targetPitchClass
         ) {
           selectedFret = fret;
@@ -770,34 +605,62 @@ const buildTwoNotesPerStringShape = (
 };
 
 export const buildPentatonicScaleShape = (
-  tuning: Note[],
+  tuning: PitchClass[],
   fretCount: number,
-  currentKey: Note,
+  currentKey: TonicName,
   currentScale: ScaleName,
   shapeIndex: number,
 ): Set<string> => {
-  const pentatonicNotes = pentatonicIntervalsByScale[currentScale].map(
-    (interval) => getNoteAtSemitoneOffset(currentKey, interval),
+  const rootPitchClass = getPitchClass(currentKey);
+  const pentatonicIntervals = pentatonicIntervalsByScale[currentScale];
+
+  if (!pentatonicIntervals) {
+    return new Set();
+  }
+
+  const pentatonicPitchClasses = pentatonicIntervals.map((interval) =>
+    getPitchClassAtOffset(rootPitchClass, interval),
   );
 
-  return buildTwoNotesPerStringShape(
+  const positions = buildTwoNotesPerStringShape(
     tuning,
     fretCount,
-    pentatonicNotes,
+    pentatonicPitchClasses,
     shapeIndex,
   );
+
+  if (currentScale !== "blues" || positions.size === 0) {
+    return positions;
+  }
+
+  const frets = [...positions].map((position) =>
+    Number(position.split("-")[1]),
+  );
+  const startFret = Math.min(...frets);
+  const endFret = Math.max(...frets);
+  const blueNotePitchClass = getPitchClassAtOffset(rootPitchClass, 6);
+
+  tuning.forEach((openPitchClass, stringIndex) => {
+    for (let fret = startFret; fret <= endFret; fret++) {
+      if (getFretPitchClass(openPitchClass, fret) === blueNotePitchClass) {
+        positions.add(`${stringIndex}-${fret}`);
+      }
+    }
+  });
+
+  return positions;
 };
 
 export const buildScaleShape = (
   shapeSystem: ScaleShapeSystem,
-  tuning: Note[],
+  tuning: PitchClass[],
   fretCount: number,
-  currentKey: Note,
+  currentKey: TonicName,
   currentScale: ScaleName,
   shapeIndex: number,
 ): Set<string> => {
-  if (shapeSystem === "caged") {
-    return buildCagedScaleShape(
+  if (shapeSystem === "position") {
+    return buildPositionScaleShape(
       tuning,
       fretCount,
       currentKey,

@@ -3,11 +3,17 @@ import { type CSSProperties, Fragment } from "react";
 import {
   buildFretPositions,
   buildScaleShape,
+  formatNoteName,
   getChordToneIntervalName,
   getScaleChords,
   guitarStringIds,
 } from "@/helpers/fretboardHelpers";
-import type { IntervalName, Note, ScaleDegree } from "@/helpers/typesHelpers";
+import type {
+  IntervalName,
+  PitchClass,
+  ScaleDegree,
+  ScaleDegreeLabel,
+} from "@/helpers/typesHelpers";
 import { useAppSelector } from "@/lib/redux/store";
 import AvailableKeys from "../AvailableKeys/AvailableKeys";
 import AvailableScales from "../AvailableScales/AvailableScales";
@@ -68,18 +74,20 @@ export default function Fretboard() {
   };
 
   const getFretLabel = (
-    note: Note,
+    pitchClass: PitchClass,
+    noteName?: string,
     scaleDegree?: ScaleDegree,
+    degreeLabel?: ScaleDegreeLabel,
     intervalName?: IntervalName,
   ): string | undefined => {
     if (displayMode === "chord-tones") {
-      const chordToneName = getChordToneIntervalName(selectedChord, note);
+      const chordToneName = getChordToneIntervalName(selectedChord, pitchClass);
 
       if (chordToneName) {
         return chordToneName;
       }
 
-      return scaleDegree ? note : undefined;
+      return scaleDegree && noteName ? formatNoteName(noteName) : undefined;
     }
 
     if (!scaleDegree) {
@@ -87,25 +95,27 @@ export default function Fretboard() {
     }
 
     if (displayMode === "degrees") {
-      return String(scaleDegree);
+      return degreeLabel;
     }
 
     if (displayMode === "intervals") {
       return intervalName;
     }
 
-    return note;
+    return noteName ? formatNoteName(noteName) : undefined;
   };
 
   const buildChordToneClassName = (
-    note: Note,
+    pitchClass: PitchClass,
     isScaleNote: boolean,
   ): string => {
     if (displayMode !== "chord-tones") {
       return "";
     }
 
-    const chordToneIndex = selectedChord.notes.indexOf(note);
+    const chordToneIndex = selectedChord.notes.findIndex(
+      (note) => note.pitchClass === pitchClass,
+    );
 
     if (chordToneIndex === -1) {
       return isScaleNote ? "fretboard__fret-piece--muted" : "";
@@ -129,29 +139,47 @@ export default function Fretboard() {
         key={guitarStringIds[stringIndex]}
         className={`fretboard__string s-${stringIndex + 1}`}
       >
-        {stringPositions.map(({ fret, note, scaleDegree, intervalName }) => {
-          const isScaleNote = Boolean(scaleDegree);
-          const isChordTone =
-            displayMode === "chord-tones" && selectedChord.notes.includes(note);
-          const isVisibleNote = isScaleNote || isChordTone;
-          const fretLabel = getFretLabel(note, scaleDegree, intervalName);
-          const noteClassName = `
+        {stringPositions.map(
+          ({
+            fret,
+            pitchClass,
+            noteName,
+            scaleDegree,
+            degreeLabel,
+            intervalName,
+          }) => {
+            const isScaleNote = Boolean(scaleDegree);
+            const isChordTone =
+              displayMode === "chord-tones" &&
+              selectedChord.notes.some(
+                (note) => note.pitchClass === pitchClass,
+              );
+            const isVisibleNote = isScaleNote || isChordTone;
+            const fretLabel = getFretLabel(
+              pitchClass,
+              noteName,
+              scaleDegree,
+              degreeLabel,
+              intervalName,
+            );
+            const noteClassName = `
             fretboard__fret-piece
             ${isVisibleNote ? "fretboard__fret-piece--note" : ""}
             ${buildCurrentNoteClassName(scaleDegree)}
             ${buildNoteFontSizeClassName(fretLabel)}
             ${buildShapesClassName(stringIndex, fret)}
-            ${buildChordToneClassName(note, isScaleNote)}
+            ${buildChordToneClassName(pitchClass, isScaleNote)}
           `;
 
-          return (
-            <div
-              data-note={fretLabel}
-              className={noteClassName}
-              key={`${stringIndex}-${fret}`}
-            />
-          );
-        })}
+            return (
+              <div
+                data-note={fretLabel}
+                className={noteClassName}
+                key={`${stringIndex}-${fret}`}
+              />
+            );
+          },
+        )}
       </div>
     ));
 

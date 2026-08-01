@@ -2,6 +2,10 @@
 
 An interactive fretboard for exploring guitar notes, scales, intervals, chords, and shapes.
 
+Music-theory behavior is governed by the sourced [theory contract](./THEORY.md).
+Run `npm run theory:check` after changing notes, scales, chords, tunings, or
+fingering logic.
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
 ## Getting Started

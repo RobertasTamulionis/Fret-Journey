@@ -1,9 +1,8 @@
 import type React from "react";
 import {
+  getAvailableScaleShapeSystems,
   getScaleShapeSystem,
-  scaleShapeSystems,
 } from "@/helpers/fretboardHelpers";
-import type { ScaleShapeSystem } from "@/helpers/typesHelpers";
 import {
   setActiveShape,
   setShapeSystem,
@@ -19,6 +18,7 @@ function ScaleShapes() {
     (state) => state.fretboard,
   );
   const activeShapeSystem = getScaleShapeSystem(shapeSystem, currentScale);
+  const availableShapeSystems = getAvailableScaleShapeSystems(currentScale);
 
   const renderShapeButtons = (): React.ReactElement[] => {
     return activeShapeSystem.shapes.map(({ label, shortLabel }, index) => (
@@ -41,25 +41,23 @@ function ScaleShapes() {
     <section className="scaleShapes">
       <h1>Scale Shapes</h1>
       <fieldset aria-label="Shape system" className="scaleShapes__systems">
-        {(Object.keys(scaleShapeSystems) as ScaleShapeSystem[]).map(
-          (system) => {
-            const isActive = shapeSystem === system;
+        {availableShapeSystems.map((system) => {
+          const isActive = shapeSystem === system;
 
-            return (
-              <button
-                aria-pressed={isActive}
-                className={`scaleShapes__system ${
-                  isActive ? "scaleShapes__system--active" : ""
-                }`}
-                key={system}
-                onClick={() => dispatch(setShapeSystem(system))}
-                type="button"
-              >
-                {scaleShapeSystems[system].label}
-              </button>
-            );
-          },
-        )}
+          return (
+            <button
+              aria-pressed={isActive}
+              className={`scaleShapes__system ${
+                isActive ? "scaleShapes__system--active" : ""
+              }`}
+              key={system}
+              onClick={() => dispatch(setShapeSystem(system))}
+              type="button"
+            >
+              {getScaleShapeSystem(system, currentScale).label}
+            </button>
+          );
+        })}
       </fieldset>
       <div className="scaleShapes__controls">
         <Switch

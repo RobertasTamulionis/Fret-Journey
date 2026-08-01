@@ -1,5 +1,5 @@
 "use client";
-import { getScaleChords } from "@/helpers/fretboardHelpers";
+import { formatNoteName, getScaleChords } from "@/helpers/fretboardHelpers";
 import { setSelectedChordDegree } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import "./scaleChords.scss";
@@ -17,14 +17,18 @@ function ScaleChords(): React.ReactElement {
   const { currentKey, currentScale, displayMode, selectedChordDegree } =
     useAppSelector((state) => state.fretboard);
   const scaleChords = getScaleChords(currentKey, currentScale);
+  const heading =
+    currentScale === "blues"
+      ? "Common blues harmony"
+      : "Diatonic triads in the scale";
 
   return (
     <div className="scaleChords">
-      <h1>Chords in a scale</h1>
+      <h1>{heading}</h1>
       <div className="scaleChords__chordsWrapper">
         {scaleChords.map(({ root, quality, degree }) => (
           <button
-            aria-label={`Focus ${root} ${quality} chord tones`}
+            aria-label={`Focus ${formatNoteName(root.name)} ${quality} chord tones`}
             aria-pressed={
               displayMode === "chord-tones" && selectedChordDegree === degree
             }
@@ -33,11 +37,11 @@ function ScaleChords(): React.ReactElement {
                 ? "scaleChords__chord--active"
                 : ""
             }`}
-            key={`${degree}-${root}`}
+            key={`${degree}-${root.name}`}
             onClick={() => dispatch(setSelectedChordDegree(degree))}
             type="button"
           >
-            {root} {chordQualityLabels[quality]}
+            {formatNoteName(root.name)} {chordQualityLabels[quality]}
           </button>
         ))}
       </div>
