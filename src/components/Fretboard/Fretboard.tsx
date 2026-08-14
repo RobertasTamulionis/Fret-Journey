@@ -1,11 +1,14 @@
 "use client";
 import { type CSSProperties, Fragment } from "react";
 import {
+  buildCagedChordShape,
   buildFretPositions,
   buildScaleShape,
   formatNoteName,
+  getChordTone,
   getChordToneIntervalName,
   getScaleChords,
+  getScaleShapeSystem,
   guitarStringIds,
 } from "@/helpers/fretboardHelpers";
 import type {
@@ -19,6 +22,7 @@ import AvailableKeys from "../AvailableKeys/AvailableKeys";
 import AvailableScales from "../AvailableScales/AvailableScales";
 import DisplayModeSelector from "../DisplayModeSelector/DisplayModeSelector";
 import FretboardNumbers from "../FretboardNumbers/FretboardNumbers";
+import FretCountSelector from "../FretCountSelector/FretCountSelector";
 import ScaleChords from "../ScaleChords/ScaleChords";
 import ScaleShapes from "../ScaleShapes/ScaleShapes";
 import StringCountSelector from "../StringCountSelector/StringCountSelector";
@@ -35,6 +39,7 @@ export default function Fretboard() {
     shapeSystem,
     showShapes,
     displayMode,
+    chordSize,
     selectedChordDegree,
   } = useAppSelector((state) => state.fretboard);
 
@@ -52,7 +57,22 @@ export default function Fretboard() {
     currentScale,
     activeShape,
   );
-  const scaleChords = getScaleChords(currentKey, currentScale);
+  const activeCagedChordPositions =
+    shapeSystem === "caged"
+      ? buildCagedChordShape(
+          tuning,
+          fretCount,
+          currentKey,
+          currentScale,
+          activeShape,
+        )
+      : undefined;
+  const activeCagedShapeLabel =
+    shapeSystem === "caged"
+      ? getScaleShapeSystem(shapeSystem, currentScale).shapes[activeShape]
+          ?.label
+      : undefined;
+  const scaleChords = getScaleChords(currentKey, currentScale, chordSize);
   const selectedChord =
     scaleChords.find(({ degree }) => degree === selectedChordDegree) ??
     scaleChords[0];
@@ -71,6 +91,14 @@ export default function Fretboard() {
     }
 
     return "";
+  };
+
+  const getSpokenScaleDegree = (degreeLabel: ScaleDegreeLabel): string => {
+    if (degreeLabel.startsWith("b")) {
+      return `flat ${degreeLabel.slice(1)}`;
+    }
+
+    return degreeLabel;
   };
 
   const getFretLabel = (
@@ -113,16 +141,13 @@ export default function Fretboard() {
       return "";
     }
 
-    const chordToneIndex = selectedChord.notes.findIndex(
-      (note) => note.pitchClass === pitchClass,
-    );
+    const chordTone = getChordTone(selectedChord, pitchClass);
 
-    if (chordToneIndex === -1) {
+    if (!chordTone) {
       return isScaleNote ? "fretboard__fret-piece--muted" : "";
     }
 
-    const chordToneClasses = ["root", "third", "fifth", "seventh"];
-    return `fretboard__fret-piece--chord-tone fretboard__fret-piece--chord-${chordToneClasses[chordToneIndex]}`;
+    return `fretboard__fret-piece--chord-tone fretboard__fret-piece--chord-${chordTone.role}`;
   };
 
   const buildShapesClassName = (stringIndex: number, fret: number): string => {
@@ -155,6 +180,9 @@ export default function Fretboard() {
                 (note) => note.pitchClass === pitchClass,
               );
             const isVisibleNote = isScaleNote || isChordTone;
+            const isCagedAnchor =
+              showShapes &&
+              activeCagedChordPositions?.has(`${stringIndex}-${fret}`);
             const fretLabel = getFretLabel(
               pitchClass,
               noteName,
@@ -176,7 +204,15 @@ export default function Fretboard() {
                 data-note={fretLabel}
                 className={noteClassName}
                 key={`${stringIndex}-${fret}`}
-              />
+              >
+                {isCagedAnchor && activeCagedShapeLabel && degreeLabel && (
+                  <span
+                    aria-label={`${activeCagedShapeLabel} chord anchor at string ${stringIndex + 1}, fret ${fret}, scale degree ${getSpokenScaleDegree(degreeLabel)}`}
+                    className="fretboard__caged-anchor-ring"
+                    role="img"
+                  />
+                )}
+              </div>
             );
           },
         )}
@@ -189,12 +225,14 @@ export default function Fretboard() {
         <AvailableKeys />
         <AvailableScales />
         <StringCountSelector />
+        <FretCountSelector />
         <ScaleShapes />
         <DisplayModeSelector />
         <ScaleChords />
       </div>
       <div
         className="fretboard"
+        data-fret-count={fretCount}
         style={{ "--string-count": tuning.length } as CSSProperties}
       >
         <Tuning key={tuning.length} />

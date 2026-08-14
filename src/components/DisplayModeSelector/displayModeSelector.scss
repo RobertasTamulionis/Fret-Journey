@@ -7,9 +7,10 @@
   align-items: flex-start;
 
   &__options {
+    width: 100%;
     min-inline-size: 0;
     display: grid;
-    grid-template-columns: repeat(2, minmax(105px, 1fr));
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
     margin: 0;
     padding: 0;
@@ -19,8 +20,45 @@
   &__heading { padding: 0; }
 
   &__option {
-    @include list-item($width: 108px, $height: 40px, $radius: 10px, $margin-right: 0);
+    @include list-item($width: 0, $height: 40px, $radius: 10px, $margin-right: 0);
+    min-width: 0;
+    padding-inline: 10px;
+    font-size: 13px;
   }
 
-  &__hint { margin: 12px 0 0; color: $muted; font-size: 11px; line-height: 1.5; }
+  &__guidance {
+    width: 100%;
+    display: grid;
+    gap: 8px;
+    margin-top: 14px;
+    padding-top: 13px;
+    border-top: 1px solid rgba($cyan, 0.12);
+  }
+
+  &__hint { margin: 0; color: $muted; font-size: 11px; line-height: 1.55; }
+
+  &__formula {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    width: 100%;
+    margin: 0;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  &__formula-name {
+    color: $white;
+    font-weight: 650;
+  }
+
+  &__formula-divider { color: rgba($cyan, 0.45); }
+
+  &__formula-degrees {
+    color: $cyan;
+    font-family: var(--font-geist-mono), monospace;
+    font-weight: 620;
+    letter-spacing: 0.025em;
+  }
 }

@@ -49,12 +49,9 @@ export type IntervalName =
   | "m7"
   | "M7";
 
-export type ChordQuality =
-  | "major"
-  | "minor"
-  | "diminished"
-  | "augmented"
-  | "dominant7";
+export type ChordQuality = "major" | "minor" | "diminished" | "augmented";
+
+export type ScaleChordSize = "triad" | "seventh" | "ninth";
 
 export type ScaleDegree = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 
@@ -80,4 +77,4 @@ export type FretboardDisplayMode =
   | "intervals"
   | "chord-tones";
 
-export type ScaleShapeSystem = "3nps" | "position" | "pentatonic";
+export type ScaleShapeSystem = "3nps" | "caged" | "pentatonic";

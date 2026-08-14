@@ -11,7 +11,7 @@
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
     gap: 8px;
-    margin-bottom: 16px;
+    margin: 0;
     padding: 0;
     border: 0;
   }
@@ -29,21 +29,22 @@
     font-size: 12px;
   }
 
-  &__controls {
-    min-height: 34px;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 12px;
-  }
-
   &__list {
+    width: 100%;
     display: flex;
     flex-wrap: wrap;
     gap: 7px;
-    margin: 0;
-    padding: 0;
+    margin: 14px 0 0;
+    padding: 13px 0 0;
     border: 0;
+    border-top: 1px solid rgba($shape-color, 0.14);
+
+    &[hidden] { display: none; }
+  }
+
+  &__list--caged {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(32px, 1fr));
   }
 
   &__list-item {
@@ -54,5 +55,31 @@
       $shadow-color: $shape-color
     );
     padding: 0;
+  }
+
+  &__hint {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 7px;
+    margin: 10px 0 0;
+    color: $muted;
+    font-size: 11px;
+    line-height: 1.5;
+
+    strong {
+      color: color-mix(in srgb, $shape-color 72%, white);
+      font-weight: 650;
+    }
+  }
+
+  &__anchor-key {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 auto;
+    border: 2px solid rgba($caged-anchor-color, 0.96);
+    border-radius: 50%;
+    box-shadow: 0 0 7px rgba($caged-anchor-color, 0.55);
   }
 }

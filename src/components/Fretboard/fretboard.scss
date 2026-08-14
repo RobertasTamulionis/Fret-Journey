@@ -2,6 +2,16 @@
 
 .fretboard {
   --fret-height: 38px;
+  --fret-label-size: 26px;
+  --note-size: 28px;
+  --root-note-size: 30px;
+  --caged-anchor-size: 38px;
+  --note-font-size: 12px;
+  --double-note-font-size: 9px;
+  --fret-number-size: 11px;
+  --fret-marker-size: 8px;
+  --fret-marker-center-step: -19px;
+  --fret-marker-octave-step: -38px;
   position: relative;
   display: grid;
   grid-template-columns: 48px minmax(1080px, 1fr);
@@ -61,12 +71,17 @@
       grid-column: span 4;
     }
 
+    > .fretCountSelector {
+      grid-column: span 3;
+      align-self: start;
+    }
+
     > .scaleShapes {
       grid-column: span 4;
     }
 
     > .displayModeSelector {
-      grid-column: span 4;
+      grid-column: span 8;
     }
 
     > .scaleChords {
@@ -107,8 +122,8 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      width: 26px;
-      height: 26px;
+      width: var(--fret-label-size);
+      height: var(--fret-label-size);
       position: absolute;
       left: 50%;
       top: 50%;
@@ -119,7 +134,7 @@
     }
 
     &--double-note::after {
-      font-size: 9px !important;
+      font-size: var(--double-note-font-size) !important;
     }
 
     &--S1,
@@ -142,12 +157,12 @@
     }
 
     &--note::after {
-      width: 28px;
-      height: 28px;
+      width: var(--note-size);
+      height: var(--note-size);
       border: 1px solid rgba($cyan, 0.82);
       background: radial-gradient(circle at 35% 25%, #315466, #142a35 66%);
       color: #f1fcff;
-      font-size: 12px;
+      font-size: var(--note-font-size);
       font-weight: 650;
       filter: drop-shadow(0 0 4px rgba($cyan, 0.65));
       box-shadow:
@@ -168,8 +183,8 @@
     }
 
     &--note-1::after {
-      width: 30px;
-      height: 30px;
+      width: var(--root-note-size);
+      height: var(--root-note-size);
       border-color: rgba(207, 249, 255, 0.9);
       background: linear-gradient(145deg, #78e8f7, #3dbbd4);
       color: #071218;
@@ -213,6 +228,27 @@
       color: #8de1ad;
       filter: drop-shadow(0 0 4px #8de1ad);
     }
+
+    &--chord-ninth::after {
+      color: #f2a6d2;
+      filter: drop-shadow(0 0 4px #f2a6d2);
+    }
+  }
+
+  &__caged-anchor-ring {
+    width: var(--caged-anchor-size);
+    height: var(--caged-anchor-size);
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 3;
+    pointer-events: none;
+    border: 2px solid rgba($caged-anchor-color, 0.96);
+    border-radius: 50%;
+    box-shadow:
+      0 0 8px rgba($caged-anchor-color, 0.72),
+      0 0 18px rgba($caged-anchor-color, 0.3);
+    transform: translate(-50%, -50%);
   }
 
   &__fret-piece--note-1#{&}__fret-piece--chord-root::after {
@@ -238,7 +274,7 @@
     margin-top: 10px;
     padding-top: 3px;
     color: #788591;
-    font-size: 11px;
+    font-size: var(--fret-number-size);
     font-weight: 500;
 
     &:nth-child(3),
@@ -253,10 +289,10 @@
     &:nth-child(24) {
       &::before {
         content: "";
-        width: 8px;
-        height: 8px;
+        width: var(--fret-marker-size);
+        height: var(--fret-marker-size);
         position: absolute;
-        top: calc(var(--string-count) * -19px - 7px);
+        top: calc(var(--string-count) * var(--fret-marker-center-step) - 7px);
         left: 50%;
         z-index: 1;
         border-radius: 50%;
@@ -273,15 +309,17 @@
     &:nth-child(12),
     &:nth-child(24) {
       &::before {
-        top: calc((var(--string-count) - 2) * -38px - 10px);
+        top: calc(
+          (var(--string-count) - 2) * var(--fret-marker-octave-step) - 10px
+        );
       }
 
       &::after {
         content: "";
-        width: 8px;
-        height: 8px;
+        width: var(--fret-marker-size);
+        height: var(--fret-marker-size);
         position: absolute;
-        top: -86px;
+        top: calc(2 * var(--fret-marker-octave-step) - 10px);
         left: 50%;
         z-index: 1;
         border-radius: 50%;
@@ -295,6 +333,34 @@
       }
     }
   }
+
+  &[data-fret-count="12"] {
+    --fret-height: 52px;
+    --fret-label-size: 36px;
+    --note-size: 40px;
+    --root-note-size: 44px;
+    --caged-anchor-size: 52px;
+    --note-font-size: 15px;
+    --double-note-font-size: 11px;
+    --fret-number-size: 13px;
+    --fret-marker-size: 10px;
+    --fret-marker-center-step: -26px;
+    --fret-marker-octave-step: -52px;
+
+    .fretboard__fret-piece,
+    .fretboard__number {
+      min-width: 84px;
+    }
+
+    .fretboard__number {
+      margin-top: 12px;
+    }
+
+    .tuning__note {
+      border-radius: 12px;
+      font-size: 15px;
+    }
+  }
 }
 
 @media (max-width: 1350px) {
@@ -304,8 +370,9 @@
     > .availableKeys { grid-column: span 7; }
     > .availableScales { grid-column: span 5; }
     > .stringCountSelector,
+    > .fretCountSelector,
     > .scaleShapes,
-    > .displayModeSelector { grid-column: span 4; }
+    > .displayModeSelector { grid-column: span 3; }
     > .scaleChords { grid-column: 1 / -1; }
   }
 }

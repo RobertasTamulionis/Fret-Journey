@@ -23,36 +23,56 @@ derived from the selected tonic and scale.
 
 | Scale | Scale-degree formula | Harmony shown |
 | --- | --- | --- |
-| Major | 1 2 3 4 5 6 7 | Diatonic triads built in thirds |
-| Natural Minor | 1 2 ♭3 4 5 ♭6 ♭7 | Diatonic triads built in thirds |
-| Minor Blues | 1 ♭3 4 ♭5 5 ♭7 | Common blues I7–IV7–V7 harmony |
-| Harmonic Minor | 1 2 ♭3 4 5 ♭6 7 | Diatonic triads built in thirds |
-| Phrygian Dominant | 1 ♭2 3 4 5 ♭6 ♭7 | Diatonic triads built in thirds |
+| Major | 1 2 3 4 5 6 7 | Diatonic triads, seventh chords, and ninth chords |
+| Natural Minor | 1 2 ♭3 4 5 ♭6 ♭7 | Diatonic triads, seventh chords, and ninth chords |
+| Minor Blues | 1 ♭3 4 ♭5 5 ♭7 | Common blues I–IV–V major, dominant-seventh, and dominant-ninth harmony |
+| Harmonic Minor | 1 2 ♭3 4 5 ♭6 7 | Diatonic triads, seventh chords, and ninth chords |
+| Phrygian Dominant | 1 ♭2 3 4 5 ♭6 ♭7 | Diatonic triads, seventh chords, and ninth chords |
 
 “Minor Blues” is explicit because major and minor blues scales are different.
-The I7–IV7–V7 display is labeled and implemented as common blues harmony; it is
-not described as harmony obtained by stacking only notes of the minor-blues
-scale.
+The I–IV–V display is labeled and implemented as common blues harmony; it is not
+described as harmony obtained by stacking only notes of the minor-blues scale.
 
 ## Chord construction
 
-For seven-note scales, triads are constructed by taking scale tones 1–3–5 from
-each degree, wrapping through the scale while preserving each note's diatonic
-spelling. Chord quality is determined from the resulting pitch intervals:
+For seven-note scales, chords are constructed by stacking thirds from each scale
+degree and wrapping through the scale while preserving every note's diatonic
+spelling:
+
+- triads use 1–3–5;
+- seventh chords use 1–3–5–7;
+- ninth chords use 1–3–5–7–9.
+
+A ninth chord includes its seventh; it is not treated as a triad with an added
+second. Chord labels are derived from the resulting intervals, so major,
+dominant, minor, half-diminished, diminished, minor-major, augmented-fifth, ♭9,
+and ♯9 structures remain distinct. Chord-tone roles (root, third, fifth,
+seventh, and ninth) drive fretboard styling, while the visible labels use exact
+interval names such as R, M3, d5, M7, or A9.
+
+Triad quality is determined from the first three chord tones:
 
 - major: 1–3–5;
 - minor: 1–♭3–5;
 - diminished: 1–♭3–♭5;
 - augmented: 1–3–♯5.
 
-Minor-blues common harmony uses dominant-seventh chords on degrees I, IV, and V,
-spelled 1–3–5–♭7 from each chord root.
+Minor-blues common harmony uses major triads on degrees I, IV, and V. Seventh
+mode adds each chord's minor seventh, and ninth mode also adds its major ninth,
+producing I7–IV7–V7 or I9–IV9–V9. Those chord tones intentionally need not all
+belong to the selected minor-blues scale.
 
 ## Guitar fingering standard
 
 Fret Journey uses three deliberately named systems. A shape is a visualization
 aid, not a different scale: every highlighted fret must belong to the selected
 scale, and this is enforced by executable checks on 6-, 7-, and 8-string tuning.
+The two supported fret views present the same complete shapes cyclically. The
+enlarged 12-fret view projects each shape onto one octave: fret 13 continues at
+fret 1, fret 14 at fret 2, and so on. The 24-fret view shows two
+octave-equivalent placements of each shape. The second placement begins 12 frets
+above the first; any part beyond fret 24 continues from fret 1. These rules apply
+consistently to 3NPS, CAGED, Pentatonic, Blues, and CAGED chord anchors.
 
 ### 3NPS
 
@@ -60,15 +80,29 @@ Each position starts on a successive scale tone on the lowest string and places
 three consecutive ascending scale tones on every string. Every seven-note scale
 offered in this system has seven positions. The algorithm follows the selected
 tuning rather than assuming a fixed six-string fret diagram. 3NPS is not offered
-for Minor Blues; its six-note vocabulary is represented through Positions and
-Blues Boxes.
+for Minor Blues; its six-note vocabulary is represented through Blues Boxes.
 
-### Positions
+### CAGED
 
-The UI intentionally says “Positions,” not “CAGED.” Major and natural-minor use
-five compact vertical layouts; Harmonic Minor, Phrygian Dominant, and Minor Blues
-use five overlapping tonic-relative fret regions. Fret Journey does not claim
-that these are C–A–G–E–D chord-form shapes.
+CAGED is offered for Major and Natural Minor when the highest six strings retain
+standard-tuning intervals. Uniformly transposed standard tuning remains valid.
+Seven- and eight-string instruments keep the canonical CAGED geometry on their
+highest six strings; additional bass strings are deliberately not presented as
+part of the named chord form.
+
+The five controls are explicitly C, A, G, E, and D. Each scale layout contains a
+ringed tonic-chord anchor derived from that movable chord form: 1–3–5 for Major
+and 1–♭3–5 for Natural Minor. The surrounding highlighted notes complete the
+selected scale shape. In the 24-fret view, the complete scale layout and its
+ringed chord anchor appear in both octave-equivalent places; a placement crossing
+fret 24 continues at fret 1. The shared 12-fret octave projection retains each
+position's string, pitch-class, scale-degree, and chord-anchor identity. Either
+view can split a form across the right and left edges of the visualization, but
+keeps all five CAGED controls available without dropping any notes from the form.
+
+CAGED is not offered for altered top-six-string tunings, Harmonic Minor,
+Phrygian Dominant, or Minor Blues. Fret Journey does not relabel generic fret
+windows as CAGED shapes.
 
 ### Pentatonic and Blues boxes
 
@@ -88,8 +122,9 @@ npx tsc --noEmit
 ```
 
 The theory check verifies representative exact spellings, including B♯, C♭,
-double flats, harmonic-minor and Phrygian-dominant triads, blues harmony, all
-supported tonic/scale combinations, and every available shape for 6/7/8 strings.
+double flats, every triad/seventh/ninth formula across all supported tonics and
+scales, blues I–IV–V harmony, chord-tone roles, Redux transitions, and every
+available shape for 6/7/8 strings.
 
 ## Sources
 
@@ -98,8 +133,12 @@ supported tonic/scale combinations, and every available shape for 6/7/8 strings.
 - [Open Music Theory: accidentals and double accidentals](https://openmusictheory.github.io/basicNotation.html)
 - [musictheory.net: minor and harmonic-minor construction](https://www.musictheory.net/lessons/22)
 - [musictheory.net: diatonic triads](https://www.musictheory.net/lessons/43)
+- [musictheory.net: diatonic seventh chords](https://www.musictheory.net/lessons/46)
+- [Open Music Theory: chord symbols and extensions](https://viva.pressbooks.pub/openmusictheory/chapter/chord-symbols/)
 - [Berklee PULSE: minor pentatonic to blues](https://pulse.berklee.edu/?id=4&lesson=7)
 - [Berklee: five-position pentatonic and blues practice](https://online.berklee.edu/takenote/country-music-guitar-essentials-chicken-pickin-string-bending-and-more/)
+- [Fender: major scales and the CAGED system](https://www.fender.com/articles/scales/major-guitar-scales)
+- [D’Addario: guide to the CAGED system](https://www.daddario.com/blogs/guitar/guitarists-guide-to-the-caged-system)
 - [Berklee Guitar Handbook: triads and common I–IV–V blues harmony](https://assets.online.berklee.edu/handbooks/berklee-online-guitar-handbook.pdf)
 - [BYU–Idaho Fundamentals of Jazz Improvisation: fifth mode of harmonic minor](https://content.byui.edu/file/be14498b-aa3f-4b2a-b9e6-4fb3fdbd1d12/1/05%20Theory%202.pdf)
 

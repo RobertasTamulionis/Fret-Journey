@@ -1,29 +1,46 @@
-import type React from "react";
 import {
   getAvailableScaleShapeSystems,
   getScaleShapeSystem,
 } from "@/helpers/fretboardHelpers";
 import {
   setActiveShape,
-  setShapeSystem,
-  setShowShapes,
+  toggleShapeSystem,
 } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
-import Switch from "../Switch/Switch";
 import "./scaleShapes.scss";
 
 function ScaleShapes() {
   const dispatch = useAppDispatch();
-  const { showShapes, shapeSystem, activeShape, currentScale } = useAppSelector(
-    (state) => state.fretboard,
-  );
+  const {
+    showShapes,
+    shapeSystem,
+    activeShape,
+    currentKey,
+    currentScale,
+    fretCount,
+    tuning,
+  } = useAppSelector((state) => state.fretboard);
   const activeShapeSystem = getScaleShapeSystem(shapeSystem, currentScale);
-  const availableShapeSystems = getAvailableScaleShapeSystems(currentScale);
+  const availableShapeSystems = getAvailableScaleShapeSystems(
+    currentScale,
+    tuning,
+    currentKey,
+    fretCount,
+  );
+  const activeShapeOption =
+    activeShapeSystem.shapes[activeShape] ?? activeShapeSystem.shapes[0];
+  const isCaged = shapeSystem === "caged";
+  const showShapeHint = showShapes;
 
-  const renderShapeButtons = (): React.ReactElement[] => {
-    return activeShapeSystem.shapes.map(({ label, shortLabel }, index) => (
+  const renderShapeButtons = () =>
+    activeShapeSystem.shapes.map(({ label, shortLabel }, index) => (
       <button
-        aria-label={`Show ${label}`}
+        aria-describedby={
+          showShapeHint && activeShape === index
+            ? "scale-shape-hint"
+            : undefined
+        }
+        aria-label={`Select ${label}`}
         aria-pressed={activeShape === index}
         key={label}
         className={`scaleShapes__list-item ${
@@ -35,23 +52,23 @@ function ScaleShapes() {
         {shortLabel}
       </button>
     ));
-  };
 
   return (
     <section className="scaleShapes">
       <h1>Scale Shapes</h1>
       <fieldset aria-label="Shape system" className="scaleShapes__systems">
         {availableShapeSystems.map((system) => {
-          const isActive = shapeSystem === system;
+          const isExpanded = showShapes && shapeSystem === system;
 
           return (
             <button
-              aria-pressed={isActive}
+              aria-controls="scale-shape-options"
+              aria-expanded={isExpanded}
               className={`scaleShapes__system ${
-                isActive ? "scaleShapes__system--active" : ""
+                isExpanded ? "scaleShapes__system--active" : ""
               }`}
               key={system}
-              onClick={() => dispatch(setShapeSystem(system))}
+              onClick={() => dispatch(toggleShapeSystem(system))}
               type="button"
             >
               {getScaleShapeSystem(system, currentScale).label}
@@ -59,20 +76,38 @@ function ScaleShapes() {
           );
         })}
       </fieldset>
-      <div className="scaleShapes__controls">
-        <Switch
-          switchAction={() => dispatch(setShowShapes(!showShapes))}
-          states={["Hide", "Show"]}
-        />
-        {showShapes && (
-          <fieldset
-            aria-label={`${activeShapeSystem.label} shapes`}
-            className="scaleShapes__list"
-          >
-            {renderShapeButtons()}
-          </fieldset>
-        )}
-      </div>
+      <fieldset
+        aria-label={`${activeShapeSystem.label} shapes`}
+        className={`scaleShapes__list ${
+          isCaged ? "scaleShapes__list--caged" : ""
+        }`}
+        hidden={!showShapes}
+        id="scale-shape-options"
+      >
+        {renderShapeButtons()}
+      </fieldset>
+      {showShapeHint && (
+        <p
+          aria-live="polite"
+          className="scaleShapes__hint"
+          id="scale-shape-hint"
+        >
+          {isCaged && (
+            <span aria-hidden="true" className="scaleShapes__anchor-key" />
+          )}
+          <strong>{activeShapeOption.label}</strong>
+          <span>
+            {isCaged && "Ringed notes trace the underlying tonic chord."}
+            {fretCount === 24 &&
+              " Two octave-equivalent placements are shown. Notes crossing fret 24 continue from fret 1."}
+            {fretCount === 12 &&
+              ` ${isCaged ? "Shapes" : "Notes"} crossing the octave continue from fret 12 back to fret 1.`}
+            {isCaged &&
+              tuning.length > 6 &&
+              " The named form uses the highest six strings."}
+          </span>
+        </p>
+      )}
     </section>
   );
 }
