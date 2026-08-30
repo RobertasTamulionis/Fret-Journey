@@ -23,11 +23,8 @@
   overflow: visible;
   border: 1px solid $border;
   border-radius: 18px;
-  background:
-    linear-gradient(145deg, rgba(24, 35, 46, 0.88), rgba(12, 19, 27, 0.96));
-  box-shadow:
-    0 18px 32px rgba(0, 0, 0, 0.24),
-    inset 0 1px 0 rgba(255, 255, 255, 0.035);
+  background: var(--fretboard-background);
+  box-shadow: var(--shadow-panel);
 
   &::before {
     content: "";
@@ -38,8 +35,8 @@
     left: 64px;
     z-index: 3;
     border-radius: 2px;
-    background: #e6ebef;
-    box-shadow: 0 0 6px rgba(255, 255, 255, 0.18);
+    background: color-mix(in srgb, var(--color-string) 38%, white);
+    box-shadow: 0 0 6px color-mix(in srgb, white 18%, transparent);
   }
 
   &__dashboard {
@@ -52,11 +49,8 @@
       padding: 20px;
       border: 1px solid $border;
       border-radius: 18px;
-      background:
-        linear-gradient(145deg, rgba(24, 35, 46, 0.86), rgba(12, 19, 27, 0.94));
-      box-shadow:
-        0 16px 28px rgba(0, 0, 0, 0.22),
-        inset 0 1px 0 rgba(255, 255, 255, 0.035);
+      background: var(--panel-background);
+      box-shadow: var(--shadow-panel);
     }
 
     > .availableKeys {
@@ -89,6 +83,50 @@
     }
   }
 
+  &__progressionBridge {
+    min-height: 46px;
+    display: grid;
+    grid-template-columns: auto auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    padding: 10px 14px;
+    border: 1px solid color-mix(in srgb, $cyan 18%, transparent);
+    border-radius: 13px;
+    background: var(--panel-background-soft);
+    color: $muted;
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 10px;
+
+    > span:first-child {
+      font-weight: 680;
+      letter-spacing: 0.055em;
+      text-transform: uppercase;
+    }
+
+    strong {
+      color: $cyan;
+      font-size: 14px;
+    }
+
+    a {
+      color: var(--color-text-soft);
+      font-family: var(--font-geist-sans), sans-serif;
+      font-size: 11px;
+      font-weight: 620;
+      text-decoration: none;
+
+      &:hover {
+        color: $cyan;
+      }
+
+      &:focus-visible {
+        outline: 2px solid color-mix(in srgb, $cyan 82%, transparent);
+        outline-offset: 4px;
+      }
+    }
+  }
+
   &__notes {
     grid-area: fretboard-notes;
     width: 100%;
@@ -104,7 +142,7 @@
     flex: 1 1 0;
     min-width: 42px;
     height: var(--fret-height);
-    border-right: 1px solid rgba(196, 207, 215, 0.38);
+    border-right: 1px solid var(--color-fret);
 
     &::before {
       content: "";
@@ -112,8 +150,12 @@
       height: 1px;
       position: absolute;
       top: 50%;
-      background: linear-gradient(90deg, rgba(201, 211, 218, 0.5), rgba(128, 143, 155, 0.35));
-      box-shadow: 0 1px 1px rgba(0, 0, 0, 0.6);
+      background: linear-gradient(
+        90deg,
+        var(--color-string),
+        color-mix(in srgb, var(--color-string) 68%, transparent)
+      );
+      box-shadow: 0 1px 1px color-mix(in srgb, black 60%, transparent);
       transform: translateY(-50%);
     }
 
@@ -147,28 +189,34 @@
       z-index: 1;
       background: linear-gradient(
         90deg,
-        rgba($shape-color, 0.08),
-        rgba($shape-color, 0.28),
-        rgba($shape-color, 0.08)
+        color-mix(in srgb, $shape-color 8%, transparent),
+        color-mix(in srgb, $shape-color 28%, transparent),
+        color-mix(in srgb, $shape-color 8%, transparent)
       );
       box-shadow:
-        inset 0 0 16px rgba($shape-color, 0.16),
-        0 0 8px rgba($shape-color, 0.08);
+        inset 0 0 16px color-mix(in srgb, $shape-color 16%, transparent),
+        0 0 8px color-mix(in srgb, $shape-color 8%, transparent);
     }
 
     &--note::after {
       width: var(--note-size);
       height: var(--note-size);
-      border: 1px solid rgba($cyan, 0.82);
-      background: radial-gradient(circle at 35% 25%, #315466, #142a35 66%);
-      color: #f1fcff;
+      border: 1px solid color-mix(in srgb, $cyan 82%, transparent);
+      background: radial-gradient(
+        circle at 35% 25%,
+        color-mix(in srgb, $cyan 32%, var(--color-neck-top)),
+        var(--color-neck-bottom) 66%
+      );
+      color: var(--color-text-strong);
       font-size: var(--note-font-size);
       font-weight: 650;
-      filter: drop-shadow(0 0 4px rgba($cyan, 0.65));
+      filter: drop-shadow(
+        0 0 4px color-mix(in srgb, $cyan 65%, transparent)
+      );
       box-shadow:
-        0 0 11px rgba($cyan, 0.28),
-        inset 0 1px 0 rgba(255, 255, 255, 0.18),
-        inset 0 -8px 12px rgba(2, 11, 16, 0.18);
+        0 0 11px color-mix(in srgb, $cyan 28%, transparent),
+        inset 0 1px 0 color-mix(in srgb, white 18%, transparent),
+        inset 0 -8px 12px color-mix(in srgb, black 18%, transparent);
     }
 
     &--note-1::after,
@@ -178,23 +226,33 @@
     &--note-5::after,
     &--note-6::after,
     &--note-7::after {
-      background: radial-gradient(circle at 35% 25%, #315466, #142a35 66%);
-      color: #ddf9ff;
+      background: radial-gradient(
+        circle at 35% 25%,
+        color-mix(in srgb, $cyan 32%, var(--color-neck-top)),
+        var(--color-neck-bottom) 66%
+      );
+      color: var(--color-text-strong);
     }
 
     &--note-1::after {
       width: var(--root-note-size);
       height: var(--root-note-size);
-      border-color: rgba(207, 249, 255, 0.9);
-      background: linear-gradient(145deg, #78e8f7, #3dbbd4);
-      color: #071218;
+      border-color: color-mix(in srgb, $note-1-color 60%, white);
+      background: linear-gradient(
+        145deg,
+        color-mix(in srgb, $note-1-color 72%, white),
+        $note-1-color
+      );
+      color: var(--color-on-note);
       font-weight: 750;
-      filter: drop-shadow(0 0 5px rgba($cyan, 0.85));
+      filter: drop-shadow(
+        0 0 5px color-mix(in srgb, $cyan 85%, transparent)
+      );
       box-shadow:
-        0 0 0 2px rgba($cyan, 0.18),
-        0 0 14px rgba($cyan, 0.62),
-        0 0 28px rgba($cyan, 0.24),
-        inset 0 1px 0 rgba(255, 255, 255, 0.52);
+        0 0 0 2px color-mix(in srgb, $cyan 18%, transparent),
+        0 0 14px color-mix(in srgb, $cyan 62%, transparent),
+        0 0 28px color-mix(in srgb, $cyan 24%, transparent),
+        inset 0 1px 0 color-mix(in srgb, white 52%, transparent);
     }
 
     &--muted::after {
@@ -206,7 +264,7 @@
       opacity: 1;
       border: 1px solid currentColor;
       background-image: none;
-      background-color: $black-dark;
+      background-color: var(--color-neck-bottom);
     }
 
     &--chord-root::after {
@@ -219,9 +277,24 @@
       filter: drop-shadow(0 0 4px #bd9cff);
     }
 
+    &--chord-second::after {
+      color: #76ddcf;
+      filter: drop-shadow(0 0 4px #76ddcf);
+    }
+
+    &--chord-fourth::after {
+      color: #ff9fb2;
+      filter: drop-shadow(0 0 4px #ff9fb2);
+    }
+
     &--chord-fifth::after {
       color: #ffc185;
       filter: drop-shadow(0 0 4px #ffc185);
+    }
+
+    &--chord-sixth::after {
+      color: #e7d77d;
+      filter: drop-shadow(0 0 4px #e7d77d);
     }
 
     &--chord-seventh::after {
@@ -233,6 +306,24 @@
       color: #f2a6d2;
       filter: drop-shadow(0 0 4px #f2a6d2);
     }
+
+    &--chord-other::after {
+      color: #b8c7d1;
+      filter: drop-shadow(0 0 4px #b8c7d1);
+    }
+  }
+
+  &__summary {
+    width: 1px;
+    height: 1px;
+    position: absolute;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    border: 0;
+    white-space: nowrap;
   }
 
   &__caged-anchor-ring {
@@ -243,18 +334,25 @@
     left: 50%;
     z-index: 3;
     pointer-events: none;
-    border: 2px solid rgba($caged-anchor-color, 0.96);
+    border: 2px solid
+      color-mix(in srgb, $caged-anchor-color 96%, transparent);
     border-radius: 50%;
     box-shadow:
-      0 0 8px rgba($caged-anchor-color, 0.72),
-      0 0 18px rgba($caged-anchor-color, 0.3);
+      0 0 8px color-mix(in srgb, $caged-anchor-color 72%, transparent),
+      0 0 18px color-mix(in srgb, $caged-anchor-color 30%, transparent);
     transform: translate(-50%, -50%);
   }
 
   &__fret-piece--note-1#{&}__fret-piece--chord-root::after {
-    background: linear-gradient(145deg, #78e8f7, #3dbbd4);
-    color: #071218;
-    filter: drop-shadow(0 0 5px rgba($cyan, 0.85));
+    background: linear-gradient(
+      145deg,
+      color-mix(in srgb, $note-1-color 72%, white),
+      $note-1-color
+    );
+    color: var(--color-on-note);
+    filter: drop-shadow(
+      0 0 5px color-mix(in srgb, $cyan 85%, transparent)
+    );
   }
 
   &__numbers {
@@ -273,7 +371,7 @@
     position: relative;
     margin-top: 10px;
     padding-top: 3px;
-    color: #788591;
+    color: color-mix(in srgb, var(--color-string) 35%, white);
     font-size: var(--fret-number-size);
     font-weight: 500;
 
@@ -296,12 +394,12 @@
         left: 50%;
         z-index: 1;
         border-radius: 50%;
-        background: rgba($cyan, 0.72);
+        background: color-mix(in srgb, $cyan 72%, transparent);
         box-shadow:
-          0 0 5px rgba($cyan, 0.78),
-          0 0 13px rgba($cyan, 0.48),
-          0 0 24px rgba($cyan, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.48);
+          0 0 5px color-mix(in srgb, $cyan 78%, transparent),
+          0 0 13px color-mix(in srgb, $cyan 48%, transparent),
+          0 0 24px color-mix(in srgb, $cyan 20%, transparent),
+          inset 0 1px 0 color-mix(in srgb, white 48%, transparent);
         transform: translate(-50%, -50%);
       }
     }
@@ -323,12 +421,12 @@
         left: 50%;
         z-index: 1;
         border-radius: 50%;
-        background: rgba($cyan, 0.72);
+        background: color-mix(in srgb, $cyan 72%, transparent);
         box-shadow:
-          0 0 5px rgba($cyan, 0.78),
-          0 0 13px rgba($cyan, 0.48),
-          0 0 24px rgba($cyan, 0.2),
-          inset 0 1px 0 rgba(255, 255, 255, 0.48);
+          0 0 5px color-mix(in srgb, $cyan 78%, transparent),
+          0 0 13px color-mix(in srgb, $cyan 48%, transparent),
+          0 0 24px color-mix(in srgb, $cyan 20%, transparent),
+          inset 0 1px 0 color-mix(in srgb, white 48%, transparent);
         transform: translate(-50%, -50%);
       }
     }

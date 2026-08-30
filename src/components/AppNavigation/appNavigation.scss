@@ -1,0 +1,60 @@
+@use "variables" as *;
+
+.appNavigation {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid $border;
+  border-radius: 14px;
+  background: var(--control-background);
+  box-shadow: var(--shadow-control);
+
+  &__link {
+    min-width: 126px;
+    height: 34px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 18px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    color: $muted;
+    font-size: 12px;
+    font-weight: 620;
+    letter-spacing: -0.01em;
+    text-decoration: none;
+    transition:
+      color $transition,
+      border-color $transition,
+      background $transition,
+      box-shadow $transition,
+      transform $transition;
+
+    &:hover {
+      color: var(--color-text-strong);
+      transform: translateY(-1px);
+    }
+
+    &[aria-current="page"] {
+      border-color: color-mix(in srgb, $cyan 32%, transparent);
+      background: var(--control-background-active);
+      color: $cyan;
+      box-shadow:
+        inset 2px 2px 6px var(--color-shadow),
+        inset -1px -1px 4px var(--color-highlight),
+        0 0 14px color-mix(in srgb, $cyan 10%, transparent);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appNavigation__link {
+    transition: none;
+  }
+}

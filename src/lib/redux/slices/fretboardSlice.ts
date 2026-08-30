@@ -1,7 +1,9 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import {
   getAvailableScaleShapeSystems,
+  getDefaultRegisteredTuning,
   getDefaultTuning,
+  getRegisteredTuningState,
   getScaleShapeSystem,
   standardTuning,
 } from "@/helpers/fretboardHelpers";
@@ -9,6 +11,7 @@ import type {
   FretboardDisplayMode,
   GuitarStringCount,
   PitchClass,
+  RegisteredTuningState,
   ScaleChordSize,
   ScaleDegree,
   ScaleName,
@@ -22,12 +25,17 @@ interface FretboardState {
   currentKey: TonicName;
   currentScale: ScaleName;
   tuning: PitchClass[];
+  registeredTuning: RegisteredTuningState;
   showShapes: boolean;
   shapeSystem: ScaleShapeSystem;
   activeShape: number;
   displayMode: FretboardDisplayMode;
   chordSize: ScaleChordSize;
   selectedChordDegree: ScaleDegree;
+  activeProgressionChord: {
+    progressionSlug: string;
+    stepId: string;
+  } | null;
 }
 
 const reconcileShapeSystem = (state: FretboardState) => {
@@ -51,12 +59,14 @@ const initialState: FretboardState = {
   currentKey: "A",
   currentScale: "major",
   tuning: standardTuning,
+  registeredTuning: getDefaultRegisteredTuning(6),
   showShapes: false,
   shapeSystem: "3nps",
   activeShape: 0,
   displayMode: "notes",
   chordSize: "triad",
   selectedChordDegree: 1,
+  activeProgressionChord: null,
 };
 
 const fretboardSlice = createSlice({
@@ -76,6 +86,7 @@ const fretboardSlice = createSlice({
     setStringCount: (state, action: PayloadAction<GuitarStringCount>) => {
       state.stringCount = action.payload;
       state.tuning = getDefaultTuning(action.payload);
+      state.registeredTuning = getDefaultRegisteredTuning(action.payload);
       reconcileShapeSystem(state);
     },
     setTuningNote: (
@@ -89,6 +100,10 @@ const fretboardSlice = createSlice({
 
       if (tuningNoteIndex >= 0 && tuningNoteIndex < state.tuning.length) {
         state.tuning[tuningNoteIndex] = pitchClass;
+        state.registeredTuning = getRegisteredTuningState(
+          state.stringCount,
+          state.tuning,
+        );
         reconcileShapeSystem(state);
       }
     },
@@ -143,10 +158,25 @@ const fretboardSlice = createSlice({
     setChordSize: (state, action: PayloadAction<ScaleChordSize>) => {
       state.chordSize = action.payload;
       state.displayMode = "chord-tones";
+      state.activeProgressionChord = null;
     },
     setSelectedChordDegree: (state, action: PayloadAction<ScaleDegree>) => {
       state.selectedChordDegree = action.payload;
       state.displayMode = "chord-tones";
+      state.activeProgressionChord = null;
+    },
+    setActiveProgressionChord: (
+      state,
+      action: PayloadAction<{
+        progressionSlug: string;
+        stepId: string;
+      }>,
+    ) => {
+      state.activeProgressionChord = action.payload;
+      state.displayMode = "chord-tones";
+    },
+    clearActiveProgressionChord: (state) => {
+      state.activeProgressionChord = null;
     },
     // TO DO - MAYBE Optional: replace entire tuning at once, keeping it typed
     // setTuning: (state, action: PayloadAction<PitchClass[]>) => {
@@ -166,5 +196,7 @@ export const {
   setDisplayMode,
   setChordSize,
   setSelectedChordDegree,
+  setActiveProgressionChord,
+  clearActiveProgressionChord,
 } = fretboardSlice.actions;
 export default fretboardSlice.reducer;

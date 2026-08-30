@@ -52,12 +52,14 @@ function ScaleChords(): React.ReactElement {
     currentScale,
     displayMode,
     selectedChordDegree,
+    activeProgressionChord,
   } = useAppSelector((state) => state.fretboard);
   const scaleChords = getScaleChords(currentKey, currentScale, chordSize);
   const activeChord =
     scaleChords.find(({ degree }) => degree === selectedChordDegree) ??
     scaleChords[0];
-  const isChordToneMode = displayMode === "chord-tones";
+  const isChordToneMode =
+    displayMode === "chord-tones" && !activeProgressionChord;
   const heading =
     currentScale === "blues"
       ? "Common blues harmony"

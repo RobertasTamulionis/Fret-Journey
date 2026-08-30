@@ -1,0 +1,53 @@
+@use "variables" as *;
+
+.progressionContext {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid $border;
+  border-radius: 18px;
+  background: var(--panel-background);
+  box-shadow: var(--shadow-panel);
+
+  &__summary {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    color: $muted;
+    font-size: 12px;
+
+    strong {
+      color: $white;
+      font-family: var(--font-geist-mono), monospace;
+      font-size: 12px;
+      font-weight: 620;
+    }
+  }
+
+  &__summaryLabel {
+    font-size: 10px;
+    font-weight: 680;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  &__controls {
+    display: grid;
+    grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+    gap: 24px;
+    padding-top: 16px;
+    border-top: 1px solid color-mix(in srgb, $cyan 10%, transparent);
+
+    > * {
+      min-width: 0;
+    }
+  }
+
+  &--compact {
+    padding: 14px 16px;
+  }
+
+  &--compact &__summary {
+    justify-content: space-between;
+  }
+}

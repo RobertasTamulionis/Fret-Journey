@@ -15,18 +15,23 @@ export default function AvailableScales() {
     <div className="availableScales">
       <h1 className="availableScales__heading">Scale Types</h1>
       <div className="availableScales__scales">
-        {availableScales.map(({ name, label }) => (
-          <button
-            className={`availableScales__scale ${
-              currentScale === name ? "availableScales__scale--active" : ""
-            }`}
-            key={name}
-            onClick={() => dispatch(setScale(name as ScaleName))}
-            type="button"
-          >
-            {label}
-          </button>
-        ))}
+        {availableScales.map(({ name, label }) => {
+          const isActive = currentScale === name;
+
+          return (
+            <button
+              aria-pressed={isActive}
+              className={`availableScales__scale ${
+                isActive ? "availableScales__scale--active" : ""
+              }`}
+              key={name}
+              onClick={() => dispatch(setScale(name as ScaleName))}
+              type="button"
+            >
+              {label}
+            </button>
+          );
+        })}
       </div>
     </div>
   );

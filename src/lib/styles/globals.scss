@@ -1,3 +1,4 @@
+@use "themes";
 @use "variables" as *;
 @use "mixins" as *;
 
@@ -16,28 +17,12 @@ body {
   padding: 22px;
   overflow-x: auto;
   font-family: var(--font-geist-sans), Arial, sans-serif;
-  background:
-    radial-gradient(circle at 12% 0%, rgba(70, 103, 128, 0.13), transparent 28%),
-    linear-gradient(145deg, #090e14, #05080c 72%);
+  background: var(--app-background);
   color: $white;
   -webkit-font-smoothing: antialiased;
-}
-
-body > section,
-body > div > section {
-  min-height: calc(100vh - 44px);
-  padding: 28px;
-  position: relative;
-  overflow: hidden;
-  border: 1px solid rgba(129, 169, 197, 0.2);
-  border-radius: 28px;
-  background:
-    radial-gradient(circle at 10% 0%, rgba(83, 119, 145, 0.15), transparent 25%),
-    linear-gradient(155deg, rgba(17, 26, 36, 0.99), rgba(8, 14, 20, 0.99));
-  box-shadow:
-    0 28px 70px rgba(0, 0, 0, 0.48),
-    inset 0 1px 0 rgba(255, 255, 255, 0.055);
-
+  transition:
+    background-color $transition,
+    color $transition;
 }
 
 button {
@@ -47,8 +32,8 @@ button {
     border-color: color-mix(in srgb, var(--button-accent) 68%, transparent);
     color: var(--button-accent);
     box-shadow:
-      inset 3px 3px 8px rgba(0, 0, 0, 0.52),
-      inset -2px -2px 7px rgba(70, 105, 119, 0.15),
+      inset 3px 3px 8px var(--color-shadow),
+      inset -2px -2px 7px var(--color-highlight),
       0 0 12px color-mix(in srgb, var(--button-accent) 22%, transparent);
   }
 }
@@ -56,7 +41,7 @@ button {
 h1,
 legend {
   margin: 0 0 20px;
-  color: #bfc8d0;
+  color: var(--color-text-soft);
   font-size: 12px !important;
   font-weight: 650 !important;
   line-height: 1.2;
@@ -65,6 +50,7 @@ legend {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  body,
   button {
     transition: none;
   }

@@ -5,10 +5,12 @@ import {
   useSelector,
 } from "react-redux";
 import fretboardReducer from "@/lib/redux/slices/fretboardSlice";
+import progressionLabReducer from "@/lib/redux/slices/progressionLabSlice";
 
 export const store = configureStore({
   reducer: {
     fretboard: fretboardReducer,
+    progressionLab: progressionLabReducer,
   },
 });
 

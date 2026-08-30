@@ -7,6 +7,7 @@
     "build": "next build --turbopack",
     "start": "next start",
     "theory:check": "node --import tsx scripts/verify-theory.ts",
+    "progressions:candidates": "node --import tsx scripts/progression-pipeline/normalize-candidates.ts",
     "lint": "biome check",
     "format": "biome format --write"
   },

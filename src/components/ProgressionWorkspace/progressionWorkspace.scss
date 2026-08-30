@@ -1,0 +1,525 @@
+@use "mixins" as *;
+@use "variables" as *;
+
+.progressionWorkspace {
+  display: grid;
+  gap: 24px;
+
+  &__loading {
+    min-height: 420px;
+    display: grid;
+    place-items: center;
+    color: $muted;
+    font-size: 13px;
+  }
+
+  &__hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1.5fr) minmax(360px, 0.75fr);
+    align-items: end;
+    gap: 42px;
+    padding: 8px 4px 4px;
+  }
+
+  &__backLink {
+    width: max-content;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    margin-bottom: 28px;
+    color: $muted;
+    font-size: 11px;
+    font-weight: 620;
+    text-decoration: none;
+    transition: color $transition;
+
+    &:hover {
+      color: $cyan;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 4px;
+      border-radius: 4px;
+    }
+  }
+
+  &__eyebrow,
+  &__sectionEyebrow {
+    display: block;
+    color: $cyan;
+    font-size: 9px;
+    font-weight: 720;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  &__heading {
+    margin: 8px 0 0 !important;
+    color: $white !important;
+    font-size: 36px !important;
+    font-weight: 720 !important;
+    letter-spacing: -0.048em !important;
+    text-transform: none !important;
+  }
+
+  &__formula,
+  &__chordNames {
+    font-family: var(--font-geist-mono), monospace;
+  }
+
+  &__formula {
+    margin: 22px 0 0;
+    color: var(--color-text-strong);
+    font-size: 23px;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+  }
+
+  &__chordNames {
+    margin: 9px 0 0;
+    color: $cyan;
+    font-size: 15px;
+    font-weight: 580;
+  }
+
+  &__why {
+    padding: 20px;
+    border: 1px solid color-mix(in srgb, $cyan 14%, transparent);
+    border-radius: 17px;
+    background: var(--panel-background-soft);
+
+    > span {
+      color: $cyan;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    p {
+      margin: 10px 0 0;
+      color: var(--color-text-soft);
+      font-size: 13px;
+      line-height: 1.65;
+    }
+  }
+
+  &__compatibilityNotice {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: center;
+    gap: 14px;
+    padding: 14px 17px;
+    border: 1px solid
+      color-mix(in srgb, var(--semantic-warning) 24%, transparent);
+    border-radius: 13px;
+    background: color-mix(
+      in srgb,
+      var(--semantic-warning) 5.5%,
+      transparent
+    );
+    color: var(--color-text-soft);
+    font-size: 11px;
+    line-height: 1.5;
+
+    strong {
+      color: var(--semantic-warning);
+      font-size: 11px;
+    }
+  }
+
+  &__timelinePanel,
+  &__activeChord,
+  &__neckPanel,
+  &__overview {
+    min-width: 0;
+    padding: 20px;
+    border: 1px solid $border;
+    border-radius: 19px;
+    background:
+      radial-gradient(
+        circle at 100% 0%,
+        color-mix(in srgb, $cyan 4.5%, transparent),
+        transparent 31%
+      ),
+      var(--panel-background);
+    box-shadow: var(--shadow-panel);
+  }
+
+  &__sectionHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    margin-bottom: 16px;
+
+    h2 {
+      margin: 6px 0 0;
+      color: $white;
+      font-size: 16px;
+      font-weight: 680;
+      letter-spacing: -0.02em;
+    }
+
+    > p {
+      max-width: 520px;
+      margin: 2px 0 0;
+      color: $muted;
+      font-size: 11px;
+      line-height: 1.5;
+      text-align: right;
+    }
+  }
+
+  &__timelineNavigation {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+
+    button {
+      height: 32px;
+      padding-inline: 11px;
+      font-size: 10px;
+    }
+
+    span {
+      min-width: 42px;
+      color: $muted;
+      font-family: var(--font-geist-mono), monospace;
+      font-size: 10px;
+      text-align: center;
+    }
+  }
+
+  &__timeline {
+    min-inline-size: 0;
+    display: flex;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    overflow-x: auto;
+    border: 0;
+  }
+
+  &__timelineStep {
+    min-width: 132px;
+    height: 80px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: center;
+    align-items: baseline;
+    gap: 5px 9px;
+    padding: 11px 13px;
+    border-radius: 12px;
+    text-align: left;
+
+    > span {
+      color: $cyan;
+      font-family: var(--font-geist-mono), monospace;
+      font-size: 12px;
+      font-weight: 680;
+    }
+
+    strong {
+      min-width: 0;
+      overflow: hidden;
+      color: $white;
+      font-size: 13px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    small {
+      grid-column: 1 / -1;
+      color: $muted;
+      font-size: 9px;
+    }
+
+    &--active {
+      border-color: color-mix(in srgb, $cyan 52%, transparent);
+      background: var(--control-background-active);
+      box-shadow:
+        inset 2px 2px 7px var(--color-shadow),
+        0 0 17px color-mix(in srgb, $cyan 10%, transparent);
+    }
+  }
+
+  &__activeChord {
+    display: grid;
+    gap: 20px;
+  }
+
+  &__activeHeader {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid color-mix(in srgb, $cyan 10%, transparent);
+
+    h2 {
+      margin: 6px 0 0;
+      color: $white;
+      font-size: 27px;
+      font-weight: 720;
+      letter-spacing: -0.04em;
+    }
+
+    p {
+      margin: 8px 0 0;
+    }
+  }
+
+  &__noteList {
+    color: $cyan;
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 13px;
+    font-weight: 590;
+  }
+
+  &__openButton {
+    min-width: 154px;
+  }
+
+  &__activeGrid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 390px;
+    align-items: start;
+    gap: 24px;
+  }
+
+  &__voicingColumn {
+    min-width: 0;
+    display: grid;
+    gap: 18px;
+  }
+
+  &__viewControls {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 170px;
+    align-items: end;
+    gap: 18px;
+
+    fieldset {
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+
+      legend {
+        padding: 0;
+      }
+
+      > div {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+
+        button {
+          min-width: 0;
+          padding-inline: 10px;
+          font-size: 11px;
+        }
+      }
+    }
+  }
+
+  &__fretControl {
+    .fretCountSelector {
+      padding: 0;
+      border: 0;
+    }
+
+    legend {
+      padding: 0;
+    }
+  }
+
+  &__voicingFacts {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+
+    > div {
+      min-width: 0;
+      display: grid;
+      gap: 5px;
+      padding: 11px;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      background: var(--panel-background-soft);
+    }
+
+    dt {
+      color: $muted;
+      font-size: 8px;
+      font-weight: 680;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    dd {
+      min-width: 0;
+      margin: 0;
+      overflow: hidden;
+      color: $white;
+      font-size: 11px;
+      font-weight: 620;
+      text-overflow: ellipsis;
+      text-transform: capitalize;
+      white-space: nowrap;
+    }
+  }
+
+  &__alternatives {
+    min-width: 0;
+
+    h3 {
+      margin: 0 0 10px;
+      color: var(--color-text-soft);
+      font-size: 11px;
+      font-weight: 650;
+    }
+
+    > div {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 8px;
+    }
+  }
+
+  &__voicingOption {
+    min-width: 0;
+    display: grid;
+    gap: 7px;
+    padding: 8px;
+    border: 1px solid transparent;
+    border-radius: 14px;
+    background: transparent;
+
+    .chordDiagram {
+      height: 100%;
+      border: 0;
+      box-shadow: none;
+    }
+
+    > button {
+      height: 30px;
+      padding-inline: 8px;
+      font-size: 9px;
+    }
+
+    &[data-selected="true"] {
+      border-color: color-mix(in srgb, $cyan 48%, transparent);
+      background: color-mix(in srgb, $cyan 3.5%, transparent);
+    }
+  }
+
+  &__diagramColumn {
+    display: grid;
+    justify-items: center;
+    gap: 10px;
+
+    > .progressionWorkspace__sectionEyebrow {
+      justify-self: start;
+    }
+  }
+
+  &__neckPanel {
+    display: grid;
+    gap: 2px;
+  }
+
+  &__neckPanel > .fretboard {
+    margin-top: 0;
+  }
+
+  &__overview {
+    display: grid;
+  }
+
+  &__overviewGrid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  &__overviewCard {
+    min-width: 0;
+    display: grid;
+    align-content: start;
+    justify-items: stretch;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--color-border);
+    border-radius: 15px;
+    background: var(--panel-background-soft);
+
+    &--active {
+      border-color: color-mix(in srgb, $cyan 42%, transparent);
+      box-shadow: 0 0 18px color-mix(in srgb, $cyan 7%, transparent);
+    }
+
+    > .chordDiagram {
+      max-width: none;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    > button {
+      height: 32px;
+      padding-inline: 10px;
+      font-size: 10px;
+    }
+  }
+
+  &__overviewHeading {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+
+    span {
+      color: $cyan;
+      font-family: var(--font-geist-mono), monospace;
+      font-size: 11px;
+      font-weight: 680;
+    }
+
+    strong {
+      min-width: 0;
+      overflow: hidden;
+      color: $white;
+      font-size: 11px;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+}
+
+@media (max-width: 1450px) {
+  .progressionWorkspace {
+    &__hero {
+      grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
+    }
+
+    &__activeGrid {
+      grid-template-columns: minmax(0, 1fr) 340px;
+    }
+
+    &__alternatives > div,
+    &__overviewGrid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressionWorkspace__backLink {
+    transition: none;
+  }
+}

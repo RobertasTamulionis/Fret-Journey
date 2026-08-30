@@ -1,0 +1,89 @@
+@use "variables" as *;
+
+.appShell {
+  min-height: calc(100vh - 44px);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+
+  &__skipLink {
+    position: fixed;
+    top: 10px;
+    left: 22px;
+    z-index: 1000;
+    padding: 9px 13px;
+    border: 1px solid color-mix(in srgb, $cyan 62%, transparent);
+    border-radius: 9px;
+    background: $black-dark;
+    color: $cyan;
+    font-size: 12px;
+    font-weight: 650;
+    text-decoration: none;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(-8px);
+    transition:
+      opacity $transition,
+      transform $transition;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 3px;
+      opacity: 1;
+      pointer-events: auto;
+      transform: translateY(0);
+    }
+  }
+
+  &__header {
+    width: 100%;
+    min-height: 48px;
+    display: grid;
+    grid-template-columns: minmax(132px, 1fr) auto minmax(132px, 1fr);
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 10px;
+  }
+
+  &__navigation {
+    grid-column: 2;
+    justify-self: center;
+  }
+
+  .themeSelector {
+    grid-column: 3;
+    justify-self: end;
+  }
+
+  &__surface {
+    min-height: 0;
+    flex: 1;
+    padding: 28px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 28px;
+    outline: none;
+    background: var(--shell-background);
+    box-shadow: var(--shadow-elevated);
+    transition:
+      background $transition,
+      border-color $transition,
+      box-shadow $transition;
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: -2px;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .appShell__skipLink {
+    transition: none;
+  }
+
+  .appShell__surface {
+    transition: none;
+  }
+}

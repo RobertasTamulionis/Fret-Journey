@@ -13,9 +13,12 @@ export default function AvailableKeys() {
       <h1 className="availableKeys__heading">Scale Key</h1>
       <div className="availableKeys__keys">
         {tonicOptions.map(({ label, name }) => {
+          const isActive = currentKey === name;
+
           return (
             <button
-              className={`availableKeys__key ${currentKey === name ? "availableKeys__key--active" : ""}`}
+              aria-pressed={isActive}
+              className={`availableKeys__key ${isActive ? "availableKeys__key--active" : ""}`}
               key={name}
               onClick={() => dispatch(setKey(name))}
               type="button"

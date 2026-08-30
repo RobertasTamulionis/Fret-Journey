@@ -1,28 +1,28 @@
-// Premium graphite application palette
-$black-light: #1b2631;
-$black: #111922;
-$black-dark: #070b10;
-$white: #e8edf2;
-$muted: #84909c;
-$cyan: #58d8f0;
-$shape-color: #a78bfa;
-$caged-anchor-color: #7dff73;
-$panel: #121b25;
-$panel-light: #17222d;
-$border: rgba(154, 177, 197, 0.14);
+// Runtime theme aliases. Theme values live in _themes.scss.
+$black-light: var(--color-surface-raised);
+$black: var(--color-surface);
+$black-dark: var(--color-canvas);
+$white: var(--color-text);
+$muted: var(--color-text-muted);
+$cyan: var(--color-accent);
+$shape-color: var(--semantic-shape);
+$caged-anchor-color: var(--semantic-caged-anchor);
+$panel: var(--color-surface-soft);
+$panel-light: var(--color-surface-raised);
+$border: var(--color-border);
 
 // Scale-degree colors remain distinct for learning, but share the cool UI palette.
-$note-1-color: #61def3;
-$note-2-color: #7ad8eb;
-$note-3-color: #8ecfe8;
-$note-4-color: #9ec8e3;
-$note-5-color: #83d5e8;
-$note-6-color: #75dbe8;
-$note-7-color: #a0c6dd;
+$note-1-color: var(--semantic-note-1);
+$note-2-color: var(--semantic-note-2);
+$note-3-color: var(--semantic-note-3);
+$note-4-color: var(--semantic-note-4);
+$note-5-color: var(--semantic-note-5);
+$note-6-color: var(--semantic-note-6);
+$note-7-color: var(--semantic-note-7);
 
 $transition: 0.22s ease;
 $fretBoardWidth: 100%;
 
 $control-radius: 12px;
-$control-highlight: rgba(255, 255, 255, 0.055);
-$control-glow: rgba($cyan, 0.2);
+$control-highlight: var(--color-highlight);
+$control-glow: color-mix(in srgb, $cyan 20%, transparent);

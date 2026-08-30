@@ -32,7 +32,7 @@
     gap: 8px;
     margin-top: 14px;
     padding-top: 13px;
-    border-top: 1px solid rgba($cyan, 0.12);
+    border-top: 1px solid color-mix(in srgb, $cyan 12%, transparent);
   }
 
   &__hint { margin: 0; color: $muted; font-size: 11px; line-height: 1.55; }
@@ -53,7 +53,9 @@
     font-weight: 650;
   }
 
-  &__formula-divider { color: rgba($cyan, 0.45); }
+  &__formula-divider {
+    color: color-mix(in srgb, $cyan 45%, transparent);
+  }
 
   &__formula-degrees {
     color: $cyan;

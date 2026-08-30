@@ -71,6 +71,20 @@ export type ScaleDegreeLabel =
 
 export type GuitarStringCount = 6 | 7 | 8;
 
+export type RegisteredTuningState =
+  | {
+      midiPitches: number[];
+      source: "preset-default";
+      status: "verified";
+      version: 1;
+    }
+  | {
+      midiPitches: null;
+      reason: "pitch-class-only-custom";
+      status: "unregistered";
+      version: 1;
+    };
+
 export type FretboardDisplayMode =
   | "notes"
   | "degrees"

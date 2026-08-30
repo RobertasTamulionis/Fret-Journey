@@ -37,7 +37,8 @@
     margin: 14px 0 0;
     padding: 13px 0 0;
     border: 0;
-    border-top: 1px solid rgba($shape-color, 0.14);
+    border-top: 1px solid
+      color-mix(in srgb, $shape-color 14%, transparent);
 
     &[hidden] { display: none; }
   }
@@ -78,8 +79,10 @@
     width: 9px;
     height: 9px;
     flex: 0 0 auto;
-    border: 2px solid rgba($caged-anchor-color, 0.96);
+    border: 2px solid
+      color-mix(in srgb, $caged-anchor-color 96%, transparent);
     border-radius: 50%;
-    box-shadow: 0 0 7px rgba($caged-anchor-color, 0.55);
+    box-shadow: 0 0 7px
+      color-mix(in srgb, $caged-anchor-color 55%, transparent);
   }
 }

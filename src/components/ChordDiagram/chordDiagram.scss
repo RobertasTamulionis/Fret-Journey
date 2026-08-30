@@ -1,0 +1,184 @@
+@use "variables" as *;
+
+.chordDiagram {
+  width: 100%;
+  max-width: 380px;
+  min-width: 0;
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at 50% 0%,
+      color-mix(in srgb, $cyan 7%, transparent),
+      transparent 38%
+    ),
+    var(--panel-background);
+  box-shadow: var(--shadow-panel);
+
+  &--compact {
+    max-width: 224px;
+    gap: 8px;
+    padding: 13px;
+    border-radius: 14px;
+  }
+
+  &__caption {
+    min-width: 0;
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__name {
+    color: $white;
+    font-size: 20px;
+    font-weight: 720;
+    letter-spacing: -0.035em;
+  }
+
+  &__meta {
+    color: $muted;
+    font-size: 10px;
+    font-weight: 580;
+    line-height: 1.35;
+    text-align: right;
+  }
+
+  &--compact &__caption {
+    display: grid;
+    gap: 3px;
+  }
+
+  &--compact &__name {
+    font-size: 15px;
+  }
+
+  &--compact &__meta {
+    font-size: 9px;
+    text-align: left;
+  }
+
+  &__graphic {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  &__fret,
+  &__string {
+    vector-effect: non-scaling-stroke;
+  }
+
+  &__fret {
+    stroke: color-mix(in srgb, var(--color-text-muted) 42%, transparent);
+    stroke-width: 1;
+
+    &--nut {
+      stroke: var(--color-text-strong);
+      stroke-width: 4;
+    }
+  }
+
+  &__string {
+    stroke: color-mix(in srgb, var(--color-text-soft) 72%, transparent);
+    stroke-width: 1.25;
+  }
+
+  &__positionLabel {
+    fill: $muted;
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 9px;
+    font-weight: 650;
+    letter-spacing: -0.02em;
+  }
+
+  &__stringState {
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 17px;
+    font-weight: 720;
+
+    &--muted {
+      fill: var(--color-text-muted);
+    }
+
+    &--open {
+      fill: $cyan;
+    }
+  }
+
+  &__dot,
+  &__rootRing {
+    vector-effect: non-scaling-stroke;
+  }
+
+  &__dot {
+    fill: var(--color-surface-inset);
+    stroke: color-mix(in srgb, $cyan 48%, var(--color-text-soft));
+    stroke-width: 1.75;
+    filter: drop-shadow(
+      0 0 4px color-mix(in srgb, $cyan 20%, transparent)
+    );
+
+    &--root {
+      fill: $cyan;
+      stroke: color-mix(in srgb, $cyan 28%, var(--color-surface-raised));
+      stroke-width: 2;
+      filter: drop-shadow(
+        0 0 6px color-mix(in srgb, $cyan 72%, transparent)
+      );
+    }
+  }
+
+  &__rootRing {
+    fill: none;
+    stroke: color-mix(in srgb, $cyan 58%, transparent);
+    stroke-width: 1.5;
+  }
+
+  &__rootMark {
+    fill: var(--color-on-accent);
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 8px;
+    font-weight: 800;
+  }
+
+  &__tuning {
+    color: $muted;
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 10px;
+    line-height: 1.4;
+    text-align: center;
+  }
+
+  &--compact &__tuning {
+    font-size: 9px;
+  }
+
+  &__description {
+    width: 1px;
+    height: 1px;
+    position: absolute;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    clip-path: inset(50%);
+    border: 0;
+    white-space: nowrap;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chordDiagram,
+  .chordDiagram * {
+    animation: none;
+    transition: none;
+  }
+}

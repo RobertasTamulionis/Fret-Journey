@@ -1,0 +1,331 @@
+@use "mixins" as *;
+@use "variables" as *;
+
+.progressionLibrary {
+  display: grid;
+  gap: 24px;
+
+  &__hero {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 32px;
+    padding: 8px 4px 4px;
+  }
+
+  &__eyebrow {
+    display: block;
+    margin-bottom: 8px;
+    color: $cyan;
+    font-size: 10px;
+    font-weight: 720;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  &__heading {
+    margin: 0 !important;
+    color: $white !important;
+    font-size: 34px !important;
+    font-weight: 710 !important;
+    letter-spacing: -0.045em !important;
+    text-transform: none !important;
+  }
+
+  &__introduction {
+    max-width: 680px;
+    margin: 12px 0 0;
+    color: var(--color-text-muted);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+
+  &__heroActions {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    color: $muted;
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 10px;
+    white-space: nowrap;
+
+    button {
+      min-width: 112px;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  &__empty {
+    min-height: 240px;
+    display: grid;
+    place-items: center;
+    align-content: center;
+    gap: 8px;
+    padding: 40px;
+    border: 1px dashed color-mix(in srgb, $cyan 20%, transparent);
+    border-radius: 18px;
+    color: $muted;
+    text-align: center;
+
+    strong {
+      color: $white;
+      font-size: 16px;
+    }
+
+    p {
+      margin: 0 0 10px;
+      font-size: 12px;
+    }
+  }
+}
+
+.progressionFilters {
+  display: grid;
+  gap: 16px;
+  padding: 20px;
+  border: 1px solid $border;
+  border-radius: 18px;
+  background: var(--panel-background-soft);
+
+  &__header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+
+    h2 {
+      margin: 0 0 5px;
+      color: $white;
+      font-size: 14px;
+      font-weight: 680;
+    }
+
+    p {
+      margin: 0;
+      color: $muted;
+      font-size: 11px;
+    }
+  }
+
+  &__reset {
+    height: 32px;
+    padding-inline: 12px;
+    font-size: 11px;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+    gap: 10px;
+
+    label {
+      min-width: 0;
+      display: grid;
+      gap: 6px;
+
+      > span {
+        color: $muted;
+        font-size: 9px;
+        font-weight: 680;
+        letter-spacing: 0.055em;
+        text-transform: uppercase;
+      }
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 38px;
+      min-width: 0;
+      padding: 0 11px;
+      border: 1px solid var(--color-border);
+      border-radius: 10px;
+      outline: none;
+      background: var(--control-background);
+      color: var(--color-text-soft);
+      font: inherit;
+      font-size: 11px;
+      box-shadow: var(--shadow-control);
+
+      &:focus-visible {
+        border-color: color-mix(in srgb, $cyan 68%, transparent);
+        outline: 2px solid var(--color-focus);
+        outline-offset: 2px;
+      }
+    }
+  }
+
+  &__search {
+    grid-column: span 2;
+  }
+}
+
+.progressionCard {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 18px;
+  border: 1px solid $border;
+  border-radius: 17px;
+  background:
+    radial-gradient(
+      circle at 100% 0%,
+      color-mix(in srgb, $cyan 5.5%, transparent),
+      transparent 32%
+    ),
+    var(--panel-background);
+  box-shadow: var(--shadow-panel);
+  transition:
+    transform $transition,
+    border-color $transition,
+    box-shadow $transition;
+
+  &:hover {
+    transform: translateY(-2px);
+    border-color: color-mix(in srgb, $cyan 24%, transparent);
+    box-shadow:
+      var(--shadow-elevated),
+      0 0 22px color-mix(in srgb, $cyan 3.5%, transparent);
+  }
+
+  &__topline {
+    min-height: 24px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  &__category,
+  &__compatibility {
+    font-size: 9px;
+    font-weight: 690;
+    letter-spacing: 0.045em;
+    text-transform: uppercase;
+  }
+
+  &__category {
+    color: $cyan;
+  }
+
+  &__compatibility {
+    color: var(--color-text-faint);
+    text-align: right;
+
+    &--compatible {
+      color: var(--semantic-success);
+    }
+  }
+
+  &__title {
+    margin: 13px 0 16px;
+    color: $white;
+    font-size: 16px;
+    font-weight: 680;
+    letter-spacing: -0.025em;
+  }
+
+  &__formula,
+  &__chords {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  &__formula {
+    margin: 0;
+    color: var(--color-text-strong);
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 17px;
+    font-weight: 650;
+    letter-spacing: -0.04em;
+  }
+
+  &__chords {
+    margin: 8px 0 0;
+    color: $cyan;
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 13px;
+    font-weight: 590;
+  }
+
+  &__tags {
+    min-height: 27px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 17px 0;
+
+    span {
+      padding: 5px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: 999px;
+      background: var(--panel-background-soft);
+      color: $muted;
+      font-size: 9px;
+      line-height: 1;
+    }
+
+    .progressionCard__tag--color {
+      border-color: color-mix(in srgb, $shape-color 20%, transparent);
+      color: color-mix(
+        in srgb,
+        $shape-color 72%,
+        var(--color-text-strong)
+      );
+    }
+  }
+
+  &__link {
+    min-height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: auto;
+    padding: 0 12px;
+    border: 1px solid color-mix(in srgb, $cyan 14%, transparent);
+    border-radius: 10px;
+    background: var(--control-background);
+    color: var(--color-text-soft);
+    font-size: 11px;
+    font-weight: 620;
+    text-decoration: none;
+    transition:
+      border-color $transition,
+      color $transition,
+      background $transition;
+
+    &:hover {
+      border-color: color-mix(in srgb, $cyan 48%, transparent);
+      background: var(--control-background-active);
+      color: $cyan;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 3px;
+    }
+  }
+}
+
+@media (max-width: 1450px) {
+  .progressionLibrary__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .progressionFilters__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .progressionCard,
+  .progressionCard__link {
+    transition: none;
+  }
+}

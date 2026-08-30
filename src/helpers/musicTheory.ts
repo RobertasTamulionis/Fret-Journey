@@ -149,17 +149,32 @@ const createSpelledNote = (
   pitchClass: normalizePitchClass(naturalPitchClasses[letter] + accidental),
 });
 
+export const spellPitchClassAtDiatonicOffset = (
+  referenceNoteName: string,
+  pitchClass: PitchClass,
+  diatonicSteps: number,
+): SpelledNote => {
+  if (!Number.isInteger(diatonicSteps)) {
+    throw new Error(`Diatonic steps must be an integer: ${diatonicSteps}`);
+  }
+
+  const { letter: referenceLetter } = parseNoteName(referenceNoteName);
+  const referenceLetterIndex = noteLetters.indexOf(referenceLetter);
+  const letterIndex =
+    (((referenceLetterIndex + diatonicSteps) % noteLetters.length) +
+      noteLetters.length) %
+    noteLetters.length;
+  const letter = noteLetters[letterIndex];
+  const accidental = getAccidentalForPitchClass(letter, pitchClass);
+  return createSpelledNote(letter, accidental);
+};
+
 const spellPitchClassAtDegree = (
   tonicName: string,
   pitchClass: PitchClass,
   degree: ScaleDegree,
 ): SpelledNote => {
-  const { letter: tonicLetter } = parseNoteName(tonicName);
-  const tonicLetterIndex = noteLetters.indexOf(tonicLetter);
-  const letter =
-    noteLetters[(tonicLetterIndex + degree - 1) % noteLetters.length];
-  const accidental = getAccidentalForPitchClass(letter, pitchClass);
-  return createSpelledNote(letter, accidental);
+  return spellPitchClassAtDiatonicOffset(tonicName, pitchClass, degree - 1);
 };
 
 export const formatNoteName = (noteName: string): string =>

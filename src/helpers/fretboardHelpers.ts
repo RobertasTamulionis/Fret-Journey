@@ -11,6 +11,7 @@ import type {
   GuitarStringCount,
   IntervalName,
   PitchClass,
+  RegisteredTuningState,
   ScaleDegree,
   ScaleDegreeLabel,
   ScaleName,
@@ -51,6 +52,8 @@ export type GuitarConfiguration = {
   stringCount: GuitarStringCount;
   label: string;
   defaultTuning: PitchClass[];
+  defaultRegisteredTuning: number[];
+  tuningLabel: string;
 };
 
 export type FretPosition = {
@@ -131,16 +134,22 @@ export const guitarConfigurations: Record<
     stringCount: 6,
     label: "6 String",
     defaultTuning: [4, 11, 7, 2, 9, 4],
+    defaultRegisteredTuning: [64, 59, 55, 50, 45, 40],
+    tuningLabel: "Standard E tuning",
   },
   7: {
     stringCount: 7,
     label: "7 String",
     defaultTuning: [4, 11, 7, 2, 9, 4, 11],
+    defaultRegisteredTuning: [64, 59, 55, 50, 45, 40, 35],
+    tuningLabel: "Standard B tuning",
   },
   8: {
     stringCount: 8,
     label: "8 String",
     defaultTuning: [4, 11, 7, 2, 9, 4, 11, 6],
+    defaultRegisteredTuning: [64, 59, 55, 50, 45, 40, 35, 30],
+    tuningLabel: "Standard F♯ tuning",
   },
 };
 
@@ -175,6 +184,47 @@ export const hasCagedTuning = (tuning: PitchClass[]): boolean => {
 export const getDefaultTuning = (
   stringCount: GuitarStringCount,
 ): PitchClass[] => [...guitarConfigurations[stringCount].defaultTuning];
+
+export const getDefaultRegisteredTuning = (
+  stringCount: GuitarStringCount,
+): RegisteredTuningState => ({
+  midiPitches: [...guitarConfigurations[stringCount].defaultRegisteredTuning],
+  source: "preset-default",
+  status: "verified",
+  version: 1,
+});
+
+export const getRegisteredTuningState = (
+  stringCount: GuitarStringCount,
+  tuning: PitchClass[],
+): RegisteredTuningState => {
+  const isPresetDefault =
+    tuning.length === guitarConfigurations[stringCount].defaultTuning.length &&
+    tuning.every(
+      (pitchClass, stringIndex) =>
+        pitchClass ===
+        guitarConfigurations[stringCount].defaultTuning[stringIndex],
+    );
+
+  if (isPresetDefault) {
+    return getDefaultRegisteredTuning(stringCount);
+  }
+
+  return {
+    midiPitches: null,
+    reason: "pitch-class-only-custom",
+    status: "unregistered",
+    version: 1,
+  };
+};
+
+export const getTuningLabel = (
+  stringCount: GuitarStringCount,
+  registeredTuning: RegisteredTuningState,
+): string =>
+  registeredTuning.status === "verified"
+    ? guitarConfigurations[stringCount].tuningLabel
+    : "Custom tuning";
 
 export const getFretPitchClass = (
   tuningPitchClass: PitchClass,

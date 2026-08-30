@@ -1,0 +1,69 @@
+@use "../../lib/styles/variables" as *;
+
+.themeSelector {
+  min-width: 132px;
+  height: 42px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 4px 5px 4px 11px;
+  border: 1px solid $border;
+  border-radius: 13px;
+  background: var(--control-background);
+  box-shadow: var(--shadow-control);
+
+  > span {
+    color: $muted;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  select {
+    width: 100%;
+    height: 32px;
+    padding: 0 25px 0 9px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    appearance: none;
+    background:
+      linear-gradient(45deg, transparent 50%, $cyan 50%)
+        calc(100% - 13px) 13px / 4px 4px no-repeat,
+      linear-gradient(135deg, $cyan 50%, transparent 50%)
+        calc(100% - 9px) 13px / 4px 4px no-repeat,
+      var(--control-background-strong);
+    color: $white;
+    font: inherit;
+    font-size: 11px;
+    font-weight: 640;
+    cursor: pointer;
+    transition:
+      border-color $transition,
+      background $transition,
+      color $transition;
+
+    &:hover {
+      border-color: color-mix(in srgb, $cyan 36%, transparent);
+      color: $cyan;
+    }
+
+    &:focus-visible {
+      border-color: color-mix(in srgb, $cyan 58%, transparent);
+      outline: 2px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+
+    option {
+      background: var(--color-surface-raised);
+      color: $white;
+    }
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .themeSelector select {
+    transition: none;
+  }
+}

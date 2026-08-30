@@ -1,13 +1,53 @@
 import assert from "node:assert/strict";
 import {
+  practiceRoutines,
+  practiceSources,
+} from "../src/data/practiceRoutines";
+import {
+  practiceTabExampleIds,
+  practiceTabExamples,
+} from "../src/data/practiceTabExamples";
+import {
+  getProgressionBySlug,
+  progressionCatalog,
+  progressionCatalogValidation,
+} from "../src/data/progressionCatalog";
+import {
+  getPracticeTabPitchClass,
+  practiceTabSlotCount,
+  practiceTabTunings,
+} from "../src/features/practice/tablature";
+import {
+  minimumProgressionCatalogCount,
+  parseProgressionUrlContext,
+  resolveProgression,
+  resolveProgressionTonalContext,
+  resolveRelativeChord,
+} from "../src/features/progressions";
+import type {
+  ChordVoicingRequest,
+  PlayableVoicing,
+  VoicingStringState,
+} from "../src/features/voicings";
+import {
+  buildResolvedChordVoicingRequest,
+  buildScaleChordVoicingRequest,
+  chordVoicingMaximumFret,
+  chordVoicingMaximumFretSpan,
+  chordVoicingPreferredMaximumFretSpan,
+  generateChordVoicings,
+} from "../src/features/voicings";
+import {
   buildCagedChordShape,
   buildFretPositions,
   buildScaleShape,
   getAvailableScaleShapeSystems,
   getChordToneIntervalName,
+  getDefaultRegisteredTuning,
   getDefaultTuning,
   getFretPitchClass,
   getPitchClass,
+  getRegisteredTuningState,
   getScaleChords,
   getScaleShapeSystem,
   getScaleTones,
@@ -23,6 +63,7 @@ import type {
   ScaleName,
 } from "../src/helpers/typesHelpers";
 import fretboardReducer, {
+  setActiveProgressionChord,
   setActiveShape,
   setChordSize,
   setFretNoteCount,
@@ -35,6 +76,117 @@ import fretboardReducer, {
 } from "../src/lib/redux/slices/fretboardSlice";
 
 const scaleNames = Object.keys(scaleDefinitions) as ScaleName[];
+
+const axisFour = getProgressionBySlug("axis-four");
+assert.ok(axisFour, "The canonical I–V–vi–IV template must be present");
+
+const axisFourInA = resolveProgression(axisFour, {
+  currentKey: "A",
+  currentScale: "major",
+});
+const axisFourInC = resolveProgression(axisFour, {
+  currentKey: "C",
+  currentScale: "major",
+});
+const axisFourInG = resolveProgression(axisFour, {
+  currentKey: "G",
+  currentScale: "major",
+});
+const axisFourInMinorContext = resolveProgression(axisFour, {
+  currentKey: "A",
+  currentScale: "minor",
+});
+
+assert.equal(axisFourInA.formula, "I – V – vi – IV");
+assert.deepEqual(axisFourInA.chordNames, ["A", "E", "F♯m", "D"]);
+assert.deepEqual(axisFourInC.chordNames, ["C", "G", "Am", "F"]);
+assert.deepEqual(axisFourInG.chordNames, ["G", "D", "Em", "C"]);
+assert.equal(axisFourInC.formula, axisFourInA.formula);
+assert.equal(axisFourInMinorContext.compatible, false);
+assert.equal(axisFourInMinorContext.formula, axisFourInA.formula);
+
+const borrowedFourInA = resolveRelativeChord(
+  {
+    formulaId: "minor",
+    harmonicScope: "borrowed",
+    root: { alteration: 0, degree: 4 },
+  },
+  "A",
+);
+assert.equal(borrowedFourInA.romanNumeral, "iv");
+assert.equal(borrowedFourInA.name, "Dm");
+assert.deepEqual(
+  borrowedFourInA.tones.map(({ name }) => name),
+  ["D", "F", "A"],
+);
+
+const fiveOfFiveInC = resolveRelativeChord(
+  {
+    appliedTo: { alteration: 0, degree: 5 },
+    formulaId: "dominant7",
+    harmonicScope: "secondary-dominant",
+    root: { alteration: 0, degree: 2 },
+  },
+  "C",
+);
+assert.equal(fiveOfFiveInC.romanNumeral, "V7/V");
+assert.equal(fiveOfFiveInC.name, "D7");
+assert.deepEqual(
+  fiveOfFiveInC.tones.map(({ name }) => name),
+  ["D", "F#", "A", "C"],
+);
+
+assert.deepEqual(
+  parseProgressionUrlContext(
+    new URLSearchParams("key=Gb&scale=phrygian-dominant"),
+  ),
+  { currentKey: "Gb", currentScale: "phrygian-dominant" },
+);
+assert.deepEqual(
+  parseProgressionUrlContext(new URLSearchParams("key=H&scale=dorian")),
+  {},
+);
+assert.deepEqual(
+  resolveProgressionTonalContext({
+    defaults: { currentKey: "A", currentScale: "major" },
+    existing: { currentKey: "G", currentScale: "minor" },
+    url: { currentKey: "C" },
+  }),
+  { currentKey: "C", currentScale: "minor" },
+);
+
+assert.equal(progressionCatalogValidation.valid, true);
+assert.equal(progressionCatalogValidation.count, progressionCatalog.length);
+assert.equal(
+  progressionCatalogValidation.uniqueSignatureCount,
+  progressionCatalog.length,
+);
+assert.ok(progressionCatalog.length >= minimumProgressionCatalogCount);
+assert.deepEqual(
+  [...new Set(progressionCatalog.map(({ slug }) => slug))].length,
+  progressionCatalog.length,
+);
+assert.deepEqual(
+  Object.values(progressionCatalogValidation.categoryCounts),
+  Array(15).fill(15),
+);
+
+let verifiedProgressionResolutionCount = 0;
+const resolvedProgressionChords: Array<
+  ReturnType<typeof resolveProgression>["steps"][number]["chord"]
+> = [];
+for (const progression of progressionCatalog) {
+  for (const { name: tonic } of tonicOptions) {
+    const resolved = resolveProgression(progression, {
+      currentKey: tonic,
+      currentScale: progression.tonalFramework,
+    });
+    assert.equal(resolved.steps.length, progression.steps.length);
+    assert.equal(resolved.compatible, true);
+    verifiedProgressionResolutionCount += resolved.steps.length;
+    resolvedProgressionChords.push(...resolved.steps.map(({ chord }) => chord));
+  }
+}
 
 const assertScaleSpelling = (
   key: Parameters<typeof getScaleTones>[0],
@@ -313,6 +465,606 @@ const twelveFretPositions = buildFretPositions(
   "major",
 );
 
+const expectedRegisteredTunings = {
+  6: [64, 59, 55, 50, 45, 40],
+  7: [64, 59, 55, 50, 45, 40, 35],
+  8: [64, 59, 55, 50, 45, 40, 35, 30],
+} as const;
+
+for (const stringCount of [6, 7, 8] as GuitarStringCount[]) {
+  const registeredTuning = getDefaultRegisteredTuning(stringCount);
+  assert.equal(registeredTuning.status, "verified");
+  assert.deepEqual(
+    registeredTuning.midiPitches,
+    expectedRegisteredTunings[stringCount],
+    `${stringCount}-string registered default`,
+  );
+  assert.deepEqual(
+    registeredTuning.midiPitches?.map((midi) => (midi % 12) as PitchClass),
+    getDefaultTuning(stringCount),
+    `${stringCount}-string MIDI defaults must match pitch-class tuning`,
+  );
+  assert.deepEqual(
+    getRegisteredTuningState(stringCount, getDefaultTuning(stringCount)),
+    registeredTuning,
+  );
+
+  const customTuning = getDefaultTuning(stringCount);
+  customTuning[0] = ((customTuning[0] + 1) % 12) as PitchClass;
+  assert.deepEqual(getRegisteredTuningState(stringCount, customTuning), {
+    midiPitches: null,
+    reason: "pitch-class-only-custom",
+    status: "unregistered",
+    version: 1,
+  });
+}
+
+const standardPracticeTuning = practiceTabTunings["standard-6"];
+const registeredSixStringTuning = getDefaultRegisteredTuning(6);
+assert.equal(registeredSixStringTuning.status, "verified");
+assert.deepEqual(
+  standardPracticeTuning.pitchClassesHighToLow,
+  standardTuning,
+  "Practice tab pitch classes must use the shared high-to-low Standard E order",
+);
+assert.deepEqual(
+  standardPracticeTuning.stringLabelsHighToLow,
+  ["e", "B", "G", "D", "A", "E"],
+  "Practice tab string labels must run from highest string to lowest string",
+);
+if (registeredSixStringTuning.status === "verified") {
+  assert.deepEqual(
+    standardPracticeTuning.midiPitchesHighToLow,
+    registeredSixStringTuning.midiPitches,
+    "Practice tab registers must match the verified six-string preset",
+  );
+}
+
+const practiceSourceIds = new Set(practiceSources.map(({ id }) => id));
+assert.equal(
+  practiceSourceIds.size,
+  practiceSources.length,
+  "Practice source IDs must be unique",
+);
+
+const routineExampleIds = practiceRoutines.flatMap((routine) => {
+  assert.ok(routine.steps.length > 0, `${routine.id} must include a drill`);
+  assert.equal(
+    new Set(routine.sourceIds).size,
+    routine.sourceIds.length,
+    `${routine.id} source IDs must be unique`,
+  );
+  routine.sourceIds.forEach((sourceId) => {
+    assert.ok(
+      practiceSourceIds.has(sourceId),
+      `${routine.id} references missing source ${sourceId}`,
+    );
+  });
+
+  return routine.steps.map(({ exampleId }) => exampleId);
+});
+
+assert.equal(
+  new Set(routineExampleIds).size,
+  routineExampleIds.length,
+  "Each authored Practice tab must belong to one routine step",
+);
+assert.deepEqual(
+  [...routineExampleIds].sort(),
+  [...practiceTabExampleIds].sort(),
+  "Routine steps and authored Practice tabs must stay in one-to-one alignment",
+);
+
+let verifiedPracticeExampleCount = 0;
+for (const exampleId of practiceTabExampleIds) {
+  const example = practiceTabExamples[exampleId];
+  const slotCount = practiceTabSlotCount[example.subdivision];
+  const eventStarts = new Set<number>();
+  const noteEventStarts = new Set<number>();
+  const restSlots = new Set<number>();
+
+  assert.equal(
+    example.id,
+    exampleId,
+    `${exampleId} must preserve its record key`,
+  );
+  assert.ok(example.accessibleDescription.trim().length > 0);
+  assert.ok(example.bpm >= 20 && example.bpm <= 240, `${exampleId} BPM`);
+  assert.ok(
+    Number.isInteger(example.repetitions) && example.repetitions > 0,
+    `${exampleId} repetitions`,
+  );
+  assert.ok(example.events.length > 0, `${exampleId} must contain events`);
+  assert.ok(example.pitchScope.label.trim().length > 0);
+
+  example.markers?.forEach((marker) => {
+    assert.ok(
+      Number.isInteger(marker.at) && marker.at >= 0 && marker.at < slotCount,
+      `${exampleId} marker ${marker.label} must fit the bar`,
+    );
+    assert.ok(marker.label.trim().length > 0);
+  });
+  assert.equal(
+    new Set(example.markers?.map(({ at }) => at)).size,
+    example.markers?.length ?? 0,
+    `${exampleId} marker slots must be unique`,
+  );
+
+  const noteHistory = new Map<
+    number,
+    Array<{ articulation?: string; at: number; fret: number }>
+  >();
+
+  for (const event of [...example.events].sort(
+    (first, second) => first.at - second.at,
+  )) {
+    assert.ok(
+      Number.isInteger(event.at) && event.at >= 0 && event.at < slotCount,
+      `${exampleId} event at ${event.at} must fit the bar`,
+    );
+    assert.ok(
+      Number.isInteger(event.duration) && event.duration > 0,
+      `${exampleId} event duration at ${event.at}`,
+    );
+    assert.ok(
+      event.at + event.duration <= slotCount,
+      `${exampleId} event at ${event.at} must end inside the bar`,
+    );
+    assert.equal(
+      eventStarts.has(event.at),
+      false,
+      `${exampleId} may show only one grouped event at slot ${event.at}`,
+    );
+    eventStarts.add(event.at);
+
+    if (event.kind === "rest") {
+      for (let slot = event.at; slot < event.at + event.duration; slot += 1) {
+        assert.equal(
+          restSlots.has(slot),
+          false,
+          `${exampleId} rest slots must not overlap at ${slot}`,
+        );
+        restSlots.add(slot);
+      }
+      continue;
+    }
+
+    noteEventStarts.add(event.at);
+
+    assert.ok(event.notes.length > 0, `${exampleId} note event at ${event.at}`);
+    assert.equal(
+      new Set(event.notes.map(({ string }) => string)).size,
+      event.notes.length,
+      `${exampleId} grouped event at ${event.at} must use each string once`,
+    );
+
+    for (const note of event.notes) {
+      assert.ok(note.string >= 1 && note.string <= 6, `${exampleId} string`);
+
+      if (note.fret === "x") {
+        assert.equal(
+          note.articulation,
+          undefined,
+          `${exampleId} dead note cannot carry an articulation`,
+        );
+        assert.equal(
+          note.targetFret,
+          undefined,
+          `${exampleId} dead note cannot carry a target fret`,
+        );
+        continue;
+      }
+
+      assert.ok(
+        Number.isInteger(note.fret) && note.fret >= 0 && note.fret <= 24,
+        `${exampleId} fret ${note.fret}`,
+      );
+
+      const soundedPitch = getPracticeTabPitchClass(
+        example.tuningId,
+        note.string,
+        note.fret,
+      );
+      if (example.pitchScope.kind === "set") {
+        assert.ok(
+          example.pitchScope.pitchClasses.includes(soundedPitch),
+          `${exampleId} string ${note.string} fret ${note.fret} must belong to ${example.pitchScope.label}`,
+        );
+      }
+
+      if (note.articulation === "bend") {
+        assert.ok(
+          note.targetFret !== undefined &&
+            Number.isInteger(note.targetFret) &&
+            note.targetFret > note.fret &&
+            note.targetFret - note.fret <= 2 &&
+            note.targetFret <= 24,
+          `${exampleId} bend at string ${note.string} fret ${note.fret} needs a one- or two-fret target`,
+        );
+
+        if (
+          note.targetFret !== undefined &&
+          example.pitchScope.kind === "set"
+        ) {
+          const targetPitch = getPracticeTabPitchClass(
+            example.tuningId,
+            note.string,
+            note.targetFret,
+          );
+          assert.ok(
+            example.pitchScope.pitchClasses.includes(targetPitch),
+            `${exampleId} bend target must belong to ${example.pitchScope.label}`,
+          );
+        }
+      } else {
+        assert.equal(
+          note.targetFret,
+          undefined,
+          `${exampleId} target fret is reserved for bends`,
+        );
+      }
+
+      const priorNotes = noteHistory.get(note.string) ?? [];
+      const previousNote = priorNotes.at(-1);
+
+      if (
+        note.articulation === "hammer" ||
+        note.articulation === "pull" ||
+        note.articulation === "slide-up" ||
+        note.articulation === "slide-down" ||
+        note.articulation === "release"
+      ) {
+        assert.ok(
+          previousNote,
+          `${exampleId} ${note.articulation} needs a previous note on string ${note.string}`,
+        );
+      }
+
+      if (previousNote && note.articulation === "hammer") {
+        assert.ok(
+          note.fret > previousNote.fret,
+          `${exampleId} hammer direction`,
+        );
+      }
+      if (previousNote && note.articulation === "pull") {
+        assert.ok(note.fret < previousNote.fret, `${exampleId} pull direction`);
+      }
+      if (previousNote && note.articulation === "slide-up") {
+        assert.ok(
+          note.fret > previousNote.fret,
+          `${exampleId} slide-up direction`,
+        );
+      }
+      if (previousNote && note.articulation === "slide-down") {
+        assert.ok(
+          note.fret < previousNote.fret,
+          `${exampleId} slide-down direction`,
+        );
+      }
+      if (previousNote && note.articulation === "release") {
+        assert.equal(
+          previousNote.articulation,
+          "bend",
+          `${exampleId} release must follow a bend on the same string`,
+        );
+      }
+
+      priorNotes.push({
+        articulation: note.articulation,
+        at: event.at,
+        fret: note.fret,
+      });
+      noteHistory.set(note.string, priorNotes);
+    }
+  }
+
+  for (const restSlot of restSlots) {
+    assert.equal(
+      noteEventStarts.has(restSlot),
+      false,
+      `${exampleId} rest at ${restSlot} must not overlap another event start`,
+    );
+  }
+
+  verifiedPracticeExampleCount += 1;
+}
+
+type SoundingVoicingStringState = Exclude<
+  VoicingStringState,
+  { kind: "muted" }
+>;
+
+const stringCounts = [6, 7, 8] as const satisfies readonly GuitarStringCount[];
+let verifiedVoicingContextCount = 0;
+let verifiedGeneratedVoicingCount = 0;
+
+const assertGeneratedVoicing = (
+  request: ChordVoicingRequest,
+  voicing: PlayableVoicing,
+  voicingIndex: number,
+  voicings: readonly PlayableVoicing[],
+  contextLabel: string,
+): void => {
+  verifiedGeneratedVoicingCount += 1;
+  assert.equal(voicing.chordName, request.chordName);
+  assert.equal(voicing.stringCount, request.stringCount);
+  assert.equal(voicing.strings.length, request.stringCount);
+  assert.equal(voicing.generatorVersion, "dynamic-chord-v1");
+  assert.equal(voicing.registerStatus, "verified");
+  assert.deepEqual(voicing.omissions, []);
+  assert.deepEqual(voicing.doublings, []);
+  assert.deepEqual(
+    voicing.requiredTones,
+    request.tones.filter(({ required }) => required).map(({ role }) => role),
+  );
+  assert.deepEqual(
+    voicing.toneRoles,
+    request.tones.map(({ role }) => role),
+  );
+  assert.ok(voicing.signature.startsWith(`${request.stringCount}:`));
+  assert.ok(
+    voicing.fretSpan <= chordVoicingPreferredMaximumFretSpan,
+    contextLabel,
+  );
+
+  if (voicingIndex > 0) {
+    assert.ok(voicing.rank >= voicings[voicingIndex - 1].rank, contextLabel);
+  }
+
+  const sounded = voicing.strings.filter(
+    (state): state is SoundingVoicingStringState => state.kind !== "muted",
+  );
+  assert.equal(sounded.length, request.tones.length, contextLabel);
+  assert.equal(
+    new Set(sounded.map(({ stringIndex }) => stringIndex)).size,
+    sounded.length,
+    contextLabel,
+  );
+  assert.deepEqual(
+    [...new Set(sounded.map(({ pitchClass }) => pitchClass))].sort(
+      (first, second) => first - second,
+    ),
+    [...request.tones.map(({ pitchClass }) => pitchClass)].sort(
+      (first, second) => first - second,
+    ),
+    `${contextLabel} must include every chord pitch class exactly once`,
+  );
+  assert.deepEqual(
+    [...new Set(sounded.map(({ role }) => role))].sort(),
+    [...request.tones.map(({ role }) => role)].sort(),
+    `${contextLabel} must include every chord-tone role exactly once`,
+  );
+
+  sounded.forEach((state) => {
+    assert.ok(
+      state.fret >= 0 && state.fret <= chordVoicingMaximumFret,
+      contextLabel,
+    );
+    assert.equal(state.kind === "open", state.fret === 0, contextLabel);
+    assert.equal(
+      state.pitchClass,
+      getFretPitchClass(request.tuning[state.stringIndex], state.fret),
+      contextLabel,
+    );
+
+    if (request.registeredOpenMidi) {
+      assert.equal(
+        state.midi,
+        request.registeredOpenMidi[state.stringIndex] + state.fret,
+        contextLabel,
+      );
+    }
+  });
+
+  const frets = sounded.map(({ fret }) => fret);
+  assert.equal(voicing.baseFret, Math.min(...frets), contextLabel);
+  assert.equal(
+    voicing.fretSpan,
+    Math.max(...frets) - Math.min(...frets),
+    contextLabel,
+  );
+
+  if (request.registeredOpenMidi) {
+    assert.ok(
+      sounded.every(({ midi }) => midi !== undefined),
+      `${contextLabel} needs registered sounding pitches`,
+    );
+    const registeredLowToHigh = [...sounded].sort(
+      (first, second) => (first.midi as number) - (second.midi as number),
+    );
+    assert.ok(voicing.bass, `${contextLabel} needs a calculated bass`);
+    assert.equal(voicing.bass.midi, registeredLowToHigh[0].midi, contextLabel);
+    assert.equal(
+      voicing.bass.pitchClass,
+      registeredLowToHigh[0].pitchClass,
+      contextLabel,
+    );
+    assert.equal(voicing.bass.role, registeredLowToHigh[0].role, contextLabel);
+
+    if (request.bassPitchClass !== undefined) {
+      assert.equal(
+        voicing.bass.pitchClass,
+        request.bassPitchClass,
+        `${contextLabel} must honor its authored slash bass`,
+      );
+    }
+  }
+};
+
+const assertVoicingCoverage = (
+  request: ChordVoicingRequest,
+  contextLabel: string,
+): void => {
+  const voicings = generateChordVoicings(request);
+  verifiedVoicingContextCount += 1;
+  assert.ok(
+    voicings.length > 0,
+    `${contextLabel} needs at least one complete generated voicing`,
+  );
+  assert.equal(
+    new Set(voicings.map(({ signature }) => signature)).size,
+    voicings.length,
+    `${contextLabel} signatures must be unique`,
+  );
+  voicings.forEach((voicing, voicingIndex) => {
+    assertGeneratedVoicing(
+      request,
+      voicing,
+      voicingIndex,
+      voicings,
+      contextLabel,
+    );
+  });
+};
+
+for (const { name: tonic } of tonicOptions) {
+  for (const scaleName of scaleNames) {
+    for (const size of ["triad", "seventh", "ninth"] as const) {
+      for (const chord of getScaleChords(tonic, scaleName, size)) {
+        for (const stringCount of stringCounts) {
+          const registeredTuning = getDefaultRegisteredTuning(stringCount);
+          assertVoicingCoverage(
+            buildScaleChordVoicingRequest(chord, {
+              registeredTuning,
+              stringCount,
+              tuning: getDefaultTuning(stringCount),
+            }),
+            `${tonic} ${scaleName} ${chord.root.name} ${chord.label} on ${stringCount} strings`,
+          );
+        }
+      }
+    }
+  }
+}
+
+for (const chord of resolvedProgressionChords) {
+  for (const stringCount of stringCounts) {
+    const registeredTuning = getDefaultRegisteredTuning(stringCount);
+    assertVoicingCoverage(
+      buildResolvedChordVoicingRequest(chord, {
+        registeredTuning,
+        stringCount,
+        tuning: getDefaultTuning(stringCount),
+      }),
+      `${chord.name} progression chord on ${stringCount} strings`,
+    );
+  }
+}
+
+const addNineRelativeLoop = getProgressionBySlug("add-nine-relative-loop");
+assert.ok(addNineRelativeLoop);
+const fSharpMinorAddNine = resolveProgression(addNineRelativeLoop, {
+  currentKey: "A",
+  currentScale: "major",
+}).steps[1].chord;
+assert.equal(fSharpMinorAddNine.name, "F♯m(add9)");
+assert.deepEqual(
+  fSharpMinorAddNine.tones.map(({ name }) => name),
+  ["F#", "A", "C#", "G#"],
+);
+const fSharpMinorAddNineRequest = buildResolvedChordVoicingRequest(
+  fSharpMinorAddNine,
+  {
+    registeredTuning: getDefaultRegisteredTuning(6),
+    stringCount: 6,
+    tuning: getDefaultTuning(6),
+  },
+);
+assert.deepEqual(
+  generateChordVoicings(fSharpMinorAddNineRequest),
+  generateChordVoicings(fSharpMinorAddNineRequest),
+  "Dynamic chord generation must be deterministic",
+);
+
+const customSixStringTuning = [...getDefaultTuning(6)];
+customSixStringTuning[0] = 5;
+const customAddNineVoicings = generateChordVoicings(
+  buildResolvedChordVoicingRequest(fSharpMinorAddNine, {
+    registeredTuning: getRegisteredTuningState(6, customSixStringTuning),
+    stringCount: 6,
+    tuning: customSixStringTuning,
+  }),
+);
+assert.ok(customAddNineVoicings.length > 0);
+assert.ok(
+  customAddNineVoicings.every(
+    ({ bass, registerStatus }) =>
+      bass === undefined && registerStatus === "pitch-class-only",
+  ),
+);
+
+const uniformCustomTuning = Array.from({ length: 6 }, () => 0 as PitchClass);
+const uniformCustomNinthVoicings = generateChordVoicings(
+  buildScaleChordVoicingRequest(getScaleChords("C", "major", "ninth")[0], {
+    registeredTuning: getRegisteredTuningState(6, uniformCustomTuning),
+    stringCount: 6,
+    tuning: uniformCustomTuning,
+  }),
+);
+assert.ok(
+  uniformCustomNinthVoicings.length > 0,
+  "A pitch-class-only custom tuning must still receive a complete diagram",
+);
+assert.ok(
+  uniformCustomNinthVoicings.every(
+    ({ bass, fretSpan, registerStatus }) =>
+      bass === undefined &&
+      fretSpan <= chordVoicingMaximumFretSpan &&
+      registerStatus === "pitch-class-only",
+  ),
+);
+assert.ok(
+  uniformCustomNinthVoicings.some(
+    ({ fretSpan }) => fretSpan > chordVoicingPreferredMaximumFretSpan,
+  ),
+  "Pathological custom tunings must use the wide fallback instead of failing",
+);
+
+const customSlashChord = resolvedProgressionChords.find(({ bass }) => bass);
+assert.ok(customSlashChord?.bass);
+const customSlashVoicings = generateChordVoicings(
+  buildResolvedChordVoicingRequest(customSlashChord, {
+    registeredTuning: getRegisteredTuningState(6, uniformCustomTuning),
+    stringCount: 6,
+    tuning: uniformCustomTuning,
+  }),
+);
+assert.ok(customSlashVoicings.length > 0);
+customSlashVoicings.forEach((voicing) => {
+  assert.equal(voicing.bass, undefined);
+  assert.equal(
+    voicing.authoredBassPitchClass,
+    customSlashChord.bass?.pitchClass,
+  );
+  const sounded = voicing.strings.filter(
+    (state): state is SoundingVoicingStringState => state.kind !== "muted",
+  );
+  const authoredBassState = sounded.find(
+    ({ pitchClass }) => pitchClass === customSlashChord.bass?.pitchClass,
+  );
+  assert.equal(
+    authoredBassState?.stringIndex,
+    Math.max(...sounded.map(({ stringIndex }) => stringIndex)),
+  );
+});
+
+assert.deepEqual(
+  generateChordVoicings({
+    chordName: "Invalid duplicate role",
+    registeredOpenMidi: expectedRegisteredTunings[6],
+    rootPitchClass: 0,
+    stringCount: 6,
+    tones: [
+      { name: "C", pitchClass: 0, required: true, role: "root" },
+      { name: "E", pitchClass: 4, required: true, role: "third" },
+      { name: "G", pitchClass: 7, required: true, role: "third" },
+    ],
+    tuning: getDefaultTuning(6),
+  }),
+  [],
+  "Dynamic voicing generation must reject ambiguous chord-tone roles",
+);
+
 assert.equal(twelveFretPositions.length, standardTuning.length);
 twelveFretPositions.forEach((stringPositions) => {
   assert.equal(stringPositions.length, 12);
@@ -458,6 +1210,49 @@ assert.equal(chordState.displayMode, "notes");
 chordState = fretboardReducer(chordState, setChordSize("seventh"));
 assert.equal(chordState.chordSize, "seventh");
 assert.equal(chordState.displayMode, "chord-tones");
+
+let sharedContextState = fretboardReducer(undefined, { type: "theory/init" });
+sharedContextState = fretboardReducer(sharedContextState, setStringCount(7));
+assert.deepEqual(sharedContextState.tuning, getDefaultTuning(7));
+assert.deepEqual(
+  sharedContextState.registeredTuning,
+  getDefaultRegisteredTuning(7),
+);
+sharedContextState = fretboardReducer(
+  sharedContextState,
+  setTuningNote({ pitchClass: 1, tuningNoteIndex: 0 }),
+);
+assert.equal(sharedContextState.registeredTuning.status, "unregistered");
+sharedContextState = fretboardReducer(
+  sharedContextState,
+  setActiveProgressionChord({
+    progressionSlug: "axis-four",
+    stepId: "axis-four-step-3",
+  }),
+);
+sharedContextState = fretboardReducer(sharedContextState, setKey("G"));
+sharedContextState = fretboardReducer(sharedContextState, setScale("major"));
+assert.equal(sharedContextState.currentKey, "G");
+assert.equal(sharedContextState.currentScale, "major");
+assert.equal(sharedContextState.stringCount, 7);
+assert.equal(sharedContextState.tuning[0], 1);
+assert.deepEqual(sharedContextState.activeProgressionChord, {
+  progressionSlug: "axis-four",
+  stepId: "axis-four-step-3",
+});
+sharedContextState = fretboardReducer(
+  sharedContextState,
+  setTuningNote({ pitchClass: getDefaultTuning(7)[0], tuningNoteIndex: 0 }),
+);
+assert.deepEqual(
+  sharedContextState.registeredTuning,
+  getDefaultRegisteredTuning(7),
+);
+sharedContextState = fretboardReducer(
+  sharedContextState,
+  setSelectedChordDegree(2),
+);
+assert.equal(sharedContextState.activeProgressionChord, null);
 chordState = fretboardReducer(chordState, setSelectedChordDegree(5));
 chordState = fretboardReducer(chordState, setChordSize("ninth"));
 assert.equal(chordState.selectedChordDegree, 5);
@@ -987,5 +1782,5 @@ assert.deepEqual(
 );
 
 console.log(
-  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, and ${verifiedShapeCount} shape/tuning combinations.`,
+  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), and ${verifiedPracticeExampleCount} authored practice tabs.`,
 );

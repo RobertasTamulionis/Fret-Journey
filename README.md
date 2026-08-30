@@ -1,44 +1,305 @@
-# Fret-Journey
+# Fret Journey
 
-An interactive fretboard for exploring guitar notes, scales, intervals, chords, and shapes.
+Fret Journey is a desktop-first guitar-learning application built around an
+interactive fretboard, a route-backed Progression Lab, and focused daily
+practice routines. It helps players see how notes, scale degrees, intervals,
+scale shapes, chord progressions, technique work, and complete dynamically
+generated chord shapes connect across the neck.
 
-Music-theory behavior is governed by the sourced [theory contract](./THEORY.md).
-Run `npm run theory:check` after changing notes, scales, chords, tunings, or
-fingering logic.
+The app is theory-first: pitch-class identity is separated from written note
+spelling, scale and chord labels preserve correct enharmonic notation, and
+theory behavior is governed by the sourced [theory contract](./THEORY.md).
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+## Current capabilities
 
-## Getting Started
+- Explore 15 conventional tonic spellings across Major, Natural Minor, Minor
+  Blues, Harmonic Minor, and Phrygian Dominant.
+- Switch between Notes, Scale Degrees, Intervals, and Chord Tones.
+- View enlarged cyclic 12-fret or full 24-fret layouts with only relevant notes
+  rendered.
+- Use 6-, 7-, or 8-string guitar presets and retune every string through a
+  chromatic pitch-class selector.
+- Explore context-aware 3NPS, CAGED, Pentatonic, and Blues Box patterns.
+- Use named C, A, G, E, and D shapes with ringed tonic-chord anchors where
+  CAGED is valid.
+- Select triads, seventh chords, or ninth chords and highlight their root,
+  third, fifth, seventh, and ninth roles across the neck.
+- Read theory-derived note spellings, formulas, chord names, and active-chord
+  summaries.
+- Navigate with real routes between the Fretboard (`/`), progression library
+  (`/progressions`), progression workspaces (`/progressions/[slug]`), and
+  Practice Lab (`/practice`).
+- Switch the complete application between persisted Graphite, Light, and Ember
+  themes from the shared top-right header control.
+- Use eight keyboard-accessible daily-practice tabs covering a rotating Daily
+  Mix, Scales & Modes, String Skipping, Rhythm & Chugs, Alternate Picking,
+  Legato, Sweep Picking, and Bends & Vibrato.
+- Select among 33 authored exercises and practice from one large six-string tab
+  score with rhythmic counts, pick direction, rests, palm-muting depth,
+  articulations, concise play/pass cues, and optional technique notes.
+- Reflow Practice Lab with a touch-scrollable single-row tab rail and stacked
+  routine and coaching content on tablet and phone viewports.
+- Browse 225 editorially reviewed, genuinely distinct relative progression
+  templates with search, compatibility-first ranking, filters, and an
+  “Inspire me” action scoped to the visible verified results.
+- Transpose authored Roman-numeral progressions without changing their chord
+  types, including borrowed chords, applied dominants, altered roots,
+  suspensions, added tones, and slash basses.
+- Step through a progression while the active chord name, note list, fretboard,
+  large chart, and compact chart overview update together.
+- Compare every chord tone across the neck with an exact selected voicing.
+  Formula-independent diagrams dynamically place every authored tone for all
+  current triads, sevenths, ninths, suspended chords, added tones, sixths, and
+  slash-bass chords on the selected 6-, 7-, or 8-string guitar.
 
-First, run the development server:
+## Theory and shape coverage
+
+| Scale | Available shape systems | Harmony |
+| --- | --- | --- |
+| Major | 3NPS, CAGED, Pentatonic | Diatonic triads, sevenths, and ninths |
+| Natural Minor | 3NPS, CAGED, Pentatonic | Diatonic triads, sevenths, and ninths |
+| Minor Blues | Blues Boxes | Common I-IV-V major, dominant-seventh, and dominant-ninth harmony |
+| Harmonic Minor | 3NPS | Diatonic triads, sevenths, and ninths |
+| Phrygian Dominant | 3NPS | Diatonic triads, sevenths, and ninths |
+
+CAGED is available only for Major and Natural Minor when the highest six
+strings preserve standard-tuning intervals. Seven- and eight-string guitars
+retain the named CAGED geometry on their highest six strings.
+
+Pentatonic boxes are available for Major and Natural Minor. Minor Blues uses
+the same five-box foundation with the flat-five blue note added.
+
+See [THEORY.md](./THEORY.md) for the complete theory contract, shape
+conventions, implementation boundaries, and sources.
+
+## Themes
+
+The shared header offers Graphite, Light, and Ember themes on every route. The
+selection is stored locally, applied to the root document before the interface
+hydrates, and retained across route changes and reloads. Runtime semantic CSS
+tokens theme the canvas, navigation, controls, cards, fretboard workspace,
+progression tools, chord charts, and Practice score while keeping shape,
+CAGED, chord-role, and technique colors functionally distinct. Theme choice is
+a visual preference and does not alter music data or Redux tonal state.
+
+## Practice Lab
+
+Practice Lab is a guided routine library rather than a timer or completion
+tracker. Its eight true in-page tabs keep active selection local, support
+Left/Right/Home/End keyboard movement, and open a compact drill selector. Only
+one exercise is expanded at a time: a large graphical tab is followed by one
+short playing instruction and one pass condition. Longer coaching, session
+structure, and research sources remain available through disclosure controls
+instead of competing with the score.
+
+The 33 authored examples use verified six-string Standard E tuning and expose
+their fixed context beside each score. They include scale navigation, string
+skips, chug grids, alternate-picking paths, legato, sweep motion, bends, and
+vibrato with structured fret and articulation data rather than decorative
+ASCII. The separate Fretboard-context card still reads the Redux key and scale
+through existing theory helpers, but it never implies that a fixed tab was
+transposed or retuned automatically.
+
+Practice is the deliberate responsive exception to the otherwise desktop-first
+application. At viewports below `1180px`, its route-loaded stylesheet releases
+the document minimum width only while `.practiceLab` is present. The eight-tab
+rail remains a single horizontal keyboard sequence and becomes touch-scrollable
+with scroll snapping; the drill strip, score viewport, guidance, and support
+cards progressively stack, while the other routes retain the existing
+wide-canvas contract.
+
+The visible research links in each routine record why the drills emphasize
+clean tempo, short focused repetitions, muting, pitch control, healthy warm-up,
+and musical application. Practice copy is instructional content, not a new
+music-theory definition; theory behavior remains governed by
+[THEORY.md](./THEORY.md).
+
+## Progression Lab
+
+The progression slug is owned by the URL. Valid `key` and `scale` query
+parameters make detail links shareable; invalid values are rejected safely.
+Redux continues to own the shared tonal and instrument context, so key, scale,
+string count, exact tuning, and fret count remain unchanged during client-side
+navigation and browser history traversal.
+
+The catalog stores each progression once as a relative formula rather than as
+15 transposed copies. Uniqueness is enforced by stable identifiers and a
+canonical normalized signature; loop rotations are not counted as separate
+templates. Every entry carries an editorial status and source references.
+
+Default 6-, 7-, and 8-string configurations include exact registered MIDI
+pitches. Editing a string through the beginner-friendly pitch-class control
+preserves the custom tuning but deliberately marks its register as ambiguous.
+The dynamic diagram still uses the custom string pitch classes and includes
+every authored chord tone. Because the octave register is unknown, it does not
+claim an exact bass or inversion; authored slash basses are placed on the
+lowest physical string used and described as register-unverified. Compact
+four-fret shapes are preferred; unusual custom tunings can use a wider rendered
+fret window rather than losing the diagram.
+
+The complete source ledger and ingestion policy live in
+[docs/PROGRESSION_SOURCES.md](./docs/PROGRESSION_SOURCES.md). The catalog ships
+original editorial templates; it does not ship song titles, artist names,
+lyrics, or complete song charts. The offline candidate normalizer under
+`scripts/progression-pipeline` is the reproducible boundary for future audited
+corpus imports, and raw source datasets stay out of the production bundle.
+
+## Getting started
+
+Requirements:
+
+- Node.js
+- npm
 
 ```bash
+git clone https://github.com/RobertasTamulionis/Fret-Journey.git
+cd Fret-Journey
+npm ci
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Command | Purpose |
+| --- | --- |
+| `npm run dev` | Start the Turbopack development server |
+| `npm run build` | Create a production build |
+| `npm run start` | Start the built application |
+| `npm run theory:check` | Verify theory, chord, shape, tuning, and Redux behavior |
+| `npm run progressions:candidates` | Normalize an audited relative-candidate file outside the production bundle |
+| `npm run lint` | Run repository-wide Biome checks |
+| `npm run format` | Format supported files with Biome |
+| `npx tsc --noEmit` | Run TypeScript validation |
 
-## Learn More
+## Architecture
 
-To learn more about Next.js, take a look at the following resources:
+Current stack: Next.js 15 App Router, React 19, TypeScript, Redux Toolkit, Sass,
+and Biome.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+| Location | Responsibility |
+| --- | --- |
+| `src/app/page.tsx` | Fretboard route (`/`) |
+| `src/app/progressions/page.tsx` | Progression library route |
+| `src/app/progressions/[slug]/page.tsx` | Slug-backed progression workspace route |
+| `src/app/practice/page.tsx` | Guided daily-practice route |
+| `src/app/layout.tsx` | Root Redux provider and pre-hydration theme bootstrap shared by every route |
+| `src/components/AppShell` | Shared route surface, navigation, and theme control |
+| `src/components/ThemeSelector` | Native persisted Graphite, Light, and Ember selector |
+| `src/components/Fretboard/Fretboard.tsx` | Dashboard composition and fretboard rendering |
+| `src/components/Fretboard/FretboardNeck.tsx` | Reusable all-tone and exact-voicing neck visualization |
+| `src/components/ProgressionLibrary` | Catalog search, filtering, ranking, and cards |
+| `src/components/ProgressionWorkspace` | Active-step timeline, diagrams, and fretboard integration |
+| `src/components/PracticeLab` | Accessible routine tabs, drill selector, graphical tab player, and responsive support disclosures |
+| `src/features/practice/tablature.ts` | Typed tuning, rhythm, event, notation, and pitch helpers for authored tabs |
+| `src/features/theme/themes.ts` | Theme options, validation, storage key, and bootstrap script |
+| `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
+| `src/features/voicings` | Formula-independent dynamic chord generation, ranking, and accessible descriptions |
+| `src/data/practiceRoutines.ts` | Typed practice routines and research-source records |
+| `src/data/practiceTabExamples.ts` | Thirty-three structured Standard E practice scores |
+| `src/data/progressionCatalog.ts` | Static reviewed progression templates outside Redux |
+| `src/data/progressionSources.ts` | Machine-readable source and license ledger |
+| `src/helpers/musicTheory.ts` | 12-TET pitch classes, note spelling, scales, chord construction, and chord-tone roles |
+| `src/helpers/fretboardHelpers.ts` | Guitar configurations, fret positions, shape availability, and shape geometry |
+| `src/helpers/typesHelpers.ts` | Shared domain types |
+| `src/lib/redux/slices/fretboardSlice.ts` | Shared tonal/instrument context and fretboard interface state |
+| `src/lib/redux/slices/progressionLabSlice.ts` | Progression-only filters and workspace selections |
+| `scripts/progression-pipeline` | Offline candidate normalization workflow |
+| `scripts/verify-theory.ts` | Executable theory, fret, authored-tab, and reducer contract |
+| `THEORY.md` | Human-readable theory contract |
+| `AGENTS.md` | Product, design, engineering, and contributor guidance |
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+React components should consume the shared theory and fretboard helpers rather
+than reproduce theory rules inside the interface.
 
-## Deploy on Vercel
+## Verification
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Run the theory contract after changing notes, scales, chords, tunings, fret
+positions, reducers, or shape logic:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+npm run theory:check
+npx tsc --noEmit
+```
+
+For broader changes, also run the relevant focused Biome checks, then:
+
+```bash
+npm run lint
+npm run build
+```
+
+Do not run the development server and production build concurrently because
+both write to `.next`.
+
+### Current validation snapshot
+
+As of 2026-08-30:
+
+- `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
+  4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
+  progression events, and all 47,610 scale/progression chord-and-tuning contexts
+  with 761,718 validated generated voicings.
+- `npx tsc --noEmit` passes.
+- Focused Biome checks pass for the dynamic voicing generator, request adapters,
+  diagram/workspace integration, layout metadata, and executable theory suite;
+  direct Progression Workspace Sass compilation also passes.
+- `npm run lint` reports an existing baseline of 5 formatting errors and 2
+  warnings in untouched baseline files.
+- Development-server route smoke checks return 200 for the add9-heavy
+  `add-nine-relative-loop` and seventh-heavy `one-six-two-five-turnaround`
+  progression details after generation warms.
+- `npm run build` was not run because an existing development server owns
+  `.next`; build and dev must not write there concurrently.
+- No browser instance was connected for diagram screenshot, visual, focus, or
+  interaction inspection. The repository does not include an E2E,
+  visual-regression, or CI workflow.
+
+## Current limitations
+
+Fret Journey remains a visualization, exploration, and guided-routine tool
+rather than a timed or tracked practice system:
+
+- Dynamic diagrams include every authored chord tone for all current scale and
+  progression chords. They do not yet generate omission-based shell voicings.
+- Custom pitch-class-only and re-entrant tunings receive note-correct physical
+  diagrams, but their exact bass and inversion remain unknown until every open
+  string has an explicit octave register.
+- Finger assignments and barres are omitted until they can be modeled and
+  verified.
+- The fretboard grid starts at fret 1. Open strings are represented by the
+  tuning controls rather than fret-0 note positions.
+- Fret markers are display-only rather than selectable practice targets.
+- Practice Lab provides written tempos, repetition targets, and success checks;
+  it does not run a timer, metronome, backing track, or completion tracker. Its
+  tabs remain fixed Standard E examples rather than automatic transpositions.
+- There is no audio, progression trainer, saved practice progress, practice
+  scoring, or account system. Only the visual theme preference is persisted.
+- The Fretboard and Progression workspaces retain the intentional `1180px`
+  desktop canvas and horizontal scrolling on narrower viewports. Practice Lab
+  is the route-scoped exception and adapts its shell, tabs, routine sequence,
+  and coaching rail for narrow screens.
+
+## Backlog
+
+### Expanded voicings and progression training
+
+Progression browsing and complete dynamic chord diagrams now ship. The
+following work remains deferred:
+
+- Find close voice-leading paths across a complete progression and identify
+  held common tones.
+- Add Learn/Recall progression-training interactions after the voicing
+  foundation is validated.
+- Add curated common open/barre vocabulary, finger assignments, and verified
+  barre metadata.
+- Add optional shell and omission-based alternatives with explicit
+  required-tone, omission, and doubling policies.
+- Define an explicit registered-pitch workflow for supported custom and
+  re-entrant tunings.
+- Keep audio, tempo, metronome, looping, practice scoring, accounts, cloud
+  persistence, favorites/history, progression building, and AI suggestions out
+  of scope until separately reopened.
+
+This remaining backlog should stay deferred until it is explicitly reopened.
