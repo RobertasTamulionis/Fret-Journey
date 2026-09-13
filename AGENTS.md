@@ -51,9 +51,9 @@ The application currently supports:
   workspaces under a shared application shell
 - persisted Graphite, Light, and Ember visual themes selected from the shared
   top-right header control on every route
-- a route-backed Practice Lab with a rotating Daily Mix and focused Scales &
-  Modes, String Skipping, Rhythm & Chugs, Alternate Picking, Legato, Sweep
-  Picking, and Bends & Vibrato tabs, plus 33 structured playable examples
+- a route-backed Practice Library, focused Practice Session, and Session
+  Complete flow covering a rotating Daily Mix plus seven focused technique
+  categories and 33 structured playable examples
 - a static catalog of 225 reviewed, genuinely distinct relative progression
   templates with search, filtering, compatibility ranking, and source records
 - key-specific progression resolution for diatonic, borrowed, applied,
@@ -87,9 +87,9 @@ markers remain visual output rather than selectable practice targets.
   exact selected-voicing neck states.
 - `src/components/ProgressionLibrary` and `src/components/ProgressionWorkspace`
   own the two progression experiences.
-- `src/components/PracticeLab` owns the local accessible routine tabs, compact
-  drill selector, active graphical tab score, progressive disclosures, and
-  shared fretboard-context summary.
+- `src/components/PracticeLab` owns the grouped exercise library, focused
+  session layout, local session state, active graphical tab score, and simple
+  completion flow.
 - `src/helpers/musicTheory.ts` owns pitch classes, spelling, scale definitions,
   chord construction, and chord-tone roles.
 - `src/helpers/fretboardHelpers.ts` owns guitar configurations, tuning and fret
@@ -110,6 +110,8 @@ markers remain visual output rather than selectable practice targets.
 - `src/data/practiceTabExamples.ts` holds the 33 authored Standard E scores;
   `src/features/practice/tablature.ts` owns their tuning, grid, event, pitch,
   articulation, notation, and accessibility types and helpers.
+- `src/features/practice/session.ts` owns derived session display helpers and
+  the bounded tempo, subdivision, and instrument option contracts.
 - `docs/PROGRESSION_SOURCES.md` documents provenance, licenses, and the import
   boundary; `scripts/progression-pipeline` normalizes audited candidates
   offline without bundling raw datasets.
@@ -218,10 +220,10 @@ The Fretboard and Progression workspaces remain desktop-first. By default, the
 document keeps an `1180px` minimum width and permits horizontal scrolling on
 narrower viewports; the dashboard uses a 15-column grid and switches to 12
 columns below `1350px`. `/practice` is the explicit route-scoped exception:
-while Practice Lab is mounted, the document shell, primary navigation, tabs,
-routine sequence, and coaching rail adapt to narrow viewports. Keep that
-override conditional on Practice; do not remove the desktop minimum from `/`
-or `/progressions`, and do not describe the whole application as mobile-ready.
+while Practice Lab is mounted, the document shell, primary navigation, library
+grid, score, and session controls adapt to narrow viewports. Keep that override
+conditional on Practice; do not remove the desktop minimum from `/` or
+`/progressions`, and do not describe the whole application as mobile-ready.
 
 ---
 
@@ -347,24 +349,26 @@ Current ownership and terminology:
   local UI preference, not Redux domain state: validate stored values, apply
   `data-theme` before hydration, persist only the selected theme ID, retain the
   choice across every route, and preserve a visible label and focus ring.
-- Practice technique choices are true in-page tabs. Keep their selection local
-  and ephemeral, use `role="tablist"`, `role="tab"`, `aria-selected`, linked
-  tab panels, roving `tabIndex`, and Left/Right/Home/End keyboard behavior.
+- Practice selection and session controls stay local and ephemeral. Keep the
+  experience separated into Practice Library, Practice Session, and Session
+  Complete rather than rebuilding one settings-heavy page.
 - Practice routines may read the Redux-owned current key and scale for separate
   context, but their authored tabs stay explicitly fixed to verified six-string
   Standard E. Do not imply that a tab transposed, followed custom tuning, or
-  became a verified grip; do not add timer/scoring/practice-persistence state
-  without reopening that scope.
-- Keep the Practice primary flow `technique tab -> drill selector -> one active
-  score`. Show the graphical tablature, short playing cue, and pass condition
-  before longer coaching or research. The latter belongs in disclosures.
+  became a verified grip. Session tempo and subdivision controls must not
+  silently rewrite the authored score timing; practice scoring and persistence
+  remain out of scope.
+- Keep the Practice primary flow `exercise library -> focused session ->
+  completion`. In the session, prioritize concise instruction, the graphical
+  tablature, primary transport action, current position, and remaining time;
+  keep secondary controls visually subordinate.
 - Practice-only responsive overrides must activate on entry to `/practice` and
   disappear on navigation away from it. Keep root-width, body, shell, and
-  navigation changes conditional on `.practiceLab`; preserve tab keyboard
-  behavior, visible focus, source links, and access to every tab at each width.
-- Keep all eight Practice technique tabs in one horizontally scrollable row at
-  narrow widths. Scroll the keyboard-selected tab into view; do not wrap the
-  horizontal tab sequence into multiple visual rows.
+  navigation changes conditional on `.practiceLab`; preserve visible focus,
+  source links, and access to every exercise and session control at each width.
+- Keep the Practice Library categories and cards reachable at every supported
+  width, and stack the session control rail below the tablature on narrow
+  screens.
 - Redux owns shared key, scale, string count, exact tuning, registered tuning,
   and fret count. The pathname owns progression identity; never duplicate a
   selected progression ID in Redux.
@@ -418,9 +422,10 @@ Current ownership and terminology:
   8-string instruments are outside the named CAGED form.
 - Harmonic Minor and Phrygian Dominant expose 3NPS only. Minor Blues exposes
   Blues Boxes only.
-- There is no audio, metronome, timer, progression trainer, saved practice
-  progress, practice scoring, account system, E2E runner, visual-regression
-  suite, or CI workflow. Theme preference is the only local persistence.
+- There is no scheduled audio, running metronome, active timer, progression
+  trainer, saved practice progress, practice scoring, account system, E2E
+  runner, visual-regression suite, or CI workflow. Theme preference is the only
+  local persistence.
 
 ---
 

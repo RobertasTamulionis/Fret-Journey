@@ -31,14 +31,14 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   Practice Lab (`/practice`).
 - Switch the complete application between persisted Graphite, Light, and Ember
   themes from the shared top-right header control.
-- Use eight keyboard-accessible daily-practice tabs covering a rotating Daily
+- Browse eight grouped Practice Library categories covering a rotating Daily
   Mix, Scales & Modes, String Skipping, Rhythm & Chugs, Alternate Picking,
   Legato, Sweep Picking, and Bends & Vibrato.
-- Select among 33 authored exercises and practice from one large six-string tab
-  score with rhythmic counts, pick direction, rests, palm-muting depth,
-  articulations, concise play/pass cues, and optional technique notes.
-- Reflow Practice Lab with a touch-scrollable single-row tab rail and stacked
-  routine and coaching content on tablet and phone viewports.
+- Open any of 33 authored exercises in a focused Practice Session with one large
+  six-string score, concise instruction, position feedback, local controls, and
+  a simple completion flow.
+- Reflow the exercise-card grid, score, guidance, and session control rail for
+  tablet and phone viewports.
 - Browse 225 editorially reviewed, genuinely distinct relative progression
   templates with search, compatibility-first ranking, filters, and an
   “Inspire me” action scoped to the visible verified results.
@@ -84,28 +84,33 @@ a visual preference and does not alter music data or Redux tonal state.
 
 ## Practice Lab
 
-Practice Lab is a guided routine library rather than a timer or completion
-tracker. Its eight true in-page tabs keep active selection local, support
-Left/Right/Home/End keyboard movement, and open a compact drill selector. Only
-one exercise is expanded at a time: a large graphical tab is followed by one
-short playing instruction and one pass condition. Longer coaching, session
-structure, and research sources remain available through disclosure controls
-instead of competing with the score.
+Practice Lab separates browsing from playing. The Practice Library groups all
+authored exercises by technique and opens a dedicated Practice Session instead
+of expanding a dashboard in place. Session selection, transport status, tempo,
+subdivision, metronome preference, and optional instrument settings remain
+local and ephemeral. A simple Session Complete view supports repeating the
+exercise, opening the next exercise, or returning to the library.
 
 The 33 authored examples use verified six-string Standard E tuning and expose
 their fixed context beside each score. They include scale navigation, string
 skips, chug grids, alternate-picking paths, legato, sweep motion, bends, and
 vibrato with structured fret and articulation data rather than decorative
-ASCII. The separate Fretboard-context card still reads the Redux key and scale
-through existing theory helpers, but it never implies that a fixed tab was
-transposed or retuned automatically.
+ASCII. The session never implies that a fixed tab was transposed or retuned
+automatically.
+
+The current redesign establishes the three-screen structure, Start/Pause/Resume
+state transitions, and an automatically advancing visual playhead synchronized
+to the selected tempo and the authored score subdivision. The guided score
+emphasizes the current slot, fades completed slots, tracks the playhead on
+narrow screens, and updates its current fret, pattern marker, and picking
+direction. Countdown progression, metronome audio, instrument audio, and
+automatic completion are not implemented yet.
 
 Practice is the deliberate responsive exception to the otherwise desktop-first
 application. At viewports below `1180px`, its route-loaded stylesheet releases
-the document minimum width only while `.practiceLab` is present. The eight-tab
-rail remains a single horizontal keyboard sequence and becomes touch-scrollable
-with scroll snapping; the drill strip, score viewport, guidance, and support
-cards progressively stack, while the other routes retain the existing
+the document minimum width only while `.practiceLab` is present. The
+exercise-card grid, score viewport, guidance, and right-side session
+controls progressively stack, while the other routes retain the existing
 wide-canvas contract.
 
 The visible research links in each routine record why the drills emphasize
@@ -191,7 +196,8 @@ and Biome.
 | `src/components/Fretboard/FretboardNeck.tsx` | Reusable all-tone and exact-voicing neck visualization |
 | `src/components/ProgressionLibrary` | Catalog search, filtering, ranking, and cards |
 | `src/components/ProgressionWorkspace` | Active-step timeline, diagrams, and fretboard integration |
-| `src/components/PracticeLab` | Accessible routine tabs, drill selector, graphical tab player, and responsive support disclosures |
+| `src/components/PracticeLab` | Practice Library, focused Practice Session, Session Complete, local session state, and graphical tab player |
+| `src/features/practice/session.ts` | Practice-session display helpers and control option contracts |
 | `src/features/practice/tablature.ts` | Typed tuning, rhythm, event, notation, and pitch helpers for authored tabs |
 | `src/features/theme/themes.ts` | Theme options, validation, storage key, and bootstrap script |
 | `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
@@ -258,8 +264,9 @@ As of 2026-08-30:
 
 ## Current limitations
 
-Fret Journey remains a visualization, exploration, and guided-routine tool
-rather than a timed or tracked practice system:
+Fret Journey remains a visualization, exploration, and guided-routine tool;
+the Practice transport drives visual score timing but is not a countdown or
+audio system:
 
 - Dynamic diagrams include every authored chord tone for all current scale and
   progression chords. They do not yet generate omission-based shell voicings.
@@ -271,15 +278,17 @@ rather than a timed or tracked practice system:
 - The fretboard grid starts at fret 1. Open strings are represented by the
   tuning controls rather than fret-0 note positions.
 - Fret markers are display-only rather than selectable practice targets.
-- Practice Lab provides written tempos, repetition targets, and success checks;
-  it does not run a timer, metronome, backing track, or completion tracker. Its
-  tabs remain fixed Standard E examples rather than automatic transpositions.
+- Practice Session provides local Start/Pause/Resume, tempo, subdivision,
+  playback preferences, a looping BPM-synchronized visual playhead, and manual
+  completion state. It does not yet run a countdown or produce metronome or
+  instrument audio. Its scores remain fixed Standard E examples rather than
+  automatic transpositions.
 - There is no audio, progression trainer, saved practice progress, practice
   scoring, or account system. Only the visual theme preference is persisted.
 - The Fretboard and Progression workspaces retain the intentional `1180px`
   desktop canvas and horizontal scrolling on narrower viewports. Practice Lab
-  is the route-scoped exception and adapts its shell, tabs, routine sequence,
-  and coaching rail for narrow screens.
+  is the route-scoped exception and adapts its shell, library grid, score, and
+  session controls for narrow screens.
 
 ## Backlog
 

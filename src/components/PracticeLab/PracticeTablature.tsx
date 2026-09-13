@@ -1,4 +1,10 @@
-import type { CSSProperties, ReactNode } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import type { PracticeTabExample } from "@/features/practice/tablature";
 import {
   formatPracticeTabNote,
@@ -10,12 +16,15 @@ import {
 } from "@/features/practice/tablature";
 
 type PracticeTablatureProps = {
+  activeSlot?: number;
   example: PracticeTabExample;
+  showPlayhead?: boolean;
 };
 
 type GridRowProps = {
   children: (slot: number) => ReactNode;
   className?: string;
+  currentSlot?: number;
   label: string;
   slots: number;
   style: CSSProperties;
@@ -25,6 +34,7 @@ type GridRowProps = {
 function GridRow({
   children,
   className = "",
+  currentSlot,
   label,
   slots,
   style,
@@ -37,7 +47,7 @@ function GridRow({
       <span className="practiceTab__rowLabel">{label}</span>
       {Array.from({ length: slots }, (_, slot) => (
         <span
-          className={`practiceTab__cell ${slot % beatSize === 0 ? "isBeat" : ""}`}
+          className={`practiceTab__cell ${slot % beatSize === 0 ? "isBeat" : ""} ${slot === currentSlot ? "isCurrent" : ""} ${currentSlot !== undefined && slot < currentSlot ? "isPast" : ""}`.trim()}
           // biome-ignore lint/suspicious/noArrayIndexKey: The slot number is the stable identity of a fixed musical grid position.
           key={`${label}-${slot}`}
         >
@@ -48,32 +58,83 @@ function GridRow({
   );
 }
 
-export default function PracticeTablature({ example }: PracticeTablatureProps) {
+export default function PracticeTablature({
+  activeSlot,
+  example,
+  showPlayhead = false,
+}: PracticeTablatureProps) {
   const tuning = practiceTabTunings[example.tuningId];
   const slots = practiceTabSlotCount[example.subdivision];
   const countLabels = getPracticeTabCountLabels(example.subdivision);
-  const legend = getPracticeTabLegend(example);
-  const gridStyle = {
-    "--practice-tab-slots": slots,
-  } as CSSProperties;
-  const noteEvents = example.events.filter((event) => event.kind === "notes");
-  const restEvents = example.events.filter((event) => event.kind === "rest");
-  const markerBySlot = new Map(
-    example.markers?.map((marker) => [marker.at, marker.label]) ?? [],
+  const legend = useMemo(() => getPracticeTabLegend(example), [example]);
+  const gridStyle = useMemo(
+    () =>
+      ({
+        "--practice-tab-slots": slots,
+      }) as CSSProperties,
+    [slots],
   );
-  const eventBySlot = new Map(noteEvents.map((event) => [event.at, event]));
-  const restSlots = new Set(
-    restEvents.flatMap((event) =>
-      Array.from({ length: event.duration }, (_, index) => event.at + index),
-    ),
-  );
+  const { eventBySlot, hasPalmMute, markerBySlot, restSlots } = useMemo(() => {
+    const noteEvents = example.events.filter((event) => event.kind === "notes");
+    const restEvents = example.events.filter((event) => event.kind === "rest");
+
+    return {
+      eventBySlot: new Map(noteEvents.map((event) => [event.at, event])),
+      hasPalmMute: noteEvents.some(
+        (event) => event.palmMuteDepth !== undefined,
+      ),
+      markerBySlot: new Map(
+        example.markers?.map((marker) => [marker.at, marker.label]) ?? [],
+      ),
+      restSlots: new Set(
+        restEvents.flatMap((event) =>
+          Array.from(
+            { length: event.duration },
+            (_, index) => event.at + index,
+          ),
+        ),
+      ),
+    };
+  }, [example]);
   const hasMarkers = markerBySlot.size > 0;
-  const hasPalmMute = noteEvents.some(
-    (event) => event.palmMuteDepth !== undefined,
-  );
+  const viewportRef = useRef<HTMLElement>(null);
+
+  useEffect(() => {
+    if (!showPlayhead || activeSlot === undefined) {
+      return;
+    }
+
+    const viewport = viewportRef.current;
+    const currentCell = viewport?.querySelector<HTMLElement>(
+      ".practiceTab__count .practiceTab__cell.isCurrent",
+    );
+
+    if (!viewport || !currentCell) {
+      return;
+    }
+
+    const viewportBounds = viewport.getBoundingClientRect();
+    const cellBounds = currentCell.getBoundingClientRect();
+    const safeInset = 64;
+    const isOutsideTrackingArea =
+      cellBounds.left < viewportBounds.left + safeInset ||
+      cellBounds.right > viewportBounds.right - safeInset;
+
+    if (isOutsideTrackingArea) {
+      currentCell.scrollIntoView({
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "auto"
+          : "smooth",
+        block: "nearest",
+        inline: "center",
+      });
+    }
+  }, [activeSlot, showPlayhead]);
 
   return (
-    <figure className="practiceTab">
+    <figure
+      className={`practiceTab ${showPlayhead ? "hasPlayhead" : ""}`.trim()}
+    >
       <header className="practiceTab__header">
         <div>
           <span>Playable example</span>
@@ -93,6 +154,14 @@ export default function PracticeTablature({ example }: PracticeTablatureProps) {
             <dd>×{example.repetitions}</dd>
           </div>
         </dl>
+        <output className="practiceTab__playbackStatus">
+          <span>{showPlayhead ? "Current step" : "Ready"}</span>
+          <strong>
+            {showPlayhead && activeSlot !== undefined
+              ? `${activeSlot + 1} / ${slots}`
+              : `${slots} steps`}
+          </strong>
+        </output>
       </header>
 
       <section
@@ -100,11 +169,13 @@ export default function PracticeTablature({ example }: PracticeTablatureProps) {
         className="practiceTab__viewport"
         // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need to reach and horizontally scroll this score on narrow screens.
         tabIndex={0}
+        ref={viewportRef}
       >
         <div aria-hidden="true" className="practiceTab__score">
           {hasMarkers && (
             <GridRow
               className="practiceTab__annotations practiceTab__markers"
+              currentSlot={activeSlot}
               label=""
               slots={slots}
               style={gridStyle}
@@ -116,6 +187,7 @@ export default function PracticeTablature({ example }: PracticeTablatureProps) {
 
           <GridRow
             className="practiceTab__annotations practiceTab__picking"
+            currentSlot={activeSlot}
             label="Pick"
             slots={slots}
             style={gridStyle}
@@ -148,6 +220,7 @@ export default function PracticeTablature({ example }: PracticeTablatureProps) {
           {hasPalmMute && (
             <GridRow
               className="practiceTab__annotations practiceTab__palmMute"
+              currentSlot={activeSlot}
               label="Mute"
               slots={slots}
               style={gridStyle}
@@ -165,6 +238,7 @@ export default function PracticeTablature({ example }: PracticeTablatureProps) {
             {tuning.stringLabelsHighToLow.map((label, stringIndex) => (
               <GridRow
                 className="practiceTab__string"
+                currentSlot={activeSlot}
                 key={`${example.id}-${label}-${stringIndex}`}
                 label={label}
                 slots={slots}
@@ -195,6 +269,7 @@ export default function PracticeTablature({ example }: PracticeTablatureProps) {
 
           <GridRow
             className="practiceTab__annotations practiceTab__count"
+            currentSlot={activeSlot}
             label="Count"
             slots={slots}
             style={gridStyle}
