@@ -1,9 +1,9 @@
 @use "variables" as *;
 
-$practice-accent: var(--semantic-shape);
+$practice-accent: var(--semantic-practice-accent);
 
 .practiceLab {
-  --button-accent: var(--semantic-shape);
+  --button-accent: var(--semantic-practice-accent);
 
   min-width: 0;
   position: relative;
@@ -428,7 +428,7 @@ $practice-accent: var(--semantic-shape);
   box-shadow:
     0 12px 28px color-mix(in srgb, $practice-accent 24%, transparent),
     inset 0 1px 0 color-mix(in srgb, white 34%, transparent);
-  color: #0b0710;
+  color: var(--color-on-accent);
   font-size: 11px;
   font-weight: 760;
   transition:
@@ -642,10 +642,8 @@ $practice-accent: var(--semantic-shape);
   gap: 8px;
 
   button,
-  output {
+  input {
     min-height: 46px;
-    display: grid;
-    place-items: center;
     border: 0;
     border-radius: 13px;
   }
@@ -668,12 +666,28 @@ $practice-accent: var(--semantic-shape);
     }
   }
 
-  output {
+  input {
+    width: 100%;
+    min-width: 0;
+    padding: 0 8px;
+    appearance: textfield;
     background: var(--panel-background-soft);
     color: var(--color-text-strong);
     font-family: var(--font-geist-mono), monospace;
     font-size: 19px;
     font-weight: 720;
+    text-align: center;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+
+    &:focus-visible {
+      outline: 2px solid color-mix(in srgb, $practice-accent 62%, transparent);
+      outline-offset: 2px;
+    }
   }
 }
 
@@ -938,7 +952,7 @@ $practice-accent: var(--semantic-shape);
       border-color: color-mix(in srgb, white 30%, $practice-accent);
       background: $practice-accent;
       box-shadow: 0 0 16px color-mix(in srgb, $practice-accent 32%, transparent);
-      color: #0b0710;
+      color: var(--color-on-accent);
       transform: translateY(-2px) scale(1.1);
     }
   }

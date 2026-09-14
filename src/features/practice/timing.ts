@@ -5,6 +5,8 @@ import {
 } from "./tablature";
 
 export const practiceBeatsPerMeasure = 4;
+export const practiceTempoMaximum = 240;
+export const practiceTempoMinimum = 30;
 
 export type PracticeTimelineAnchor = {
   audioTime: number;
@@ -32,7 +34,7 @@ const positiveModulo = (value: number, divisor: number): number =>
   ((value % divisor) + divisor) % divisor;
 
 export const clampPracticeTempo = (tempo: number): number =>
-  Math.min(240, Math.max(30, tempo));
+  Math.min(practiceTempoMaximum, Math.max(practiceTempoMinimum, tempo));
 
 export const getPracticeSecondsPerBeat = (tempo: number): number =>
   60 / clampPracticeTempo(tempo);

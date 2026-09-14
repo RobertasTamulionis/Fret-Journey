@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import type { ReactNode } from "react";
+import { type ReactNode, useEffect, useState } from "react";
 import type { PracticeRoutine, PracticeStep } from "@/data/practiceRoutines";
 import {
   formatPracticeDurationAsClock,
@@ -13,6 +13,11 @@ import type {
   PracticeTabExample,
   PracticeTabSubdivision,
 } from "@/features/practice/tablature";
+import {
+  clampPracticeTempo,
+  practiceTempoMaximum,
+  practiceTempoMinimum,
+} from "@/features/practice/timing";
 import {
   type FretJourneyMotionCustom,
   getMotionTransition,
@@ -136,6 +141,92 @@ function PracticeToggle({
         </motion.strong>
       </AnimatePresence>
     </motion.button>
+  );
+}
+
+type PracticeTempoControlProps = {
+  onTempoChange: (tempo: number) => void;
+  tempo: number;
+};
+
+function PracticeTempoControl({
+  onTempoChange,
+  tempo,
+}: PracticeTempoControlProps) {
+  const [draftTempo, setDraftTempo] = useState(String(tempo));
+
+  useEffect(() => {
+    setDraftTempo(String(tempo));
+  }, [tempo]);
+
+  const commitTempo = () => {
+    const parsedTempo = Number.parseInt(draftTempo, 10);
+
+    if (Number.isNaN(parsedTempo)) {
+      setDraftTempo(String(tempo));
+      return;
+    }
+
+    const nextTempo = clampPracticeTempo(parsedTempo);
+    setDraftTempo(String(nextTempo));
+
+    if (nextTempo !== tempo) {
+      onTempoChange(nextTempo);
+    }
+  };
+
+  const adjustTempo = (amount: number) => {
+    const parsedTempo = Number.parseInt(draftTempo, 10);
+    const startingTempo = Number.isNaN(parsedTempo) ? tempo : parsedTempo;
+    const nextTempo = clampPracticeTempo(startingTempo + amount);
+
+    setDraftTempo(String(nextTempo));
+
+    if (nextTempo !== tempo) {
+      onTempoChange(nextTempo);
+    }
+  };
+
+  return (
+    <div className="tempoControl">
+      <button
+        aria-label="Decrease tempo by 5 BPM"
+        onClick={() => adjustTempo(-5)}
+        type="button"
+      >
+        −
+      </button>
+      <input
+        aria-label="Tempo in beats per minute"
+        id="practice-tempo"
+        inputMode="numeric"
+        max={practiceTempoMaximum}
+        min={practiceTempoMinimum}
+        onBlur={commitTempo}
+        onChange={(event) => setDraftTempo(event.target.value)}
+        onFocus={(event) => event.currentTarget.select()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.currentTarget.blur();
+          }
+
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setDraftTempo(String(tempo));
+          }
+        }}
+        step="1"
+        type="number"
+        value={draftTempo}
+      />
+      <button
+        aria-label="Increase tempo by 5 BPM"
+        onClick={() => adjustTempo(5)}
+        type="button"
+      >
+        +
+      </button>
+    </div>
   );
 }
 
@@ -382,23 +473,7 @@ export default function PracticeSession({
 
           <section className="sessionControlGroup">
             <label htmlFor="practice-tempo">Tempo · BPM</label>
-            <div className="tempoControl">
-              <button
-                aria-label="Decrease tempo by 5 BPM"
-                onClick={() => onTempoChange(tempo - 5)}
-                type="button"
-              >
-                −
-              </button>
-              <output id="practice-tempo">{tempo}</output>
-              <button
-                aria-label="Increase tempo by 5 BPM"
-                onClick={() => onTempoChange(tempo + 5)}
-                type="button"
-              >
-                +
-              </button>
-            </div>
+            <PracticeTempoControl onTempoChange={onTempoChange} tempo={tempo} />
           </section>
 
           <section className="sessionControlGroup">
