@@ -133,6 +133,7 @@ markers remain visual output rather than selectable practice targets.
   offline without bundling raw datasets.
 - Component SCSS is colocated; shared Sass variables and mixins live under
   `src/lib/styles`.
+- `src/lib/motion.ts` owns the small shared presentation-motion vocabulary.
 - `scripts/verify-theory.ts` is the executable domain and reducer contract.
 
 `MaterialButton`, `MaterialContainer`, and the `Intervals` component alias are
@@ -274,6 +275,12 @@ Animations
 - ease-in-out
 - subtle
 - never distracting
+- Use Motion through `motion/react` for reusable presentation transitions.
+  Motion must never own musical timing, transport state, active-slot
+  calculation, or Web Audio scheduling.
+- Prefer opacity and small transforms, respect reduced-motion preferences, and
+  avoid animating high-frequency tablature nodes or state that is already
+  synchronized by the Practice transport.
 
 ---
 

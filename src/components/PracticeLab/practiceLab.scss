@@ -6,7 +6,19 @@ $practice-accent: var(--semantic-shape);
   --button-accent: var(--semantic-shape);
 
   min-width: 0;
+  position: relative;
   color: var(--color-text);
+}
+
+.practiceVisuallyHidden {
+  width: 1px !important;
+  height: 1px !important;
+  position: absolute !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
 }
 
 .practiceLibrary {
@@ -153,7 +165,6 @@ $practice-accent: var(--semantic-shape);
   color: var(--color-text-soft);
   text-align: left;
   transition:
-    transform 180ms ease-in-out,
     border-color 180ms ease-in-out,
     box-shadow 180ms ease-in-out,
     background 180ms ease-in-out;
@@ -180,8 +191,6 @@ $practice-accent: var(--semantic-shape);
     box-shadow:
       0 20px 38px color-mix(in srgb, var(--color-shadow) 38%, transparent),
       inset 0 1px 0 var(--color-highlight);
-    transform: translateY(-3px);
-
     &::after {
       opacity: 1;
     }
@@ -191,7 +200,6 @@ $practice-accent: var(--semantic-shape);
     box-shadow:
       inset 3px 3px 10px color-mix(in srgb, var(--color-shadow) 65%, transparent),
       inset -2px -2px 7px var(--color-highlight);
-    transform: translateY(0) scale(0.992);
   }
 
   &:focus-visible {
@@ -328,7 +336,7 @@ $practice-accent: var(--semantic-shape);
     margin-top: 14px;
 
     > p,
-    details {
+    .practiceDisclosure {
       margin: 0;
       padding: 16px 18px;
       border: 0;
@@ -349,13 +357,36 @@ $practice-accent: var(--semantic-shape);
       text-transform: uppercase;
     }
 
-    summary {
+    .practiceDisclosure__trigger {
+      width: 100%;
+      min-height: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
       color: var(--color-text-soft);
+      font: inherit;
       font-weight: 650;
       cursor: pointer;
+      text-align: left;
+
+      &::after {
+        content: "+";
+        float: right;
+        color: $practice-accent;
+      }
+
+      &[aria-expanded="true"]::after {
+        content: "−";
+      }
     }
 
-    details p {
+    .practiceDisclosure__content {
+      overflow: hidden;
+    }
+
+    .practiceDisclosure p {
       margin: 9px 0 0;
     }
   }
@@ -405,7 +436,15 @@ $practice-accent: var(--semantic-shape);
     box-shadow 180ms ease-in-out,
     filter 180ms ease-in-out;
 
-  span {
+  &__content {
+    min-width: 120px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  &__icon {
     font-size: 13px;
     line-height: 1;
   }
@@ -450,6 +489,17 @@ $practice-accent: var(--semantic-shape);
   letter-spacing: 0.05em;
   text-align: center;
   text-transform: uppercase;
+
+  > span[aria-hidden="true"] {
+    display: inline-flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  strong {
+    display: inline-block;
+  }
 }
 
 .practiceAudioError {
@@ -503,7 +553,6 @@ $practice-accent: var(--semantic-shape);
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    animation: practiceReadoutChange 180ms ease-out;
 
     .positionReadout__icon {
       min-width: 14px;
@@ -513,18 +562,6 @@ $practice-accent: var(--semantic-shape);
       font-style: normal;
       text-align: center;
     }
-  }
-}
-
-@keyframes practiceReadoutChange {
-  from {
-    opacity: 0.48;
-    transform: translateY(2px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
   }
 }
 
@@ -680,6 +717,7 @@ $practice-accent: var(--semantic-shape);
   display: grid;
   gap: 16px;
   padding-top: 2px;
+  overflow: hidden;
 }
 
 .volumeControl {
@@ -1313,7 +1351,6 @@ $practice-accent: var(--semantic-shape);
   .practiceTab__cell,
   .practiceTab__note,
   .positionReadout__value {
-    animation: none;
     transition: none;
   }
 }

@@ -1,3 +1,5 @@
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import type { ReactNode } from "react";
 import type { PracticeRoutine, PracticeStep } from "@/data/practiceRoutines";
 import {
   formatPracticeDurationAsClock,
@@ -11,6 +13,17 @@ import type {
   PracticeTabExample,
   PracticeTabSubdivision,
 } from "@/features/practice/tablature";
+import {
+  type FretJourneyMotionCustom,
+  getMotionTransition,
+  motionDurations,
+  practiceCountInVariants,
+  practiceDisclosureVariants,
+  practiceRevealContainerVariants,
+  practiceRevealVariants,
+  practiceSwapVariants,
+} from "@/lib/motion";
+import PracticeDisclosure from "./PracticeDisclosure";
 import PracticeTablature from "./PracticeTablature";
 
 type PracticeSessionProps = {
@@ -55,6 +68,77 @@ const getPrimaryActionLabel = (status: PracticeTransportStatus) => {
   return "Start exercise";
 };
 
+type AnimatedReadoutValueProps = {
+  children: ReactNode;
+  motionCustom: FretJourneyMotionCustom;
+  value: string;
+};
+
+function AnimatedReadoutValue({
+  children,
+  motionCustom,
+  value,
+}: AnimatedReadoutValueProps) {
+  return (
+    <AnimatePresence initial={false} mode="popLayout">
+      <motion.strong
+        animate="animate"
+        aria-hidden="true"
+        className="positionReadout__value"
+        custom={motionCustom}
+        exit="exit"
+        initial="initial"
+        key={value}
+        variants={practiceSwapVariants}
+      >
+        {children}
+      </motion.strong>
+    </AnimatePresence>
+  );
+}
+
+type PracticeToggleProps = {
+  label: string;
+  motionCustom: FretJourneyMotionCustom;
+  onToggle: () => void;
+  pressed: boolean;
+};
+
+function PracticeToggle({
+  label,
+  motionCustom,
+  onToggle,
+  pressed,
+}: PracticeToggleProps) {
+  return (
+    <motion.button
+      aria-pressed={pressed}
+      onClick={onToggle}
+      transition={getMotionTransition(
+        motionCustom.reducedMotion,
+        motionDurations.fast,
+      )}
+      type="button"
+      whileTap={motionCustom.reducedMotion ? undefined : { scale: 0.985 }}
+    >
+      <span>{label}</span>
+      <AnimatePresence initial={false} mode="popLayout">
+        <motion.strong
+          animate="animate"
+          aria-hidden="true"
+          custom={motionCustom}
+          exit="exit"
+          initial="initial"
+          key={pressed ? "on" : "off"}
+          variants={practiceSwapVariants}
+        >
+          {pressed ? "On" : "Off"}
+        </motion.strong>
+      </AnimatePresence>
+    </motion.button>
+  );
+}
+
 export default function PracticeSession({
   activeSlot,
   audioError,
@@ -85,9 +169,23 @@ export default function PracticeSession({
   volume,
 }: PracticeSessionProps) {
   const position = getPracticePositionSnapshot(example, activeSlot);
+  const primaryActionLabel = getPrimaryActionLabel(transportStatus);
+  const primaryActionIcon =
+    transportStatus === "playing" || transportStatus === "counting-in"
+      ? "Ⅱ"
+      : "▶";
+  const motionCustom: FretJourneyMotionCustom = {
+    reducedMotion: Boolean(useReducedMotion()),
+  };
 
   return (
-    <div className="practiceSession">
+    <motion.div
+      animate="visible"
+      className="practiceSession"
+      custom={motionCustom}
+      initial="hidden"
+      variants={practiceRevealContainerVariants}
+    >
       <header className="practiceSession__topbar">
         <button className="practiceTextButton" onClick={onBack} type="button">
           ← Practice Library
@@ -100,7 +198,11 @@ export default function PracticeSession({
 
       <div className="practiceSession__layout">
         <main className="practiceSession__main">
-          <header className="practiceSession__intro">
+          <motion.header
+            className="practiceSession__intro"
+            custom={motionCustom}
+            variants={practiceRevealVariants}
+          >
             <div className="practiceSession__exerciseCopy">
               <span>{step.phase}</span>
               <h1 data-practice-screen-heading tabIndex={-1}>
@@ -110,88 +212,168 @@ export default function PracticeSession({
             </div>
             <div className="practiceTransportAction">
               <button
+                aria-label={primaryActionLabel}
                 className="practicePrimaryAction"
                 data-status={transportStatus}
                 onClick={onPrimaryAction}
                 type="button"
               >
-                <span aria-hidden="true">
-                  {transportStatus === "playing" ||
-                  transportStatus === "counting-in"
-                    ? "Ⅱ"
-                    : "▶"}
-                </span>
-                {getPrimaryActionLabel(transportStatus)}
+                <AnimatePresence initial={false} mode="popLayout">
+                  <motion.span
+                    animate="animate"
+                    aria-hidden="true"
+                    className="practicePrimaryAction__content"
+                    custom={motionCustom}
+                    exit="exit"
+                    initial="initial"
+                    key={primaryActionLabel}
+                    variants={practiceSwapVariants}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="practicePrimaryAction__icon"
+                    >
+                      {primaryActionIcon}
+                    </span>
+                    <span>{primaryActionLabel}</span>
+                  </motion.span>
+                </AnimatePresence>
               </button>
-              {transportStatus === "counting-in" && (
-                <output aria-live="polite" className="practiceCountInStatus">
-                  Count-in · {countInBeatsRemaining}
-                </output>
-              )}
-              {audioError && (
-                <p className="practiceAudioError" role="alert">
-                  {audioError}
-                </p>
-              )}
+              <AnimatePresence initial={false}>
+                {transportStatus === "counting-in" && (
+                  <motion.output
+                    animate="animate"
+                    aria-live="polite"
+                    className="practiceCountInStatus"
+                    custom={motionCustom}
+                    exit="exit"
+                    initial="initial"
+                    key="count-in"
+                    variants={practiceSwapVariants}
+                  >
+                    <span className="practiceVisuallyHidden">
+                      Count-in {countInBeatsRemaining}
+                    </span>
+                    <span aria-hidden="true">
+                      Count-in ·{" "}
+                      <AnimatePresence initial={false} mode="popLayout">
+                        <motion.strong
+                          animate="animate"
+                          custom={motionCustom}
+                          exit="exit"
+                          initial="initial"
+                          key={countInBeatsRemaining}
+                          variants={practiceCountInVariants}
+                        >
+                          {countInBeatsRemaining}
+                        </motion.strong>
+                      </AnimatePresence>
+                    </span>
+                  </motion.output>
+                )}
+              </AnimatePresence>
+              <AnimatePresence initial={false}>
+                {audioError && (
+                  <motion.p
+                    animate="animate"
+                    className="practiceAudioError"
+                    custom={motionCustom}
+                    exit="exit"
+                    initial="initial"
+                    key="audio-error"
+                    role="alert"
+                    variants={practiceSwapVariants}
+                  >
+                    {audioError}
+                  </motion.p>
+                )}
+              </AnimatePresence>
             </div>
-          </header>
+          </motion.header>
 
-          <PracticeTablature
-            activeSlot={activeSlot}
-            example={example}
-            showPlayhead={transportStatus !== "idle"}
-          />
+          <motion.div custom={motionCustom} variants={practiceRevealVariants}>
+            <PracticeTablature
+              activeSlot={activeSlot}
+              example={example}
+              showPlayhead={transportStatus !== "idle"}
+            />
+          </motion.div>
 
-          <section
+          <motion.section
             aria-label="Current playing position"
             className="positionReadout"
+            custom={motionCustom}
+            variants={practiceRevealVariants}
           >
             <div className="positionReadout__pattern">
-              <span>Current pattern</span>
-              <strong className="positionReadout__value" key={position.pattern}>
+              <span className="practiceVisuallyHidden">
+                Current pattern: {position.pattern}
+              </span>
+              <span aria-hidden="true">Current pattern</span>
+              <AnimatedReadoutValue
+                motionCustom={motionCustom}
+                value={position.pattern}
+              >
                 {position.pattern}
-              </strong>
+              </AnimatedReadoutValue>
             </div>
             {position.fret && (
               <div>
-                <span>Position</span>
-                <strong className="positionReadout__value" key={position.fret}>
+                <span className="practiceVisuallyHidden">
+                  Position: {position.fret}
+                </span>
+                <span aria-hidden="true">Position</span>
+                <AnimatedReadoutValue
+                  motionCustom={motionCustom}
+                  value={position.fret}
+                >
                   <span aria-hidden="true" className="positionReadout__icon">
                     ⌖
                   </span>
                   {position.fret}
-                </strong>
+                </AnimatedReadoutValue>
               </div>
             )}
             {position.direction && (
               <div>
-                <span>Direction</span>
-                <strong
-                  className="positionReadout__value"
-                  key={position.direction}
+                <span className="practiceVisuallyHidden">
+                  Direction: {position.direction}
+                </span>
+                <span aria-hidden="true">Direction</span>
+                <AnimatedReadoutValue
+                  motionCustom={motionCustom}
+                  value={position.direction}
                 >
                   <span aria-hidden="true" className="positionReadout__icon">
                     {position.direction === "Downstroke" ? "↓" : "↑"}
                   </span>
                   {position.direction}
-                </strong>
+                </AnimatedReadoutValue>
               </div>
             )}
-          </section>
+          </motion.section>
 
-          <div className="practiceSession__guidance">
+          <motion.div
+            className="practiceSession__guidance"
+            custom={motionCustom}
+            variants={practiceRevealVariants}
+          >
             <p>
               <span>Pass when</span>
               {step.success}
             </p>
-            <details>
-              <summary>Technique note</summary>
+            <PracticeDisclosure label="Technique note">
               <p>{step.coach}</p>
-            </details>
-          </div>
+            </PracticeDisclosure>
+          </motion.div>
         </main>
 
-        <aside aria-label="Practice controls" className="sessionControls">
+        <motion.aside
+          aria-label="Practice controls"
+          className="sessionControls"
+          custom={motionCustom}
+          variants={practiceRevealVariants}
+        >
           <section className="sessionControls__time">
             <span>Exercise time remaining</span>
             <strong>{formatPracticeDurationAsClock(step.duration)}</strong>
@@ -239,30 +421,24 @@ export default function PracticeSession({
           </section>
 
           <div className="sessionToggles">
-            <button
-              aria-pressed={countInEnabled}
-              onClick={onToggleCountIn}
-              type="button"
-            >
-              <span>Count-in</span>
-              <strong>{countInEnabled ? "On" : "Off"}</strong>
-            </button>
-            <button
-              aria-pressed={metronomeEnabled}
-              onClick={onToggleMetronome}
-              type="button"
-            >
-              <span>Metronome</span>
-              <strong>{metronomeEnabled ? "On" : "Off"}</strong>
-            </button>
-            <button
-              aria-pressed={instrumentPlaybackEnabled}
-              onClick={onToggleInstrumentPlayback}
-              type="button"
-            >
-              <span>Instrument playback</span>
-              <strong>{instrumentPlaybackEnabled ? "On" : "Off"}</strong>
-            </button>
+            <PracticeToggle
+              label="Count-in"
+              motionCustom={motionCustom}
+              onToggle={onToggleCountIn}
+              pressed={countInEnabled}
+            />
+            <PracticeToggle
+              label="Metronome"
+              motionCustom={motionCustom}
+              onToggle={onToggleMetronome}
+              pressed={metronomeEnabled}
+            />
+            <PracticeToggle
+              label="Instrument playback"
+              motionCustom={motionCustom}
+              onToggle={onToggleInstrumentPlayback}
+              pressed={instrumentPlaybackEnabled}
+            />
           </div>
 
           <div className="volumeControl">
@@ -281,41 +457,53 @@ export default function PracticeSession({
             />
           </div>
 
-          {instrumentPlaybackEnabled && (
-            <div className="sessionInstrumentSettings">
-              <div className="sessionControlGroup">
-                <label htmlFor="practice-instrument">Instrument</label>
-                <select
-                  id="practice-instrument"
-                  onChange={(event) =>
-                    onInstrumentChange(event.target.value as PracticeInstrument)
-                  }
-                  value={instrument}
-                >
-                  {practiceInstrumentOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="volumeControl">
-                <label htmlFor="practice-volume">
-                  Instrument volume <span>{volume}%</span>
-                </label>
-                <input
-                  id="practice-volume"
-                  max="100"
-                  min="0"
-                  onChange={(event) =>
-                    onVolumeChange(Number(event.target.value))
-                  }
-                  type="range"
-                  value={volume}
-                />
-              </div>
-            </div>
-          )}
+          <AnimatePresence initial={false}>
+            {instrumentPlaybackEnabled && (
+              <motion.div
+                animate="animate"
+                className="sessionInstrumentSettings"
+                custom={motionCustom}
+                exit="exit"
+                initial="initial"
+                key="instrument-settings"
+                variants={practiceDisclosureVariants}
+              >
+                <div className="sessionControlGroup">
+                  <label htmlFor="practice-instrument">Instrument</label>
+                  <select
+                    id="practice-instrument"
+                    onChange={(event) =>
+                      onInstrumentChange(
+                        event.target.value as PracticeInstrument,
+                      )
+                    }
+                    value={instrument}
+                  >
+                    {practiceInstrumentOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div className="volumeControl">
+                  <label htmlFor="practice-volume">
+                    Instrument volume <span>{volume}%</span>
+                  </label>
+                  <input
+                    id="practice-volume"
+                    max="100"
+                    min="0"
+                    onChange={(event) =>
+                      onVolumeChange(Number(event.target.value))
+                    }
+                    type="range"
+                    value={volume}
+                  />
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           <button
             className="practiceCompleteAction"
@@ -324,8 +512,8 @@ export default function PracticeSession({
           >
             Complete exercise
           </button>
-        </aside>
+        </motion.aside>
       </div>
-    </div>
+    </motion.div>
   );
 }

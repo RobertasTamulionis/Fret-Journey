@@ -214,8 +214,8 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Architecture
 
-Current stack: Next.js 15 App Router, React 19, TypeScript, Redux Toolkit, Sass,
-and Biome.
+Current stack: Next.js 15 App Router, React 19, Motion 13, TypeScript, Redux
+Toolkit, Sass, and Biome.
 
 | Location | Responsibility |
 | --- | --- |
@@ -235,6 +235,7 @@ and Biome.
 | `src/features/practice/tablature.ts` | Typed tuning, rhythm, event, notation, and pitch helpers for authored tabs |
 | `src/features/practice/timing.ts` | Pure Practice beat, slot, timeline, and metronome-pulse planning |
 | `src/features/practice/audio/PracticeMetronomeEngine.ts` | Headless Web Audio transport and look-ahead metronome scheduler |
+| `src/lib/motion.ts` | Shared restrained motion durations, easing, and Practice presentation variants |
 | `src/features/theme/themes.ts` | Theme options, validation, storage key, and bootstrap script |
 | `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
 | `src/features/voicings` | Formula-independent dynamic chord generation, ranking, and accessible descriptions |

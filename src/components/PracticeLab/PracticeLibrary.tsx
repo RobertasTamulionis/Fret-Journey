@@ -1,9 +1,11 @@
+import { motion, useReducedMotion } from "motion/react";
 import {
   type PracticeRoutineId,
   practiceRoutines,
   practiceSources,
 } from "@/data/practiceRoutines";
 import { practiceTabExamples } from "@/data/practiceTabExamples";
+import { getMotionTransition, motionDurations } from "@/lib/motion";
 
 type PracticeLibraryProps = {
   onSelectExercise: (routineId: PracticeRoutineId, stepIndex: number) => void;
@@ -12,6 +14,8 @@ type PracticeLibraryProps = {
 export default function PracticeLibrary({
   onSelectExercise,
 }: PracticeLibraryProps) {
+  const reducedMotion = Boolean(useReducedMotion());
+
   return (
     <div className="practiceLibrary">
       <header className="practiceLibrary__header">
@@ -49,11 +53,19 @@ export default function PracticeLibrary({
                 const example = practiceTabExamples[step.exampleId];
 
                 return (
-                  <button
+                  <motion.button
                     className="exerciseCard"
                     key={step.exampleId}
                     onClick={() => onSelectExercise(routine.id, stepIndex)}
+                    transition={getMotionTransition(
+                      reducedMotion,
+                      motionDurations.fast,
+                    )}
                     type="button"
+                    whileHover={reducedMotion ? undefined : { y: -2 }}
+                    whileTap={
+                      reducedMotion ? undefined : { scale: 0.992, y: 0 }
+                    }
                   >
                     <span className="exerciseCard__meta">
                       Exercise {stepIndex + 1} · {step.duration}
@@ -66,7 +78,7 @@ export default function PracticeLibrary({
                       <span>{example.bpm} BPM starting point</span>
                       <span aria-hidden="true">Start →</span>
                     </span>
-                  </button>
+                  </motion.button>
                 );
               })}
             </div>
