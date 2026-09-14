@@ -16,6 +16,15 @@ When multiple solutions are possible, prioritize:
 4. Consistency
 5. Maintainability
 
+## Product Scope
+
+Fret Journey should help a player connect fretboard positions, scales,
+intervals, chords, shapes, progressions, and practical playing. New features
+should strengthen one or more of those relationships and reuse the shared
+theory and fretboard model where appropriate. Do not turn the product into a
+generic all-in-one music platform whose features are disconnected from learning
+the guitar neck.
+
 ---
 
 # Documentation Responsibilities
@@ -328,6 +337,78 @@ Current ownership and terminology:
 
 ---
 
+# Practice Lab
+
+## Current Practice Behavior
+
+- Preserve the primary flow `Practice Library -> Practice Session -> Session
+  Complete`. The library groups eight technique categories and 33 authored
+  exercises; it should feel like choosing a workout rather than configuring
+  software.
+- Practice selection and session controls are local and ephemeral. The current
+  state model covers the selected exercise, visual transport, active score
+  slot, tempo, subdivision preference, metronome preference, optional reference
+  instrument, and volume. Do not duplicate this state in Redux.
+- Authored tabs are verified six-string Standard E scores. They do not
+  transpose with the shared key or follow custom tuning, and the UI must not
+  imply that they do.
+- Start, Pause, and Resume control a looping visual playhead. Its clock follows
+  local tempo and the active example's authored subdivision. The subdivision
+  selector is currently preference state only and must not silently rewrite the
+  authored score or playhead timing.
+- The exercise-duration value is a static authored practice window, not a
+  countdown. Completion is user-triggered; there is no automatic completion,
+  scoring, or saved history.
+- Metronome and reference-instrument controls currently store preferences only.
+  They do not schedule or produce audio.
+
+## Practice Design and Interaction Principles
+
+- In the session, prioritize the current exercise, readable graphical
+  tablature, active playhead/note, authored practice window, tempo, and primary
+  transport action. Settings and the compact pattern diagram stay secondary.
+- Keep idle, playing, paused, and completed states visually and semantically
+  distinct. Completed is a separate screen; it is not another transport status.
+- Keep Practice consistent with Fret Journey's premium theme-driven visual
+  language: generous spacing, restrained emphasis, soft depth, large rounded
+  surfaces, high-contrast type, and glow only for active or important elements.
+- Communicate past, current, and upcoming score states through position, shape,
+  contrast, and text as well as color. Keep notation readable while the current
+  fret, pattern-position marker, and direction update.
+- Keep playhead movement subtle and synchronized with the existing timing
+  helper. Do not replace the practice engine solely to animate the score.
+- Preserve native keyboard operation, visible focus states, semantic control
+  labels, screen-transition focus management, a focusable horizontally
+  scrollable score, and reduced-motion behavior. Do not add custom keyboard
+  shortcuts without an explicit interaction design.
+- Practice is the route-scoped responsive exception. Activate its root and
+  shell overrides only while `.practiceLab` is mounted, keep every library and
+  session control reachable, and stack the control rail below the score on
+  narrow screens. `/` and `/progressions` retain their desktop canvas.
+
+## FUTURE DIRECTION: Future Practice Audio Direction
+
+This section is architectural guidance, not shipped behavior and not authority
+to implement audio without an explicit request.
+
+- Use the Web Audio API for a metronome and optional reference playback; do not
+  make React renders, effects, or `setInterval` the musical clock.
+- Keep audio scheduling separate from React presentation state. Use a
+  look-ahead scheduler against `AudioContext.currentTime`, schedule a small
+  bounded window of events, and expose only the UI state needed to render
+  transport and playhead feedback.
+- Derive visual and audible events from the same authored exercise-event data
+  and timing helpers so tempo, rests, articulations, pauses, resumes, and loop
+  boundaries cannot drift into separate interpretations.
+- Resume or create the audio context only from a user gesture, cancel queued
+  work on pause, exercise change, completion, and unmount, and prevent duplicate
+  schedulers under React Strict Mode.
+- Treat countdown, metronome, and reference-instrument playback as separable
+  phases. Verify synchronization and cleanup before adding persistence,
+  recording, scoring, backing tracks, or more instruments.
+
+---
+
 # Interaction Contracts
 
 - Notes, Scale Degrees, Intervals, and Chord Tones remain mutually exclusive.
@@ -353,26 +434,6 @@ Current ownership and terminology:
   local UI preference, not Redux domain state: validate stored values, apply
   `data-theme` before hydration, persist only the selected theme ID, retain the
   choice across every route, and preserve a visible label and focus ring.
-- Practice selection and session controls stay local and ephemeral. Keep the
-  experience separated into Practice Library, Practice Session, and Session
-  Complete rather than rebuilding one settings-heavy page.
-- Practice routines may read the Redux-owned current key and scale for separate
-  context, but their authored tabs stay explicitly fixed to verified six-string
-  Standard E. Do not imply that a tab transposed, followed custom tuning, or
-  became a verified grip. Session tempo and subdivision controls must not
-  silently rewrite the authored score timing; practice scoring and persistence
-  remain out of scope.
-- Keep the Practice primary flow `exercise library -> focused session ->
-  completion`. In the session, prioritize concise instruction, the graphical
-  tablature, primary transport action, current position, and remaining time;
-  keep secondary controls visually subordinate.
-- Practice-only responsive overrides must activate on entry to `/practice` and
-  disappear on navigation away from it. Keep root-width, body, shell, and
-  navigation changes conditional on `.practiceLab`; preserve visible focus,
-  source links, and access to every exercise and session control at each width.
-- Keep the Practice Library categories and cards reachable at every supported
-  width, and stack the session control rail below the tablature on narrow
-  screens.
 - Redux owns shared key, scale, string count, exact tuning, registered tuning,
   and fret count. The pathname owns progression identity; never duplicate a
   selected progression ID in Redux.
@@ -501,7 +562,7 @@ now ship. The following remains future work:
   required-tone, omission, and doubling rules.
 - Add a deliberate registered-pitch workflow before supporting custom or
   re-entrant tuning diagrams.
-- Keep audio, tempo/metronome/looping, automatic progression-wide
+- Keep scheduled Practice audio and countdown, automatic progression-wide
   voice-leading, progression building, AI suggestions, favorites/history,
   accounts, cloud persistence, practice scoring, and song associations
   deferred.

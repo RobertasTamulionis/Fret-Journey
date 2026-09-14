@@ -1,10 +1,9 @@
 # Fret Journey
 
-Fret Journey is a desktop-first guitar-learning application built around an
-interactive fretboard, a route-backed Progression Lab, and focused daily
-practice routines. It helps players see how notes, scale degrees, intervals,
-scale shapes, chord progressions, technique work, and complete dynamically
-generated chord shapes connect across the neck.
+Fret Journey is a desktop-first guitar-learning application with three connected
+areas: Fretboard Explorer, Progression Lab, and Practice Lab. Together they use
+the interactive fretboard to connect positions, scales, intervals, chords,
+shapes, progressions, and practical playing across the neck.
 
 The app is theory-first: pitch-class identity is separated from written note
 spelling, scale and chord labels preserve correct enharmonic notation, and
@@ -35,8 +34,8 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   Mix, Scales & Modes, String Skipping, Rhythm & Chugs, Alternate Picking,
   Legato, Sweep Picking, and Bends & Vibrato.
 - Open any of 33 authored exercises in a focused Practice Session with one large
-  six-string score, concise instruction, position feedback, local controls, and
-  a simple completion flow.
+  six-string score, concise instruction, a tempo-synchronized visual playhead,
+  position feedback, local controls, and a simple completion flow.
 - Reflow the exercise-card grid, score, guidance, and session control rail for
   tablet and phone viewports.
 - Browse 225 editorially reviewed, genuinely distinct relative progression
@@ -90,10 +89,9 @@ a visual preference and does not alter music data or Redux tonal state.
 
 Practice Lab separates browsing from playing. The Practice Library groups all
 authored exercises by technique and opens a dedicated Practice Session instead
-of expanding a dashboard in place. Session selection, transport status, tempo,
-subdivision, metronome preference, and optional instrument settings remain
-local and ephemeral. A simple Session Complete view supports repeating the
-exercise, opening the next exercise, or returning to the library.
+of expanding a dashboard in place. Its eight grouped categories contain 33
+authored exercises, including a rotating Daily Mix and focused scale, string
+skipping, rhythm, picking, legato, sweep, bend, and vibrato work.
 
 The 33 authored examples use verified six-string Standard E tuning and expose
 their fixed context beside each score. They include scale navigation, string
@@ -102,13 +100,32 @@ vibrato with structured fret and articulation data rather than decorative
 ASCII. The session never implies that a fixed tab was transposed or retuned
 automatically.
 
-The current redesign establishes the three-screen structure, Start/Pause/Resume
-state transitions, and an automatically advancing visual playhead synchronized
-to the selected tempo and the authored score subdivision. The guided score
-emphasizes the current slot, fades completed slots, tracks the playhead on
-narrow screens, and updates its current fret, pattern marker, and picking
-direction. Countdown progression, metronome audio, instrument audio, and
-automatic completion are not implemented yet.
+The focused session currently provides:
+
+- Start, Pause, and Resume transport states, with a manually selected completion
+  action rather than automatic completion.
+- A looping visual playhead whose timing follows the selected tempo and the
+  score's authored subdivision. Changing the subdivision selector does not
+  rewrite the score or its playback timing.
+- A guided score that emphasizes the current slot with position, shape, and
+  contrast; fades previous slots; leaves upcoming slots neutral; and scrolls
+  horizontally to keep the active slot visible when needed.
+- Current-position feedback for the active fret, authored pattern marker, and
+  picking direction, including updates when a pattern shifts along the neck or
+  reverses direction.
+- A prominent exercise-duration display. This value is the exercise's authored
+  practice window and remains static; it is not a running countdown.
+- Local, ephemeral tempo, subdivision, metronome, reference-instrument, and
+  volume preferences. The metronome and reference-playback controls do not
+  currently produce audio.
+- A Session Complete view for repeating the exercise, opening the next
+  exercise, or returning to the library. Completion and scores are not saved.
+
+Practice controls use native keyboard-operable buttons and inputs with visible
+focus states. Screen changes move focus to the new heading, the score viewport
+can receive keyboard focus for horizontal scrolling, and reduced-motion
+preferences disable smooth score movement. There are no custom transport
+keyboard shortcuts.
 
 Practice is the deliberate responsive exception to the otherwise desktop-first
 application. At viewports below `1180px`, its route-loaded stylesheet releases
@@ -294,10 +311,11 @@ audio system:
   tuning controls rather than fret-0 note positions.
 - Fret markers are display-only rather than selectable practice targets.
 - Practice Session provides local Start/Pause/Resume, tempo, subdivision,
-  playback preferences, a looping BPM-synchronized visual playhead, and manual
-  completion state. It does not yet run a countdown or produce metronome or
-  instrument audio. Its scores remain fixed Standard E examples rather than
-  automatic transpositions.
+  playback preferences, a looping tempo-synchronized visual playhead, and
+  manual completion state. Its duration display is static, its subdivision
+  preference does not alter authored score timing, and it does not produce
+  metronome or reference-instrument audio. Scores remain fixed Standard E
+  examples rather than automatic transpositions.
 - There is no audio, progression trainer, saved practice progress, practice
   scoring, or account system. Only the visual theme preference is persisted.
 - The Fretboard and Progression workspaces retain the intentional `1180px`
@@ -324,9 +342,9 @@ following work remains deferred:
   required-tone, omission, and doubling policies.
 - Define an explicit registered-pitch workflow for supported custom and
   re-entrant tunings.
-- Complete the explicitly reopened Practice countdown, metronome, and optional
-  reference-playback phases before expanding their scope. Keep
-  practice scoring, accounts, cloud persistence, favorites/history,
-  progression building, and AI suggestions deferred.
+- If explicitly reopened, add Practice countdown, metronome, and optional
+  reference playback as separate scheduled-audio work. Keep practice scoring,
+  accounts, cloud persistence, favorites/history, progression building, and AI
+  suggestions deferred.
 
 This remaining backlog should stay deferred until it is explicitly reopened.
