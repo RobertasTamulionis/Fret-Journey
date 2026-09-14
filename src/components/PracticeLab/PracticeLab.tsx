@@ -12,11 +12,21 @@ export default function PracticeLab() {
     activeExample,
     activeRoutine,
     activeStep,
+    backToLibrary,
+    completeExercise,
     dispatch,
+    handlePrimaryAction,
     hasNextExercise,
     openExercise,
     openNextExercise,
+    repeatExercise,
+    setClickSubdivision,
+    setMetronomeVolume,
+    setTempo,
     state,
+    toggleCountIn,
+    toggleMetronome,
+    transport,
   } = usePracticeExperience();
   const containerRef = useRef<HTMLElement>(null);
   const previousScreenRef = useRef(state.screen);
@@ -32,16 +42,6 @@ export default function PracticeLab() {
       ?.focus();
   }, [state.screen]);
 
-  const handlePrimaryAction = () => {
-    if (state.transportStatus === "playing") {
-      dispatch({ type: "pause" });
-    } else if (state.transportStatus === "paused") {
-      dispatch({ type: "resume" });
-    } else {
-      dispatch({ type: "start" });
-    }
-  };
-
   return (
     <section className="practiceLab" ref={containerRef}>
       {state.screen === "library" && (
@@ -50,32 +50,36 @@ export default function PracticeLab() {
 
       {state.screen === "session" && (
         <PracticeSession
-          activeSlot={state.activeSlot}
+          activeSlot={transport.snapshot.activeSlot}
+          audioError={transport.audioError}
+          clickSubdivision={state.clickSubdivision}
+          countInBeatsRemaining={transport.snapshot.countInBeatsRemaining}
+          countInEnabled={state.countInEnabled}
           example={activeExample}
           instrument={state.instrument}
           instrumentPlaybackEnabled={state.instrumentPlaybackEnabled}
           metronomeEnabled={state.metronomeEnabled}
-          onBack={() => dispatch({ type: "back-to-library" })}
-          onComplete={() => dispatch({ type: "complete" })}
+          metronomeVolume={state.metronomeVolume}
+          onBack={backToLibrary}
+          onComplete={completeExercise}
           onInstrumentChange={(instrument) =>
             dispatch({ instrument, type: "set-instrument" })
           }
           onPrimaryAction={handlePrimaryAction}
-          onSubdivisionChange={(subdivision) =>
-            dispatch({ subdivision, type: "set-subdivision" })
-          }
-          onTempoChange={(tempo) => dispatch({ tempo, type: "set-tempo" })}
+          onSubdivisionChange={setClickSubdivision}
+          onTempoChange={setTempo}
+          onToggleCountIn={toggleCountIn}
           onToggleInstrumentPlayback={() =>
             dispatch({ type: "toggle-instrument-playback" })
           }
-          onToggleMetronome={() => dispatch({ type: "toggle-metronome" })}
+          onToggleMetronome={toggleMetronome}
+          onMetronomeVolumeChange={setMetronomeVolume}
           onVolumeChange={(volume) => dispatch({ type: "set-volume", volume })}
           routine={activeRoutine}
           step={activeStep}
           stepIndex={state.stepIndex}
-          subdivision={state.subdivision}
           tempo={state.tempo}
-          transportStatus={state.transportStatus}
+          transportStatus={transport.snapshot.phase}
           volume={state.volume}
         />
       )}
@@ -83,9 +87,9 @@ export default function PracticeLab() {
       {state.screen === "complete" && (
         <SessionComplete
           hasNextExercise={hasNextExercise}
-          onBackToLibrary={() => dispatch({ type: "back-to-library" })}
+          onBackToLibrary={backToLibrary}
           onNextExercise={openNextExercise}
-          onRepeat={() => dispatch({ type: "repeat" })}
+          onRepeat={repeatExercise}
           step={activeStep}
           tempo={state.tempo}
         />

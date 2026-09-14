@@ -434,6 +434,33 @@ $practice-accent: var(--semantic-shape);
 
 }
 
+.practiceTransportAction {
+  min-width: 160px;
+  display: grid;
+  justify-items: stretch;
+  gap: 7px;
+  flex: 0 0 auto;
+}
+
+.practiceCountInStatus {
+  color: $practice-accent;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.practiceAudioError {
+  max-width: 240px;
+  margin: 0;
+  color: var(--semantic-warning);
+  font-size: 9px;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .positionReadout {
   display: flex;
   flex-wrap: wrap;
@@ -1235,6 +1262,10 @@ $practice-accent: var(--semantic-shape);
   }
 
   .practicePrimaryAction {
+    width: 100%;
+  }
+
+  .practiceTransportAction {
     width: 100%;
   }
 

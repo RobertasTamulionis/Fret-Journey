@@ -125,6 +125,9 @@ markers remain visual output rather than selectable practice targets.
   articulation, notation, and accessibility types and helpers.
 - `src/features/practice/session.ts` owns derived session display helpers and
   the bounded tempo, subdivision, and instrument option contracts.
+- `src/features/practice/timing.ts` owns pure beat, slot, timeline, and
+  metronome-pulse planning; `src/features/practice/audio` owns the headless Web
+  Audio transport and scheduler.
 - `docs/PROGRESSION_SOURCES.md` documents provenance, licenses, and the import
   boundary; `scripts/progression-pipeline` normalizes audited candidates
   offline without bundling raw datasets.
@@ -345,22 +348,24 @@ Current ownership and terminology:
   Complete`. The library groups eight technique categories and 33 authored
   exercises; it should feel like choosing a workout rather than configuring
   software.
-- Practice selection and session controls are local and ephemeral. The current
-  state model covers the selected exercise, visual transport, active score
-  slot, tempo, subdivision preference, metronome preference, optional reference
-  instrument, and volume. Do not duplicate this state in Redux.
+- Practice selection and session controls are local and ephemeral. React owns
+  the selected exercise and control preferences; the headless Practice audio
+  engine owns the active transport timeline. Do not duplicate this state in
+  Redux.
 - Authored tabs are verified six-string Standard E scores. They do not
   transpose with the shared key or follow custom tuning, and the UI must not
   imply that they do.
-- Start, Pause, and Resume control a looping visual playhead. Its clock follows
-  local tempo and the active example's authored subdivision. The subdivision
-  selector is currently preference state only and must not silently rewrite the
-  authored score or playhead timing.
+- Start, Pause, and Resume control a transport-configured count-in (currently
+  four beats), audible metronome, and looping visual playhead. Web Audio time is
+  the transport clock. Visual snapshots and audible pulses share pure
+  beat/timing helpers; click subdivision remains independent from authored
+  score subdivision and must not rewrite the score or its playhead timing.
 - The exercise-duration value is a static authored practice window, not a
   countdown. Completion is user-triggered; there is no automatic completion,
   scoring, or saved history.
-- Metronome and reference-instrument controls currently store preferences only.
-  They do not schedule or produce audio.
+- Count-in and exercise metronome enablement are separate controls. The
+  metronome synthesizes a distinct beat-one accent plus optional subdivisions;
+  reference-instrument controls remain preference-only and produce no audio.
 
 ## Practice Design and Interaction Principles
 
@@ -386,26 +391,24 @@ Current ownership and terminology:
   session control reachable, and stack the control rail below the score on
   narrow screens. `/` and `/progressions` retain their desktop canvas.
 
-## FUTURE DIRECTION: Future Practice Audio Direction
+## Practice Audio Architecture
 
-This section is architectural guidance, not shipped behavior and not authority
-to implement audio without an explicit request.
-
-- Use the Web Audio API for a metronome and optional reference playback; do not
-  make React renders, effects, or `setInterval` the musical clock.
-- Keep audio scheduling separate from React presentation state. Use a
-  look-ahead scheduler against `AudioContext.currentTime`, schedule a small
-  bounded window of events, and expose only the UI state needed to render
-  transport and playhead feedback.
-- Derive visual and audible events from the same authored exercise-event data
-  and timing helpers so tempo, rests, articulations, pauses, resumes, and loop
-  boundaries cannot drift into separate interpretations.
-- Resume or create the audio context only from a user gesture, cancel queued
-  work on pause, exercise change, completion, and unmount, and prevent duplicate
-  schedulers under React Strict Mode.
-- Treat countdown, metronome, and reference-instrument playback as separable
-  phases. Verify synchronization and cleanup before adding persistence,
-  recording, scoring, backing tracks, or more instruments.
+- `src/features/practice/timing.ts` owns pure beat/slot conversion and pulse
+  planning. Both the visual playhead and scheduled clicks derive from that beat
+  axis.
+- `PracticeMetronomeEngine` has no React imports. It owns the Web Audio timeline
+  and schedules a short look-ahead window against `AudioContext.currentTime`;
+  its timeout only wakes the scheduler and is not the musical clock.
+- React samples transport snapshots with `requestAnimationFrame` for visual
+  presentation. It does not advance musical time and avoids rerendering when
+  the visible phase, active slot, and count-in value have not changed.
+- Audio context creation/resume stays inside Start or Resume user gestures.
+  Pause, exercise changes, manual completion, unmount, and tempo or pulse-plan
+  changes cancel queued sources. A generation guard prevents stale activations
+  and duplicate schedulers under React Strict Mode.
+- Count-in length is supplied at the transport boundary. Count-in enablement and
+  exercise metronome enablement remain independent; the current UI defaults to
+  a four-beat count-in without making four beats an engine invariant.
 
 ---
 
@@ -481,8 +484,9 @@ to implement audio without an explicit request.
   external research links remain instructional copy. The current session has a
   looping visual playhead synchronized to its local tempo and the authored tab
   subdivision, plus structural metronome and instrument preferences. It still
-  has no running countdown, scheduled audio, backing track, automatic
-  completion, or saved completion system.
+  has no running countdown, backing track, reference-note audio, automatic
+  completion, or saved completion system. Its first audio layer is a scheduled
+  synthesized metronome with count-in, beat-one accent, and subdivision clicks.
 - Authored Practice tablature is a verified static Standard E event library,
   not generated shape, fingering, barre, or voicing data. Its pitches, rests,
   fret bounds, bend targets, and same-string articulations follow `THEORY.md`
@@ -502,10 +506,10 @@ to implement audio without an explicit request.
   8-string instruments are outside the named CAGED form.
 - Harmonic Minor and Phrygian Dominant expose 3NPS only. Minor Blues exposes
   Blues Boxes only.
-- There is no scheduled audio, running metronome, active timer, progression
-  trainer, saved practice progress, practice scoring, account system, E2E
-  runner, visual-regression suite, or CI workflow. Theme preference is the only
-  local persistence.
+- There is no running exercise countdown, drums, backing track, reference-note
+  playback, progression trainer, saved practice progress, practice scoring,
+  account system, E2E runner, visual-regression suite, or CI workflow. Theme
+  preference is the only local persistence.
 
 ---
 
@@ -562,10 +566,10 @@ now ship. The following remains future work:
   required-tone, omission, and doubling rules.
 - Add a deliberate registered-pitch workflow before supporting custom or
   re-entrant tuning diagrams.
-- Keep scheduled Practice audio and countdown, automatic progression-wide
-  voice-leading, progression building, AI suggestions, favorites/history,
-  accounts, cloud persistence, practice scoring, and song associations
-  deferred.
+- Keep Practice countdown and audio beyond the first metronome layer, automatic
+  progression-wide voice-leading, progression building, AI suggestions,
+  favorites/history, accounts, cloud persistence, practice scoring, and song
+  associations deferred.
 
 Do not implement this remaining backlog until the user explicitly reopens it.
 
@@ -576,16 +580,17 @@ Do not implement this remaining backlog until the user explicitly reopens it.
 For theory, tuning, chord, reducer, or shape changes:
 
 1. Run `npm run theory:check`.
-2. Run `npx tsc --noEmit`.
-3. Run focused Biome checks for touched files.
-4. Run `npm run lint` and distinguish new failures from the known baseline.
-5. Run `npm run build` before major handoffs when feasible.
-6. Visually verify the relevant 12/24-fret and 6/7/8-string states for UI work.
-7. For Practice responsive changes, verify direct load and client navigation
+2. For Practice transport/audio changes, run `npm run practice:audio:check`.
+3. Run `npx tsc --noEmit`.
+4. Run focused Biome checks for touched files.
+5. Run `npm run lint` and distinguish new failures from the known baseline.
+6. Run `npm run build` before major handoffs when feasible.
+7. Visually verify the relevant 12/24-fret and 6/7/8-string states for UI work.
+8. For Practice responsive changes, verify direct load and client navigation
    into and away from `/practice` at narrow and desktop widths. Confirm `/` and
    `/progressions` retain the `1180px` canvas and browser history does not leave
    Practice-only root or shell styles active.
-8. For theme changes, verify Graphite, Light, and Ember on `/`, `/progressions`,
+9. For theme changes, verify Graphite, Light, and Ember on `/`, `/progressions`,
    one progression detail, and `/practice`; check reload persistence, native
    selector keyboard/focus behavior, semantic visualization contrast, and that
    saved Light applies before the first rendered frame.

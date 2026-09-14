@@ -104,9 +104,13 @@ The focused session currently provides:
 
 - Start, Pause, and Resume transport states, with a manually selected completion
   action rather than automatic completion.
-- A looping visual playhead whose timing follows the selected tempo and the
-  score's authored subdivision. Changing the subdivision selector does not
-  rewrite the score or its playback timing.
+- A default four-beat count-in followed by a looping visual playhead whose
+  timing follows the selected tempo and the score's authored subdivision. The
+  transport boundary can supply a different count-in length without changing
+  the audio engine.
+- A synthesized Web Audio metronome with a distinct beat-one accent, optional
+  subdivision clicks, and click volume. Count-in and exercise metronome
+  playback are independent controls.
 - A guided score that emphasizes the current slot with position, shape, and
   contrast; fades previous slots; leaves upcoming slots neutral; and scrolls
   horizontally to keep the active slot visible when needed.
@@ -115,9 +119,9 @@ The focused session currently provides:
   reverses direction.
 - A prominent exercise-duration display. This value is the exercise's authored
   practice window and remains static; it is not a running countdown.
-- Local, ephemeral tempo, subdivision, metronome, reference-instrument, and
-  volume preferences. The metronome and reference-playback controls do not
-  currently produce audio.
+- Local, ephemeral tempo, click-subdivision, metronome, reference-instrument,
+  and volume preferences. The reference-instrument controls remain structural
+  preferences and do not currently produce audio.
 - A Session Complete view for repeating the exercise, opening the next
   exercise, or returning to the library. Completion and scores are not saved.
 
@@ -202,6 +206,7 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Create a production build |
 | `npm run start` | Start the built application |
 | `npm run theory:check` | Verify theory, chord, shape, tuning, and Redux behavior |
+| `npm run practice:audio:check` | Verify Practice timing, metronome scheduling, and transport lifecycle |
 | `npm run progressions:candidates` | Normalize an audited relative-candidate file outside the production bundle |
 | `npm run lint` | Run repository-wide Biome checks |
 | `npm run format` | Format supported files with Biome |
@@ -228,6 +233,8 @@ and Biome.
 | `src/components/PracticeLab` | Practice Library, focused Practice Session, Session Complete, local session state, and graphical tab player |
 | `src/features/practice/session.ts` | Practice-session display helpers and control option contracts |
 | `src/features/practice/tablature.ts` | Typed tuning, rhythm, event, notation, and pitch helpers for authored tabs |
+| `src/features/practice/timing.ts` | Pure Practice beat, slot, timeline, and metronome-pulse planning |
+| `src/features/practice/audio/PracticeMetronomeEngine.ts` | Headless Web Audio transport and look-ahead metronome scheduler |
 | `src/features/theme/themes.ts` | Theme options, validation, storage key, and bootstrap script |
 | `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
 | `src/features/voicings` | Formula-independent dynamic chord generation, ranking, and accessible descriptions |
@@ -255,6 +262,7 @@ positions, reducers, or shape logic:
 
 ```bash
 npm run theory:check
+npm run practice:audio:check
 npx tsc --noEmit
 ```
 
@@ -293,9 +301,9 @@ As of 2026-09-01:
 
 ## Current limitations
 
-Fret Journey remains a visualization, exploration, and guided-routine tool;
-the Practice transport drives visual score timing but is not a countdown or
-audio system:
+Fret Journey remains a visualization, exploration, and guided-routine tool.
+Practice now includes its first scheduled audio layer, but not a running
+exercise countdown or reference-instrument system:
 
 - Dynamic diagrams include every authored chord tone for all current scale and
   progression chords. They do not yet generate omission-based shell voicings.
@@ -310,14 +318,15 @@ audio system:
 - The fretboard grid starts at fret 1. Open strings are represented by the
   tuning controls rather than fret-0 note positions.
 - Fret markers are display-only rather than selectable practice targets.
-- Practice Session provides local Start/Pause/Resume, tempo, subdivision,
-  playback preferences, a looping tempo-synchronized visual playhead, and
-  manual completion state. Its duration display is static, its subdivision
-  preference does not alter authored score timing, and it does not produce
-  metronome or reference-instrument audio. Scores remain fixed Standard E
-  examples rather than automatic transpositions.
-- There is no audio, progression trainer, saved practice progress, practice
-  scoring, or account system. Only the visual theme preference is persisted.
+- Practice Session provides local Start/Pause/Resume, configurable count-in,
+  tempo, click subdivision, an audible metronome, a looping synchronized visual
+  playhead, and manual completion state. Its duration display is static, click
+  subdivision does not alter authored score timing, and reference-instrument
+  controls do not produce audio. Scores remain fixed Standard E examples rather
+  than automatic transpositions.
+- There are no drums, backing tracks, reference-note playback, progression
+  trainer, saved practice progress, practice scoring, or account system. Only
+  the visual theme preference is persisted.
 - The Fretboard and Progression workspaces retain the intentional `1180px`
   desktop canvas and horizontal scrolling on narrower viewports. Practice Lab
   is the route-scoped exception and adapts its shell, library grid, score, and
@@ -342,9 +351,9 @@ following work remains deferred:
   required-tone, omission, and doubling policies.
 - Define an explicit registered-pitch workflow for supported custom and
   re-entrant tunings.
-- If explicitly reopened, add Practice countdown, metronome, and optional
-  reference playback as separate scheduled-audio work. Keep practice scoring,
-  accounts, cloud persistence, favorites/history, progression building, and AI
-  suggestions deferred.
+- If explicitly reopened, add Practice countdown or optional reference playback
+  as separate work beyond the current metronome layer. Keep drums, backing
+  tracks, practice scoring, accounts, cloud persistence, favorites/history,
+  progression building, and AI suggestions deferred.
 
 This remaining backlog should stay deferred until it is explicitly reopened.

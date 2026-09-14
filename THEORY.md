@@ -367,12 +367,33 @@ or barre, or become verified chord grips. The Practice interface must label
 their fixed Standard E context honestly while it may show the current
 Fretboard key and scale separately.
 
+### Practice timing and metronome contract
+
+All authored Practice measures use one shared four-beat axis. Authored
+subdivision determines visual score-slot boundaries; the independently selected
+click subdivision determines only which beat and subdivision pulses the
+metronome schedules. Changing click subdivision never rewrites authored score
+timing.
+
+Pure helpers in `src/features/practice/timing.ts` define beat/audio-time
+conversion, active-slot selection, and metronome pulse planning. Beat one is a
+structural metronome accent at beats `0`, `4`, `8`, and so on; it is separate
+from authored note accents and does not imply note or reference-instrument
+playback. The Web Audio transport and visual playhead must derive from this same
+beat model.
+
+Count-in duration is a transport input, not an authored-score property or a
+fixed engine invariant. Count-in enablement and exercise metronome enablement
+are independent. Pausing preserves the current authored slot boundary; Resume
+may run a fresh configured count-in before continuing from that boundary.
+
 ## Verification
 
 Run:
 
 ```sh
 npm run theory:check
+npm run practice:audio:check
 npx tsc --noEmit
 ```
 
@@ -392,9 +413,14 @@ verified Standard E practice register, event and fret bounds, pitch-scope
 membership, rests, bend targets, and same-string articulation direction for
 every authored Practice example.
 
+`scripts/verify-practice-audio.ts` checks deterministic beat and slot
+conversion, beat-one accents, subdivision pulse plans, count-in configuration,
+transport lifecycle, duplicate-start protection, cancellation, and tempo-change
+rescheduling with an injected fake audio context.
+
 The suite does not validate visual layout, browser interactions, accessibility
 behavior, unmodeled finger assignments or barres, progression-wide ergonomics,
-audio, or the production build.
+audible hardware output, or the production build.
 
 ## Deferred theory work (non-normative)
 

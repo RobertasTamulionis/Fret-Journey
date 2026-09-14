@@ -1,14 +1,23 @@
-import {
-  getPracticeTabBeatSize,
-  type PracticeTabExample,
-  type PracticeTabMarker,
-  type PracticeTabNoteEvent,
-  type PracticeTabSubdivision,
+import type {
+  PracticeTabExample,
+  PracticeTabMarker,
+  PracticeTabNoteEvent,
+  PracticeTabSubdivision,
 } from "./tablature";
 
+export type {
+  PracticeAudioTransportPhase as PracticeTransportStatus,
+  PracticeTransportSnapshot,
+} from "./audio/PracticeMetronomeEngine";
+export {
+  clampPracticeTempo,
+  getPracticeSlotDurationMs,
+} from "./timing";
+
 export type PracticeExperienceScreen = "library" | "session" | "complete";
-export type PracticeTransportStatus = "idle" | "playing" | "paused";
 export type PracticeInstrument = "clean-guitar" | "piano" | "simple-tone";
+
+export const practiceDefaultCountInBeats = 4;
 
 export type PracticePositionSnapshot = {
   direction: string | null;
@@ -27,15 +36,6 @@ export const formatPracticeDurationAsClock = (duration: string): string => {
 
   return `${match[1]}:00`;
 };
-
-export const clampPracticeTempo = (tempo: number): number =>
-  Math.min(240, Math.max(30, tempo));
-
-export const getPracticeSlotDurationMs = (
-  tempo: number,
-  subdivision: PracticeTabSubdivision,
-): number =>
-  60_000 / (clampPracticeTempo(tempo) * getPracticeTabBeatSize(subdivision));
 
 export const getPracticePositionSnapshot = (
   example: PracticeTabExample,

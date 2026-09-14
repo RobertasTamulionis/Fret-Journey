@@ -15,30 +15,36 @@ import PracticeTablature from "./PracticeTablature";
 
 type PracticeSessionProps = {
   activeSlot: number;
+  audioError: string | null;
+  clickSubdivision: PracticeTabSubdivision;
+  countInBeatsRemaining: number;
+  countInEnabled: boolean;
   example: PracticeTabExample;
   instrument: PracticeInstrument;
   instrumentPlaybackEnabled: boolean;
   metronomeEnabled: boolean;
+  metronomeVolume: number;
   onBack: () => void;
   onComplete: () => void;
   onInstrumentChange: (instrument: PracticeInstrument) => void;
-  onPrimaryAction: () => void;
+  onMetronomeVolumeChange: (volume: number) => void;
+  onPrimaryAction: () => void | Promise<void>;
   onSubdivisionChange: (subdivision: PracticeTabSubdivision) => void;
   onTempoChange: (tempo: number) => void;
+  onToggleCountIn: () => void;
   onToggleInstrumentPlayback: () => void;
   onToggleMetronome: () => void;
   onVolumeChange: (volume: number) => void;
   routine: PracticeRoutine;
   step: PracticeStep;
   stepIndex: number;
-  subdivision: PracticeTabSubdivision;
   tempo: number;
   transportStatus: PracticeTransportStatus;
   volume: number;
 };
 
 const getPrimaryActionLabel = (status: PracticeTransportStatus) => {
-  if (status === "playing") {
+  if (status === "playing" || status === "counting-in") {
     return "Pause";
   }
 
@@ -51,23 +57,29 @@ const getPrimaryActionLabel = (status: PracticeTransportStatus) => {
 
 export default function PracticeSession({
   activeSlot,
+  audioError,
+  clickSubdivision,
+  countInBeatsRemaining,
+  countInEnabled,
   example,
   instrument,
   instrumentPlaybackEnabled,
   metronomeEnabled,
+  metronomeVolume,
   onBack,
   onComplete,
   onInstrumentChange,
+  onMetronomeVolumeChange,
   onPrimaryAction,
   onSubdivisionChange,
   onTempoChange,
+  onToggleCountIn,
   onToggleInstrumentPlayback,
   onToggleMetronome,
   onVolumeChange,
   routine,
   step,
   stepIndex,
-  subdivision,
   tempo,
   transportStatus,
   volume,
@@ -96,17 +108,32 @@ export default function PracticeSession({
               </h1>
               <p>{step.instruction}</p>
             </div>
-            <button
-              className="practicePrimaryAction"
-              data-status={transportStatus}
-              onClick={onPrimaryAction}
-              type="button"
-            >
-              <span aria-hidden="true">
-                {transportStatus === "playing" ? "Ⅱ" : "▶"}
-              </span>
-              {getPrimaryActionLabel(transportStatus)}
-            </button>
+            <div className="practiceTransportAction">
+              <button
+                className="practicePrimaryAction"
+                data-status={transportStatus}
+                onClick={onPrimaryAction}
+                type="button"
+              >
+                <span aria-hidden="true">
+                  {transportStatus === "playing" ||
+                  transportStatus === "counting-in"
+                    ? "Ⅱ"
+                    : "▶"}
+                </span>
+                {getPrimaryActionLabel(transportStatus)}
+              </button>
+              {transportStatus === "counting-in" && (
+                <output aria-live="polite" className="practiceCountInStatus">
+                  Count-in · {countInBeatsRemaining}
+                </output>
+              )}
+              {audioError && (
+                <p className="practiceAudioError" role="alert">
+                  {audioError}
+                </p>
+              )}
+            </div>
           </header>
 
           <PracticeTablature
@@ -193,7 +220,7 @@ export default function PracticeSession({
           </section>
 
           <section className="sessionControlGroup">
-            <label htmlFor="practice-subdivision">Subdivision</label>
+            <label htmlFor="practice-subdivision">Click subdivision</label>
             <select
               id="practice-subdivision"
               onChange={(event) =>
@@ -201,7 +228,7 @@ export default function PracticeSession({
                   event.target.value as PracticeTabSubdivision,
                 )
               }
-              value={subdivision}
+              value={clickSubdivision}
             >
               {practiceSubdivisionOptions.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -212,6 +239,14 @@ export default function PracticeSession({
           </section>
 
           <div className="sessionToggles">
+            <button
+              aria-pressed={countInEnabled}
+              onClick={onToggleCountIn}
+              type="button"
+            >
+              <span>Count-in</span>
+              <strong>{countInEnabled ? "On" : "Off"}</strong>
+            </button>
             <button
               aria-pressed={metronomeEnabled}
               onClick={onToggleMetronome}
@@ -228,6 +263,22 @@ export default function PracticeSession({
               <span>Instrument playback</span>
               <strong>{instrumentPlaybackEnabled ? "On" : "Off"}</strong>
             </button>
+          </div>
+
+          <div className="volumeControl">
+            <label htmlFor="practice-metronome-volume">
+              Click volume <span>{metronomeVolume}%</span>
+            </label>
+            <input
+              id="practice-metronome-volume"
+              max="100"
+              min="0"
+              onChange={(event) =>
+                onMetronomeVolumeChange(Number(event.target.value))
+              }
+              type="range"
+              value={metronomeVolume}
+            />
           </div>
 
           {instrumentPlaybackEnabled && (
