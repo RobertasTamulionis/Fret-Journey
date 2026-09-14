@@ -29,7 +29,7 @@ export type ProgressionLabState = {
   harmonicScope: ProgressionHarmonicScopeFilter;
   mood: string;
   search: string;
-  selectedVoicingSignature: string | null;
+  selectedVoicingSignaturesByStepId: Record<string, string>;
   sort: ProgressionSort;
   style: string;
   visualizationMode: ProgressionVisualizationMode;
@@ -45,7 +45,7 @@ const initialState: ProgressionLabState = {
   harmonicScope: "all",
   mood: "all",
   search: "",
-  selectedVoicingSignature: null,
+  selectedVoicingSignaturesByStepId: {},
   sort: "recommended",
   style: "all",
   visualizationMode: "selected-voicing",
@@ -57,7 +57,7 @@ const progressionLabSlice = createSlice({
   reducers: {
     resetProgressionDetail: (state) => {
       state.activeStepIndex = 0;
-      state.selectedVoicingSignature = null;
+      state.selectedVoicingSignaturesByStepId = {};
       state.visualizationMode = "selected-voicing";
     },
     resetProgressionFilters: (state) => {
@@ -75,7 +75,6 @@ const progressionLabSlice = createSlice({
     setProgressionActiveStep: (state, action: PayloadAction<number>) => {
       if (Number.isInteger(action.payload) && action.payload >= 0) {
         state.activeStepIndex = action.payload;
-        state.selectedVoicingSignature = null;
       }
     },
     setProgressionCategory: (state, action: PayloadAction<string>) => {
@@ -128,9 +127,23 @@ const progressionLabSlice = createSlice({
     },
     setSelectedVoicingSignature: (
       state,
-      action: PayloadAction<string | null>,
+      action: PayloadAction<{
+        signature: string | null;
+        stepId: string;
+      }>,
     ) => {
-      state.selectedVoicingSignature = action.payload;
+      const { signature, stepId } = action.payload;
+
+      if (stepId.length === 0) {
+        return;
+      }
+
+      if (signature === null) {
+        delete state.selectedVoicingSignaturesByStepId[stepId];
+        return;
+      }
+
+      state.selectedVoicingSignaturesByStepId[stepId] = signature;
     },
   },
 });

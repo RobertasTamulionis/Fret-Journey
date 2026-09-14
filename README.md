@@ -47,6 +47,10 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   suspensions, added tones, and slash basses.
 - Step through a progression while the active chord name, note list, fretboard,
   large chart, and compact chart overview update together.
+- Choose among every returned compact voicing grouped by Open, frets 1–4,
+  frets 5–8, and frets 9–12. Each progression step remembers its selected grip
+  for the current workspace session, and the complete overview uses those
+  choices.
 - Compare every chord tone across the neck with an exact selected voicing.
   Formula-independent diagrams dynamically place every authored tone for all
   current triads, sevenths, ninths, suspended chords, added tones, sixths, and
@@ -141,6 +145,14 @@ claim an exact bass or inversion; authored slash basses are placed on the
 lowest physical string used and described as register-unverified. Compact
 four-fret shapes are preferred; unusual custom tunings can use a wider rendered
 fret window rather than losing the diagram.
+
+Progression workspaces expose every ranked alternative returned by the current
+generator instead of showing only the first few. Alternatives are grouped by
+physical neck location and labeled with exact fret coverage, bass/inversion,
+and difficulty. Selecting a grip updates the large chart and exact-position
+neck, while `All Chord Tones` remains a separate pitch-class map. Grip choices
+are local to the current workspace session and remembered per progression step;
+they are not saved progress or an automatically optimized voice-leading path.
 
 The complete source ledger and ingestion policy live in
 [docs/PROGRESSION_SOURCES.md](./docs/PROGRESSION_SOURCES.md). The catalog ships
@@ -241,23 +253,23 @@ both write to `.next`.
 
 ### Current validation snapshot
 
-As of 2026-08-30:
+As of 2026-09-01:
 
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
   with 761,718 validated generated voicings.
 - `npx tsc --noEmit` passes.
-- Focused Biome checks pass for the dynamic voicing generator, request adapters,
-  diagram/workspace integration, layout metadata, and executable theory suite;
-  direct Progression Workspace Sass compilation also passes.
+- Focused Biome checks pass for the progression workspace, physical-location
+  grouping, per-step voicing state, and executable theory suite; direct
+  Progression Workspace Sass compilation also passes.
 - `npm run lint` reports an existing baseline of 5 formatting errors and 2
   warnings in untouched baseline files.
-- Development-server route smoke checks return 200 for the add9-heavy
-  `add-nine-relative-loop` and seventh-heavy `one-six-two-five-turnaround`
-  progression details after generation warms.
-- `npm run build` was not run because an existing development server owns
-  `.next`; build and dev must not write there concurrently.
+- A development-server route smoke check returns 200 for
+  `open-axis-pop?key=E&scale=minor` after the position explorer compiles.
+- `npm run build` was attempted without a development server but stalled during
+  optimized compilation without emitting an error and was stopped before route
+  smoke testing; it is not a passing build result.
 - No browser instance was connected for diagram screenshot, visual, focus, or
   interaction inspection. The repository does not include an E2E,
   visual-regression, or CI workflow.
@@ -270,6 +282,9 @@ audio system:
 
 - Dynamic diagrams include every authored chord tone for all current scale and
   progression chords. They do not yet generate omission-based shell voicings.
+- The progression position explorer exposes all alternatives returned by
+  `dynamic-chord-v1`, but generation currently stops at fret 12 even when the
+  24-fret neck is selected.
 - Custom pitch-class-only and re-entrant tunings receive note-correct physical
   diagrams, but their exact bass and inversion remain unknown until every open
   string has an explicit octave register.
@@ -299,6 +314,8 @@ following work remains deferred:
 
 - Find close voice-leading paths across a complete progression and identify
   held common tones.
+- Extend generated position coverage beyond fret 12 while retaining bounded,
+  deterministic results and acceptable exhaustive-verification performance.
 - Add Learn/Recall progression-training interactions after the voicing
   foundation is validated.
 - Add curated common open/barre vocabulary, finger assignments, and verified
@@ -307,8 +324,9 @@ following work remains deferred:
   required-tone, omission, and doubling policies.
 - Define an explicit registered-pitch workflow for supported custom and
   re-entrant tunings.
-- Keep audio, tempo, metronome, looping, practice scoring, accounts, cloud
-  persistence, favorites/history, progression building, and AI suggestions out
-  of scope until separately reopened.
+- Complete the explicitly reopened Practice countdown, metronome, and optional
+  reference-playback phases before expanding their scope. Keep
+  practice scoring, accounts, cloud persistence, favorites/history,
+  progression building, and AI suggestions deferred.
 
 This remaining backlog should stay deferred until it is explicitly reopened.

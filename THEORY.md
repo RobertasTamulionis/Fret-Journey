@@ -300,6 +300,13 @@ progression chords:
   contiguous string groups, smaller spans, lower positions, and open strings;
 - at most sixteen ranked alternatives are returned for one chord request.
 
+The progression workspace exposes every alternative returned by that request.
+It groups exact physical signatures into Open, frets 1–4, frets 5–8, and frets
+9–12 presentation regions without merging, rewriting, or claiming additional
+voicings. A grip that crosses a region boundary keeps its full exact fret-range
+label. The selected signature is remembered independently for each progression
+step during the current workspace session.
+
 The current chord universe contains three, four, or five distinct tones, so it
 fits the six-string minimum without omission. The exhaustive contract verifies
 all 1,395 scale chords and all 14,475 resolved progression events on each
@@ -324,7 +331,9 @@ calculated bass when available, and omissions.
 
 `Selected Voicing` displays only the exact string-and-fret positions of the
 chosen grip. `All Chord Tones` displays every matching pitch class across the
-neck. These modes are never described as equivalent.
+neck. Choosing a generated grip returns the interface to `Selected Voicing` so
+the requested physical assignment is visible. These modes are never described
+as equivalent.
 
 ## Authored Practice tablature contract
 

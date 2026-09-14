@@ -61,6 +61,9 @@ The application currently supports:
 - registered default pitches for 6-, 7-, and 8-string guitars
 - formula-independent dynamic diagrams containing every authored tone for all
   current scale and progression chords on 6-, 7-, and 8-string guitars
+- a progression-detail position explorer exposing every returned compact grip
+  by physical neck region, with session-local selections remembered per chord
+  step and reflected in the complete-progression overview
 
 The shared shell exposes `/`, `/progressions`, `/progressions/[slug]`, and
 `/practice` with real links and browser-history behavior. Fret cells and fret
@@ -102,7 +105,8 @@ markers remain visual output rather than selectable practice targets.
 - `src/features/progressions` owns relative chord formulas, resolution, URL
   validation, presentation, and catalog validation.
 - `src/features/voicings` owns formula-independent dynamic chord generation,
-  request adapters, ranking, signatures, and accessible chart descriptions.
+  request adapters, ranking, signatures, physical-location grouping, and
+  accessible chart descriptions.
 - `src/data/progressionCatalog.ts` holds static templates outside Redux, while
   `src/data/progressionSources.ts` is the machine-readable source ledger.
 - `src/data/practiceRoutines.ts` holds typed routine copy and its visible
@@ -372,6 +376,14 @@ Current ownership and terminology:
 - Redux owns shared key, scale, string count, exact tuning, registered tuning,
   and fret count. The pathname owns progression identity; never duplicate a
   selected progression ID in Redux.
+- Progression voicing choices are ephemeral and keyed only by the authored step
+  ID. Preserve one selected signature per step, clear the map when detail state
+  resets, and make the large chart, exact-position neck, and overview use those
+  selections without storing the progression slug in Redux.
+- Expose every alternative returned by `dynamic-chord-v1` in the progression
+  position explorer. Group them by physical Open/1–4/5–8/9–12 neck regions,
+  retain exact signatures and full fret ranges, and call them generated compact
+  grips rather than every possible guitar fingering.
 - Detail URLs accept validated `key` and `scale` parameters. On direct load,
   valid URL context takes priority over in-memory Redux context and defaults;
   invalid values are rejected safely.
@@ -399,10 +411,17 @@ Current ownership and terminology:
   introduces no omissions or doublings. Only custom tunings without a compact
   result may use the wide fallback through eleven frets. Fingerings and barres
   are not invented.
-- Practice Lab is a curated guided-routine library. Its durations, clean-tempo
-  rules, success criteria, musical prompts, health note, and external research
-  links are instructional copy rather than an active timer, metronome, backing
-  track, or saved completion system.
+- Progression detail exposes all alternatives returned by the generator and
+  remembers a selected signature per chord step for the current session. The
+  24-fret neck does not imply 24-fret generation; upper-neck generation beyond
+  fret 12 remains unsupported.
+- Practice content remains a curated guided-routine library. Its durations,
+  clean-tempo rules, success criteria, musical prompts, health note, and
+  external research links remain instructional copy. The current session has a
+  looping visual playhead synchronized to its local tempo and the authored tab
+  subdivision, plus structural metronome and instrument preferences. It still
+  has no running countdown, scheduled audio, backing track, automatic
+  completion, or saved completion system.
 - Authored Practice tablature is a verified static Standard E event library,
   not generated shape, fingering, barre, or voicing data. Its pitches, rests,
   fret bounds, bend targets, and same-string articulations follow `THEORY.md`
@@ -471,6 +490,8 @@ now ship. The following remains future work:
 
 - Choose nearby voicings across the complete progression rather than greedily
   choosing only the next chord.
+- Extend deterministic generated position coverage beyond fret 12 without
+  turning the bounded UI into an exhaustive list of overlapping permutations.
 - Highlight common tones and movement for each voice.
 - Add Learn/Recall progression-training interactions only after the voicing
   foundation is verified.
@@ -512,22 +533,23 @@ Never run `npm run build` concurrently with `npm run dev`; both write to
 `.next`. Domain checks do not prove browser interaction, accessibility, or
 visual correctness. Report every unverified validation layer explicitly.
 
-Current verified baseline as of 2026-08-30:
+Current verified baseline as of 2026-09-01:
 
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
   with 761,718 validated generated voicings.
 - `npx tsc --noEmit` passes.
-- Focused Biome checks pass for the dynamic voicing generator, request adapters,
-  diagram/workspace integration, layout metadata, and theory suite; direct
-  Progression Workspace Sass compilation passes.
+- Focused Biome checks pass for the progression workspace, physical-location
+  grouping, per-step voicing state, and theory suite; direct Progression
+  Workspace Sass compilation passes.
 - `npm run lint` reports 5 formatting errors and 2 warnings, chiefly existing
   untouched formatting and import issues.
-- Development-server route smoke checks pass for add9-heavy and seventh-heavy
-  progression details after dynamic generation warms.
-- `npm run build` was not run because an existing development server owns
-  `.next`; build and dev must not write there concurrently.
+- A development-server route smoke check passes for
+  `open-axis-pop?key=E&scale=minor` after the position explorer compiles.
+- `npm run build` was attempted without a development server but stalled during
+  optimized compilation without emitting an error and was stopped; it is not a
+  passing build result.
 - Diagram interaction, focus behavior, theme rendering, and screenshot
   inspection remain unverified because no browser instance was connected.
 

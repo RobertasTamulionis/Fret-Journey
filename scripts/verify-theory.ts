@@ -36,6 +36,8 @@ import {
   chordVoicingMaximumFretSpan,
   chordVoicingPreferredMaximumFretSpan,
   generateChordVoicings,
+  getVoicingLocation,
+  groupVoicingsByNeckRegion,
 } from "../src/features/voicings";
 import {
   buildCagedChordShape,
@@ -74,6 +76,11 @@ import fretboardReducer, {
   setTuningNote,
   toggleShapeSystem,
 } from "../src/lib/redux/slices/fretboardSlice";
+import progressionLabReducer, {
+  resetProgressionDetail,
+  setProgressionActiveStep,
+  setSelectedVoicingSignature,
+} from "../src/lib/redux/slices/progressionLabSlice";
 
 const scaleNames = Object.keys(scaleDefinitions) as ScaleName[];
 
@@ -975,6 +982,30 @@ assert.deepEqual(
   generateChordVoicings(fSharpMinorAddNineRequest),
   "Dynamic chord generation must be deterministic",
 );
+const fSharpMinorAddNineVoicings = generateChordVoicings(
+  fSharpMinorAddNineRequest,
+);
+const groupedAddNineLocations = groupVoicingsByNeckRegion(
+  fSharpMinorAddNineVoicings,
+);
+const groupedAddNineSignatures = groupedAddNineLocations.flatMap(
+  ({ locations }) => locations.map(({ signature }) => signature),
+);
+assert.equal(
+  groupedAddNineSignatures.length,
+  fSharpMinorAddNineVoicings.length,
+  "Neck-region grouping must preserve every generated voicing",
+);
+assert.equal(
+  new Set(groupedAddNineSignatures).size,
+  fSharpMinorAddNineVoicings.length,
+  "Neck-region grouping must not duplicate a physical voicing signature",
+);
+fSharpMinorAddNineVoicings.forEach((voicing) => {
+  const location = getVoicingLocation(voicing);
+  assert.ok(location.label.length > 0);
+  assert.ok(location.lastFret <= chordVoicingMaximumFret);
+});
 
 const customSixStringTuning = [...getDefaultTuning(6)];
 customSixStringTuning[0] = 5;
@@ -1210,6 +1241,48 @@ assert.equal(chordState.displayMode, "notes");
 chordState = fretboardReducer(chordState, setChordSize("seventh"));
 assert.equal(chordState.chordSize, "seventh");
 assert.equal(chordState.displayMode, "chord-tones");
+
+let progressionLabState = progressionLabReducer(undefined, {
+  type: "theory/init",
+});
+progressionLabState = progressionLabReducer(
+  progressionLabState,
+  setSelectedVoicingSignature({
+    signature: "first-step-voicing",
+    stepId: "axis-four-step-1",
+  }),
+);
+progressionLabState = progressionLabReducer(
+  progressionLabState,
+  setProgressionActiveStep(1),
+);
+progressionLabState = progressionLabReducer(
+  progressionLabState,
+  setSelectedVoicingSignature({
+    signature: "second-step-voicing",
+    stepId: "axis-four-step-2",
+  }),
+);
+assert.deepEqual(progressionLabState.selectedVoicingSignaturesByStepId, {
+  "axis-four-step-1": "first-step-voicing",
+  "axis-four-step-2": "second-step-voicing",
+});
+progressionLabState = progressionLabReducer(
+  progressionLabState,
+  setSelectedVoicingSignature({
+    signature: null,
+    stepId: "axis-four-step-1",
+  }),
+);
+assert.deepEqual(progressionLabState.selectedVoicingSignaturesByStepId, {
+  "axis-four-step-2": "second-step-voicing",
+});
+progressionLabState = progressionLabReducer(
+  progressionLabState,
+  resetProgressionDetail(),
+);
+assert.equal(progressionLabState.activeStepIndex, 0);
+assert.deepEqual(progressionLabState.selectedVoicingSignaturesByStepId, {});
 
 let sharedContextState = fretboardReducer(undefined, { type: "theory/init" });
 sharedContextState = fretboardReducer(sharedContextState, setStringCount(7));

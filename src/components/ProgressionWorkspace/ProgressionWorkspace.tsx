@@ -19,7 +19,9 @@ import { useProgressionUrlContext } from "@/features/progressions/useProgression
 import {
   buildResolvedChordVoicingRequest,
   generateChordVoicings,
+  getVoicingLocation,
   getVoicingPositionLabel,
+  groupVoicingsByNeckRegion,
   type PlayableVoicing,
 } from "@/features/voicings";
 import {
@@ -115,8 +117,11 @@ export default function ProgressionWorkspace({
     stringCount,
     tuning,
   } = useAppSelector((state) => state.fretboard);
-  const { activeStepIndex, selectedVoicingSignature, visualizationMode } =
-    useAppSelector((state) => state.progressionLab);
+  const {
+    activeStepIndex,
+    selectedVoicingSignaturesByStepId,
+    visualizationMode,
+  } = useAppSelector((state) => state.progressionLab);
 
   useEffect(() => {
     dispatch(resetProgressionDetail());
@@ -131,6 +136,8 @@ export default function ProgressionWorkspace({
     resolved.steps.length - 1,
   );
   const activeStep = resolved.steps[safeActiveStepIndex];
+  const selectedVoicingSignature =
+    selectedVoicingSignaturesByStepId[activeStep.id];
   const voicingsByStep = useMemo(
     () =>
       resolved.steps.map(({ chord }) =>
@@ -143,6 +150,22 @@ export default function ProgressionWorkspace({
     activeVoicings.find(
       ({ signature }) => signature === selectedVoicingSignature,
     ) ?? activeVoicings[0];
+  const selectedVoicingLocation = useMemo(
+    () => getVoicingLocation(selectedVoicing),
+    [selectedVoicing],
+  );
+  const voicingLocationGroups = useMemo(
+    () => groupVoicingsByNeckRegion(activeVoicings),
+    [activeVoicings],
+  );
+  const activeVoicingLocationGroup =
+    voicingLocationGroups.find(
+      ({ id }) => id === selectedVoicingLocation.region.id,
+    ) ?? {
+      id: selectedVoicingLocation.region.id,
+      label: selectedVoicingLocation.region.label,
+      locations: [selectedVoicingLocation],
+    };
   const exactPositions = useMemo(
     () => getExactPositions(selectedVoicing),
     [selectedVoicing],
@@ -165,6 +188,22 @@ export default function ProgressionWorkspace({
 
   const selectStep = (index: number) => {
     dispatch(setProgressionActiveStep(index));
+  };
+
+  const selectVoicing = (signature: string) => {
+    dispatch(
+      setSelectedVoicingSignature({
+        signature,
+        stepId: activeStep.id,
+      }),
+    );
+    dispatch(setProgressionVisualizationMode("selected-voicing"));
+  };
+
+  const selectVoicingRegion = (signature: string | undefined) => {
+    if (signature !== undefined) {
+      selectVoicing(signature);
+    }
   };
 
   const openOnFretboard = () => {
@@ -345,7 +384,11 @@ export default function ProgressionWorkspace({
               </div>
             </div>
 
-            <dl className="progressionWorkspace__voicingFacts">
+            <dl
+              aria-atomic="true"
+              aria-live="polite"
+              className="progressionWorkspace__voicingFacts"
+            >
               <div>
                 <dt>Bass</dt>
                 <dd>
@@ -355,62 +398,18 @@ export default function ProgressionWorkspace({
                 </dd>
               </div>
               <div>
-                <dt>Position</dt>
+                <dt>Inversion</dt>
                 <dd>{getVoicingPositionLabel(selectedVoicing)}</dd>
               </div>
               <div>
-                <dt>Fret span</dt>
-                <dd>{selectedVoicing.fretSpan} frets</dd>
+                <dt>Location</dt>
+                <dd>{selectedVoicingLocation.label}</dd>
               </div>
               <div>
                 <dt>Difficulty</dt>
                 <dd>{selectedVoicing.difficulty.label}</dd>
               </div>
             </dl>
-
-            {activeVoicings.length > 1 && (
-              <section
-                aria-labelledby="voicing-alternatives-heading"
-                className="progressionWorkspace__alternatives"
-              >
-                <h3 id="voicing-alternatives-heading">
-                  Generated alternatives
-                </h3>
-                <div>
-                  {activeVoicings.slice(0, 4).map((voicing, index) => (
-                    <div
-                      className="progressionWorkspace__voicingOption"
-                      data-selected={
-                        selectedVoicing.signature === voicing.signature
-                      }
-                      key={voicing.signature}
-                    >
-                      <ChordDiagram
-                        size="compact"
-                        tuningLabel={tuningLabel}
-                        voicing={voicing}
-                      />
-                      <button
-                        aria-label={`Select ${voicing.chordName}, ${getVoicingPositionLabel(voicing)}, base fret ${voicing.baseFret}`}
-                        aria-pressed={
-                          selectedVoicing.signature === voicing.signature
-                        }
-                        onClick={() =>
-                          dispatch(
-                            setSelectedVoicingSignature(voicing.signature),
-                          )
-                        }
-                        type="button"
-                      >
-                        {selectedVoicing.signature === voicing.signature
-                          ? `Voicing ${index + 1} selected`
-                          : `Use voicing ${index + 1}`}
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </section>
-            )}
           </div>
 
           <div className="progressionWorkspace__diagramColumn">
@@ -447,6 +446,102 @@ export default function ProgressionWorkspace({
               : "Every matching pitch class is highlighted; this is not one playable grip."}
           </p>
         </div>
+        {activeVoicings.length > 1 && (
+          <section
+            aria-labelledby="voicing-position-heading"
+            className="progressionWorkspace__positionExplorer"
+          >
+            <div className="progressionWorkspace__positionExplorerHeader">
+              <div>
+                <span className="progressionWorkspace__sectionEyebrow">
+                  Generated compact grips
+                </span>
+                <h3 id="voicing-position-heading">Choose a neck location</h3>
+              </div>
+              <p>
+                All {activeVoicings.length} ranked complete-tone options · open
+                strings through fret 12
+              </p>
+            </div>
+            <div
+              aria-label="Generated grip neck locations"
+              className="progressionWorkspace__positionRegions"
+              role="group"
+            >
+              {voicingLocationGroups.map((group) => {
+                const gripCount = group.locations.length;
+                const isActive = group.id === activeVoicingLocationGroup.id;
+
+                return (
+                  <button
+                    aria-controls="generated-grips-by-region"
+                    aria-label={`${group.label}, ${gripCount} generated ${gripCount === 1 ? "grip" : "grips"}${gripCount === 0 ? ", unavailable" : ""}`}
+                    aria-pressed={isActive}
+                    className="progressionWorkspace__positionRegion"
+                    disabled={gripCount === 0}
+                    key={group.id}
+                    onClick={() =>
+                      selectVoicingRegion(group.locations[0]?.signature)
+                    }
+                    type="button"
+                  >
+                    <strong>{group.label}</strong>
+                    <span>
+                      {gripCount} {gripCount === 1 ? "grip" : "grips"}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+            <div
+              className="progressionWorkspace__positionResults"
+              id="generated-grips-by-region"
+            >
+              <div className="progressionWorkspace__positionResultsHeader">
+                <h4>
+                  All generated grips in {activeVoicingLocationGroup.label}
+                </h4>
+                <p aria-atomic="true" aria-live="polite">
+                  {activeVoicingLocationGroup.locations.length}{" "}
+                  {activeVoicingLocationGroup.locations.length === 1
+                    ? "complete grip"
+                    : "complete grips"}
+                </p>
+              </div>
+              <div className="progressionWorkspace__positionGallery">
+                {activeVoicingLocationGroup.locations.map((location, index) => {
+                  const isActive =
+                    selectedVoicing.signature === location.signature;
+
+                  return (
+                    <article
+                      className="progressionWorkspace__positionGrip"
+                      data-active={isActive}
+                      key={location.signature}
+                    >
+                      <div className="progressionWorkspace__positionGripHeader">
+                        <span>Grip {index + 1}</span>
+                        {isActive && <strong>Shown on neck</strong>}
+                      </div>
+                      <ChordDiagram
+                        size="compact"
+                        tuningLabel={tuningLabel}
+                        voicing={location.voicing}
+                      />
+                      <p>
+                        <strong>{location.label}</strong>
+                        <span>
+                          {getVoicingPositionLabel(location.voicing)} ·{" "}
+                          {location.voicing.difficulty.label}
+                        </span>
+                      </p>
+                    </article>
+                  );
+                })}
+              </div>
+            </div>
+          </section>
+        )}
         <FretboardNeck
           accessibleLabel={`${activeStep.chord.name} progression fretboard`}
           chord={chordVisualization}
@@ -475,7 +570,13 @@ export default function ProgressionWorkspace({
         </div>
         <div className="progressionWorkspace__overviewGrid">
           {resolved.steps.map((step, index) => {
-            const overviewVoicing = voicingsByStep[index][0];
+            const overviewVoicings = voicingsByStep[index];
+            const overviewVoicing =
+              overviewVoicings.find(
+                ({ signature }) =>
+                  signature === selectedVoicingSignaturesByStepId[step.id],
+              ) ?? overviewVoicings[0];
+            const overviewLocation = getVoicingLocation(overviewVoicing);
 
             return (
               <article
@@ -495,6 +596,9 @@ export default function ProgressionWorkspace({
                   tuningLabel={tuningLabel}
                   voicing={overviewVoicing}
                 />
+                <p className="progressionWorkspace__overviewLocation">
+                  {overviewLocation.label}
+                </p>
                 <button
                   aria-label={`Inspect ${step.chord.name}, step ${index + 1}`}
                   onClick={() => selectStep(index)}

@@ -18,4 +18,15 @@ export type {
   VoicingStringState,
   VoicingToneRole,
 } from "./types";
+export type {
+  VoicingLocation,
+  VoicingLocationGroup,
+  VoicingNeckRegion,
+  VoicingNeckRegionId,
+} from "./voicingLocations";
+export {
+  getVoicingLocation,
+  groupVoicingsByNeckRegion,
+  voicingNeckRegions,
+} from "./voicingLocations";
 export { describeVoicing, getVoicingPositionLabel } from "./voicingText";
