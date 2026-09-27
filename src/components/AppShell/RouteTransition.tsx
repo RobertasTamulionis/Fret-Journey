@@ -1,13 +1,12 @@
 "use client";
 
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import {
   type FretJourneyMotionCustom,
-  type FretJourneyRouteCurtainCustom,
-  routeCurtainVariants,
   routeTransitionVariants,
 } from "@/lib/motion";
 
@@ -15,26 +14,20 @@ type RouteTransitionProps = {
   children: ReactNode;
 };
 
-type RenderedRoute = {
-  children: ReactNode;
-  pathname: string;
-};
+function FrozenRouter({ children }: RouteTransitionProps) {
+  const routerContext = useContext(LayoutRouterContext);
+  const frozenRouterContext = useRef(routerContext).current;
 
-const routeCurtainColumns = [
-  "route-curtain-1",
-  "route-curtain-2",
-  "route-curtain-3",
-  "route-curtain-4",
-  "route-curtain-5",
-] as const;
+  return (
+    <LayoutRouterContext.Provider value={frozenRouterContext}>
+      {children}
+    </LayoutRouterContext.Provider>
+  );
+}
 
 export default function RouteTransition({ children }: RouteTransitionProps) {
   const pathname = usePathname();
   const [isHydrated, setIsHydrated] = useState(false);
-  const [renderedRoute, setRenderedRoute] = useState<RenderedRoute>({
-    children,
-    pathname,
-  });
   const reducedMotion = Boolean(useReducedMotion());
   const motionCustom: FretJourneyMotionCustom = {
     reducedMotion,
@@ -43,19 +36,6 @@ export default function RouteTransition({ children }: RouteTransitionProps) {
   useEffect(() => {
     setIsHydrated(true);
   }, []);
-
-  useEffect(() => {
-    setRenderedRoute((currentRoute) => {
-      if (
-        currentRoute.pathname === pathname &&
-        currentRoute.children === children
-      ) {
-        return currentRoute;
-      }
-
-      return { children, pathname };
-    });
-  }, [children, pathname]);
 
   if (!isHydrated) {
     return (
@@ -67,35 +47,17 @@ export default function RouteTransition({ children }: RouteTransitionProps) {
 
   return (
     <AnimatePresence initial={false} mode="wait">
-      <motion.div className="appShell__route" key={renderedRoute.pathname}>
-        <motion.div
-          animate="animate"
-          className="appShell__routeContent"
-          custom={motionCustom}
-          exit="exit"
-          initial="initial"
-          variants={routeTransitionVariants}
-        >
-          {renderedRoute.children}
-        </motion.div>
-        <div aria-hidden="true" className="appShell__routeCurtain">
-          {routeCurtainColumns.map((columnId, column) => {
-            const curtainCustom: FretJourneyRouteCurtainCustom = {
-              column,
-              reducedMotion,
-            };
-
-            return (
-              <motion.span
-                animate="animate"
-                custom={curtainCustom}
-                exit="exit"
-                initial="initial"
-                key={columnId}
-                variants={routeCurtainVariants}
-              />
-            );
-          })}
+      <motion.div
+        animate="animate"
+        className="appShell__route"
+        custom={motionCustom}
+        exit="exit"
+        initial="initial"
+        key={pathname}
+        variants={routeTransitionVariants}
+      >
+        <div className="appShell__routeContent">
+          <FrozenRouter>{children}</FrozenRouter>
         </div>
       </motion.div>
     </AnimatePresence>

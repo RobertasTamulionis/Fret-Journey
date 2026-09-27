@@ -90,36 +90,6 @@
     grid-area: 1 / 1;
     width: 100%;
     min-height: 100%;
-    transform-origin: top center;
-  }
-
-  &__routeCurtain {
-    grid-area: 1 / 1;
-    position: absolute;
-    z-index: 4;
-    inset: -1px;
-    display: flex;
-    overflow: hidden;
-    border-radius: 18px;
-    pointer-events: none;
-
-    span {
-      flex: 1 1 20%;
-      min-width: 0;
-      margin-left: -1px;
-      background: linear-gradient(
-        160deg,
-        color-mix(
-          in srgb,
-          var(--color-accent) 12%,
-          var(--color-surface-raised)
-        ),
-        var(--color-surface-inset)
-      );
-      box-shadow: inset 1px 0 0
-        color-mix(in srgb, var(--color-accent) 8%, transparent);
-      will-change: transform;
-    }
   }
 }
 
@@ -130,9 +100,5 @@
 
   .appShell__surface {
     transition: none;
-  }
-
-  .appShell__routeCurtain {
-    display: none;
   }
 }

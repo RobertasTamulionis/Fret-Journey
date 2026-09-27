@@ -7,16 +7,8 @@ export const motionDurations = {
 } as const;
 
 export const motionEase: [number, number, number, number] = [0.22, 1, 0.36, 1];
-export const motionEaseIn: [number, number, number, number] = [
-  0.76, 0, 0.24, 1,
-];
-
 export type FretJourneyMotionCustom = {
   reducedMotion: boolean;
-};
-
-export type FretJourneyRouteCurtainCustom = FretJourneyMotionCustom & {
-  column: number;
 };
 
 export const getMotionTransition = (
@@ -45,53 +37,17 @@ export const practiceScreenVariants: Variants = {
 export const routeTransitionVariants: Variants = {
   animate: ({ reducedMotion }: FretJourneyMotionCustom) => ({
     opacity: 1,
-    scale: 1,
-    transition: reducedMotion
-      ? { duration: 0 }
-      : { delay: 0.12, duration: 0.4, ease: motionEase },
+    transition: getMotionTransition(reducedMotion, 0.12),
     y: 0,
   }),
   exit: ({ reducedMotion }: FretJourneyMotionCustom) => ({
-    opacity: reducedMotion ? 1 : 0.32,
-    scale: reducedMotion ? 1 : 0.955,
-    transition: reducedMotion
-      ? { duration: 0 }
-      : { duration: 0.48, ease: motionEaseIn },
-    y: reducedMotion ? 0 : -24,
+    opacity: reducedMotion ? 1 : 0,
+    transition: getMotionTransition(reducedMotion, 0.12),
+    y: reducedMotion ? 0 : -6,
   }),
   initial: ({ reducedMotion }: FretJourneyMotionCustom) => ({
     opacity: reducedMotion ? 1 : 0,
-    scale: reducedMotion ? 1 : 0.985,
-    y: reducedMotion ? 0 : 18,
-  }),
-};
-
-export const routeCurtainVariants: Variants = {
-  animate: ({ column, reducedMotion }: FretJourneyRouteCurtainCustom) => ({
-    opacity: reducedMotion ? 0 : 1,
-    transition: reducedMotion
-      ? { duration: 0 }
-      : {
-          delay: (4 - column) * 0.035,
-          duration: 0.36,
-          ease: motionEaseIn,
-        },
-    y: "-102%",
-  }),
-  exit: ({ column, reducedMotion }: FretJourneyRouteCurtainCustom) => ({
-    opacity: reducedMotion ? 0 : 1,
-    transition: reducedMotion
-      ? { duration: 0 }
-      : {
-          delay: column * 0.035,
-          duration: 0.36,
-          ease: motionEaseIn,
-        },
-    y: reducedMotion ? "-102%" : "0%",
-  }),
-  initial: ({ reducedMotion }: FretJourneyRouteCurtainCustom) => ({
-    opacity: reducedMotion ? 0 : 1,
-    y: reducedMotion ? "-102%" : "0%",
+    y: reducedMotion ? 0 : 6,
   }),
 };
 
