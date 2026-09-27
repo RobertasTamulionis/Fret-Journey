@@ -46,15 +46,11 @@
 
     > * {
       min-width: 0;
-      padding: 20px;
+      padding: 10px;
       border: 1px solid $border;
       border-radius: 18px;
       background: var(--panel-background);
       box-shadow: var(--shadow-panel);
-    }
-
-    > .availableKeys {
-      grid-column: span 8;
     }
 
     > .availableScales {
@@ -62,20 +58,40 @@
     }
 
     > .stringCountSelector {
-      grid-column: span 4;
+      grid-column: span 2;
     }
 
     > .fretCountSelector {
-      grid-column: span 3;
-      align-self: start;
+      grid-column: span 2;
     }
 
     > .scaleShapes {
-      grid-column: span 4;
+      grid-column: span 2;
     }
 
     > .displayModeSelector {
-      grid-column: span 8;
+      grid-column: span 6;
+    }
+
+    > .availableScales,
+    > .stringCountSelector,
+    > .fretCountSelector,
+    > .scaleShapes,
+    > .displayModeSelector {
+      align-self: start;
+    }
+
+    > .stringCountSelector .stringCountSelector__options,
+    > .fretCountSelector .fretCountSelector__options,
+    > .scaleShapes .scaleShapes__systems {
+      width: 100%;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: 8px;
+    }
+
+    > .stringCountSelector .stringCountSelector__option {
+      width: 100%;
     }
 
     > .scaleChords {
@@ -465,12 +481,11 @@
   .fretboard__dashboard {
     grid-template-columns: repeat(12, minmax(0, 1fr));
 
-    > .availableKeys { grid-column: span 7; }
-    > .availableScales { grid-column: span 5; }
+    > .availableScales,
     > .stringCountSelector,
-    > .fretCountSelector,
-    > .scaleShapes,
-    > .displayModeSelector { grid-column: span 3; }
+    > .fretCountSelector { grid-column: span 4; }
+    > .scaleShapes { grid-column: span 4; }
+    > .displayModeSelector { grid-column: span 8; }
     > .scaleChords { grid-column: 1 / -1; }
   }
 }

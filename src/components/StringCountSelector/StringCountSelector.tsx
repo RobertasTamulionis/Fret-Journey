@@ -8,13 +8,21 @@ import "./stringCountSelector.scss";
 
 const stringCounts: GuitarStringCount[] = [6, 7, 8];
 
-export default function StringCountSelector() {
+type StringCountSelectorProps = {
+  showHeading?: boolean;
+};
+
+export default function StringCountSelector({
+  showHeading = true,
+}: StringCountSelectorProps) {
   const dispatch = useAppDispatch();
   const stringCount = useAppSelector((state) => state.fretboard.stringCount);
 
   return (
     <section className="stringCountSelector">
-      <h1 className="stringCountSelector__heading">Guitar Strings</h1>
+      {showHeading && (
+        <h2 className="stringCountSelector__heading">Guitar Strings</h2>
+      )}
       <div className="stringCountSelector__options">
         {stringCounts.map((count) => {
           const isActive = count === stringCount;

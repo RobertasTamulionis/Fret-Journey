@@ -14,7 +14,6 @@ import {
   getScaleShapeSystem,
 } from "@/helpers/fretboardHelpers";
 import { useAppSelector } from "@/lib/redux/store";
-import AvailableKeys from "../AvailableKeys/AvailableKeys";
 import AvailableScales from "../AvailableScales/AvailableScales";
 import DisplayModeSelector from "../DisplayModeSelector/DisplayModeSelector";
 import FretCountSelector from "../FretCountSelector/FretCountSelector";
@@ -87,7 +86,6 @@ export default function Fretboard() {
   return (
     <>
       <div className="fretboard__dashboard">
-        <AvailableKeys />
         <AvailableScales />
         <StringCountSelector />
         <FretCountSelector />

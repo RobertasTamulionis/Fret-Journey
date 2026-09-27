@@ -62,7 +62,8 @@ The application currently supports:
   top-right header control on every route
 - a route-backed Practice Library, focused Practice Session, and Session
   Complete flow covering a rotating Daily Mix plus seven focused technique
-  categories and 33 structured playable examples
+  categories and 33 structured playable examples resolved for the shared key,
+  scale, string count, and pitch-class tuning
 - a static catalog of 225 reviewed, genuinely distinct relative progression
   templates with search, filtering, compatibility ranking, and source records
 - key-specific progression resolution for diatonic, borrowed, applied,
@@ -89,7 +90,9 @@ markers remain visual output rather than selectable practice targets.
 - `src/app/practice/page.tsx` mounts the guided daily-practice workspace.
 - `src/app/layout.tsx` owns the root Redux provider shared by every route;
   `src/components/AppShell` owns the shared route surface, navigation, and
-  theme-selector placement.
+  theme-selector placement; `src/components/MusicalContextBar` owns the shared
+  shell-level key, scale, guitar, and per-string tuning controls shown above
+  Fretboard, Progression, and Practice content.
 - `src/components/ThemeSelector` owns the native persisted theme control;
   `src/features/theme/themes.ts` owns theme IDs, parsing, storage, and the
   pre-hydration bootstrap.
@@ -122,7 +125,9 @@ markers remain visual output rather than selectable practice targets.
   research-source records outside Redux.
 - `src/data/practiceTabExamples.ts` holds the 33 authored Standard E scores;
   `src/features/practice/tablature.ts` owns their tuning, grid, event, pitch,
-  articulation, notation, and accessibility types and helpers.
+  articulation, notation, and accessibility types and helpers;
+  `src/features/practice/recipes.ts` declares immutable transformation intent;
+  `src/features/practice/resolvePracticeTab.ts` resolves context-specific scores.
 - `src/features/practice/session.ts` owns derived session display helpers and
   the bounded tempo, subdivision, and instrument option contracts.
 - `src/features/practice/timing.ts` owns pure beat, slot, timeline, and
@@ -359,9 +364,14 @@ Current ownership and terminology:
   the selected exercise and control preferences; the headless Practice audio
   engine owns the active transport timeline. Do not duplicate this state in
   Redux.
-- Authored tabs are verified six-string Standard E scores. They do not
-  transpose with the shared key or follow custom tuning, and the UI must not
-  imply that they do.
+- Authored tabs remain immutable, verified six-string Standard E reference
+  scores. A pure recipe resolver derives the displayed tab for the shared key,
+  scale, 6-/7-/8-string guitar, and exact pitch-class tuning. Chromatic
+  coordination recipes stay key-independent. Custom tunings must be labeled as
+  octave-register-unverified rather than borrowing preset MIDI registers.
+- Changing key, scale, string count, or tuning during a session must stop the
+  transport, reset the playhead, render the new resolved score, and announce
+  the reset through an `aria-live` region.
 - Start, Pause, and Resume control a transport-configured count-in (currently
   four beats), audible metronome, and looping visual playhead. Web Audio time is
   the transport clock. Visual snapshots and audible pulses share pure
@@ -494,10 +504,11 @@ Current ownership and terminology:
   has no running countdown, backing track, reference-note audio, automatic
   completion, or saved completion system. Its first audio layer is a scheduled
   synthesized metronome with count-in, beat-one accent, and subdivision clicks.
-- Authored Practice tablature is a verified static Standard E event library,
-  not generated shape, fingering, barre, or voicing data. Its pitches, rests,
-  fret bounds, bend targets, and same-string articulations follow `THEORY.md`
-  and `scripts/verify-theory.ts`.
+- Authored Practice tablature is a verified immutable Standard E reference
+  library, not generated shape, fingering, barre, or voicing data. Pure recipes
+  resolve its pitches and physical frets for the current context. Source and
+  resolved pitches, rests, string/fret bounds, bend targets, and same-string
+  articulations follow `THEORY.md` and `scripts/verify-theory.ts`.
 - Narrow-screen responsiveness currently applies only to Practice Lab. The
   Fretboard and Progression workspaces retain their deliberate desktop canvas.
 - Free-form Practice coaching remains pedagogical copy. Structured authored
@@ -606,25 +617,26 @@ Never run `npm run build` concurrently with `npm run dev`; both write to
 `.next`. Domain checks do not prove browser interaction, accessibility, or
 visual correctness. Report every unverified validation layer explicitly.
 
-Current verified baseline as of 2026-09-01:
+Current verified baseline as of 2026-09-26:
 
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
-  with 761,718 validated generated voicings.
+  with 761,718 validated generated voicings, plus 33 authored Practice tabs and
+  7,425 registered Practice-resolution contexts.
 - `npx tsc --noEmit` passes.
-- Focused Biome checks pass for the progression workspace, physical-location
-  grouping, per-step voicing state, and theory suite; direct Progression
-  Workspace Sass compilation passes.
-- `npm run lint` reports 5 formatting errors and 2 warnings, chiefly existing
-  untouched formatting and import issues.
-- A development-server route smoke check passes for
-  `open-axis-pop?key=E&scale=minor` after the position explorer compiles.
+- Focused Biome checks pass for the touched Practice resolver, context bar,
+  session, tablature, and theory-suite files.
+- `npm run lint` reports the existing untouched baseline of 7 formatting or
+  semantic errors and 2 import warnings.
+- Live Chrome verification passes for Practice direct load, URL/back behavior,
+  transport reset on context change, 7-string and custom-tuning resolution,
+  and the Graphite, Light, and Ember context bar at desktop width.
 - `npm run build` was attempted without a development server but stalled during
-  optimized compilation without emitting an error and was stopped; it is not a
-  passing build result.
-- Diagram interaction, focus behavior, theme rendering, and screenshot
-  inspection remain unverified because no browser instance was connected.
+  optimized compilation without emitting an error and was stopped; the local
+  Next 15.5.3 CLI rejects `--webpack` as an unknown option.
+- Narrow-screen, progression-diagram, and full visual-regression inspection
+  remain unverified.
 
 If validation fails because of unrelated baseline, sandbox, or experimental
 files, report the issue instead of modifying unrelated code.

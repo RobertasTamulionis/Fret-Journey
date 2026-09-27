@@ -1,7 +1,17 @@
 @use "mixins" as *;
 
 .availableScales {
-  &__heading { text-align: left; }
+  &__heading {
+    margin: 0 0 20px;
+    color: var(--color-text-soft);
+    font-size: 12px;
+    font-weight: 650;
+    line-height: 1.2;
+    letter-spacing: 0.035em;
+    text-align: left;
+    text-transform: uppercase;
+  }
+
   &__scales {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));

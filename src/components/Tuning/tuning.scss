@@ -20,7 +20,6 @@
     font-weight: 650;
 
     &:hover {
-      transform: translateY(-1px);
       border-color: color-mix(in srgb, $cyan 56%, transparent);
       background: var(--control-background-hover);
       color: $cyan;

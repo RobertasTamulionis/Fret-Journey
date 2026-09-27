@@ -13,7 +13,7 @@ export default function AvailableScales() {
 
   return (
     <div className="availableScales">
-      <h1 className="availableScales__heading">Scale Types</h1>
+      <h2 className="availableScales__heading">Scale Type</h2>
       <div className="availableScales__scales">
         {availableScales.map(({ name, label }) => {
           const isActive = currentScale === name;

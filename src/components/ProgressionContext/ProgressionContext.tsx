@@ -6,7 +6,6 @@ import {
   scaleDefinitions,
 } from "@/helpers/fretboardHelpers";
 import { useAppSelector } from "@/lib/redux/store";
-import AvailableKeys from "../AvailableKeys/AvailableKeys";
 import AvailableScales from "../AvailableScales/AvailableScales";
 import "./progressionContext.scss";
 
@@ -45,7 +44,6 @@ export default function ProgressionContext({
       </div>
       {controls && (
         <div className="progressionContext__controls">
-          <AvailableKeys />
           <AvailableScales />
         </div>
       )}

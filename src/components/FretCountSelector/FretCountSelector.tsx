@@ -11,9 +11,9 @@ export default function FretCountSelector() {
   const fretCount = useAppSelector((state) => state.fretboard.fretCount);
 
   return (
-    <fieldset className="fretCountSelector">
-      <legend className="fretCountSelector__heading">Fret View</legend>
-      <div className="fretCountSelector__options">
+    <section className="fretCountSelector">
+      <h2 className="fretCountSelector__heading">Fret View</h2>
+      <fieldset aria-label="Fret view" className="fretCountSelector__options">
         {fretCounts.map((count) => {
           const isActive = count === fretCount;
 
@@ -36,7 +36,7 @@ export default function FretCountSelector() {
             </button>
           );
         })}
-      </div>
-    </fieldset>
+      </fieldset>
+    </section>
   );
 }

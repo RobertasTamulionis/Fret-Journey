@@ -10,7 +10,7 @@ export default function AvailableKeys() {
 
   return (
     <div className="availableKeys">
-      <h1 className="availableKeys__heading">Scale Key</h1>
+      <h2 className="availableKeys__heading">Scale Key</h2>
       <div className="availableKeys__keys">
         {tonicOptions.map(({ label, name }) => {
           const isActive = currentKey === name;

@@ -17,13 +17,18 @@ import SessionComplete from "./SessionComplete";
 import usePracticeExperience from "./usePracticeExperience";
 import "./practiceLab.scss";
 
-export default function PracticeLab() {
+type PracticeLabProps = {
+  exerciseId?: string;
+};
+
+export default function PracticeLab({ exerciseId }: PracticeLabProps) {
   const {
     activeExample,
     activeRoutine,
     activeStep,
     backToLibrary,
     completeExercise,
+    contextAnnouncement,
     dispatch,
     handlePrimaryAction,
     hasNextExercise,
@@ -37,7 +42,7 @@ export default function PracticeLab() {
     toggleCountIn,
     toggleMetronome,
     transport,
-  } = usePracticeExperience();
+  } = usePracticeExperience(exerciseId);
   const containerRef = useRef<HTMLElement>(null);
   const previousScreenRef = useRef(state.screen);
   const motionCustom: FretJourneyMotionCustom = {
@@ -59,6 +64,9 @@ export default function PracticeLab() {
 
   return (
     <section className="practiceLab" ref={containerRef}>
+      <output aria-live="polite" className="practiceVisuallyHidden">
+        {contextAnnouncement}
+      </output>
       <MotionConfig reducedMotion="user">
         <AnimatePresence initial={false} mode="popLayout">
           <motion.div

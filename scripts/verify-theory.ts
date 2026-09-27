@@ -12,7 +12,10 @@ import {
   progressionCatalog,
   progressionCatalogValidation,
 } from "../src/data/progressionCatalog";
+import { practiceExerciseRecipes } from "../src/features/practice/recipes";
+import { resolvePracticeTab } from "../src/features/practice/resolvePracticeTab";
 import {
+  getPracticeExampleTuning,
   getPracticeTabPitchClass,
   practiceTabSlotCount,
   practiceTabTunings,
@@ -775,6 +778,160 @@ for (const exampleId of practiceTabExampleIds) {
 
   verifiedPracticeExampleCount += 1;
 }
+
+assert.deepEqual(
+  Object.keys(practiceExerciseRecipes).sort(),
+  [...practiceTabExampleIds].sort(),
+  "Every authored Practice tab must have exactly one resolution recipe",
+);
+
+let verifiedResolvedPracticeContextCount = 0;
+for (const { name: currentKey } of tonicOptions) {
+  for (const currentScale of scaleNames) {
+    for (const stringCount of [6, 7, 8] as const) {
+      const tuning = getDefaultTuning(stringCount);
+      const registeredTuning = getDefaultRegisteredTuning(stringCount);
+
+      for (const exampleId of practiceTabExampleIds) {
+        const resolved = resolvePracticeTab(exampleId, {
+          currentKey,
+          currentScale,
+          registeredTuning,
+          stringCount,
+          tuning,
+        });
+        const resolvedTuning = getPracticeExampleTuning(resolved);
+
+        assert.equal(
+          resolved.events.length,
+          practiceTabExamples[exampleId].events.length,
+        );
+        assert.equal(resolvedTuning.pitchClassesHighToLow.length, stringCount);
+        assert.equal(resolvedTuning.midiPitchesHighToLow?.length, stringCount);
+        assert.equal(resolvedTuning.registerStatus, "verified");
+        assert.equal(resolved.resolvedContext?.key, currentKey);
+        assert.equal(resolved.resolvedContext?.scale, currentScale);
+
+        const recipe = practiceExerciseRecipes[exampleId];
+        if (
+          resolved.pitchScope.kind === "set" &&
+          (recipe.pitchPolicy === "scale" ||
+            recipe.pitchPolicy === "scale-five-tone")
+        ) {
+          const selectedScale = getScaleTones(currentKey, currentScale).map(
+            ({ pitchClass }) => pitchClass,
+          );
+          resolved.pitchScope.pitchClasses.forEach((pitchClass) => {
+            assert.ok(
+              selectedScale.includes(pitchClass),
+              `${exampleId} must resolve inside ${currentKey} ${currentScale}`,
+            );
+          });
+        }
+
+        const noteHistory = new Map<
+          number,
+          { articulation?: string; fret: number }
+        >();
+        for (const event of [...resolved.events].sort(
+          (first, second) => first.at - second.at,
+        )) {
+          if (event.kind === "rest") continue;
+
+          for (const note of event.notes) {
+            assert.ok(
+              note.string >= 1 && note.string <= stringCount,
+              `${exampleId} must fit ${stringCount} strings in ${currentKey} ${currentScale}`,
+            );
+            if (note.fret === "x") continue;
+
+            assert.ok(note.fret >= 0 && note.fret <= 24);
+            const soundedPitch = getPracticeTabPitchClass(
+              resolvedTuning.pitchClassesHighToLow,
+              note.string,
+              note.fret,
+            );
+            if (resolved.pitchScope.kind === "set") {
+              assert.ok(
+                resolved.pitchScope.pitchClasses.includes(soundedPitch),
+                `${exampleId} resolved pitch must belong to ${resolved.pitchScope.label}`,
+              );
+            }
+
+            if (note.articulation === "bend") {
+              assert.ok(
+                note.targetFret !== undefined &&
+                  note.targetFret > note.fret &&
+                  note.targetFret <= 24,
+                `${exampleId} resolved bend target`,
+              );
+            } else {
+              assert.equal(note.targetFret, undefined);
+            }
+
+            const previous = noteHistory.get(note.string);
+            if (
+              previous &&
+              (note.articulation === "hammer" ||
+                note.articulation === "slide-up")
+            ) {
+              assert.ok(
+                note.fret > previous.fret,
+                `${exampleId} resolved upward articulation in ${currentKey} ${currentScale} on ${stringCount} strings: ${previous.fret} -> ${note.fret}`,
+              );
+            }
+            if (
+              previous &&
+              (note.articulation === "pull" ||
+                note.articulation === "slide-down")
+            ) {
+              assert.ok(
+                note.fret < previous.fret,
+                `${exampleId} resolved downward articulation in ${currentKey} ${currentScale} on ${stringCount} strings: ${previous.fret} -> ${note.fret}`,
+              );
+            }
+            if (note.articulation === "release") {
+              assert.equal(
+                previous?.articulation,
+                "bend",
+                `${exampleId} resolved release`,
+              );
+            }
+
+            noteHistory.set(note.string, {
+              articulation: note.articulation,
+              fret: note.fret,
+            });
+          }
+        }
+
+        verifiedResolvedPracticeContextCount += 1;
+      }
+    }
+  }
+}
+
+const customPracticeTuning = getDefaultTuning(6);
+customPracticeTuning[0] = 3;
+const customPracticeExample = resolvePracticeTab("scales-sequence", {
+  currentKey: "Db",
+  currentScale: "harmonic-minor",
+  registeredTuning: getRegisteredTuningState(6, customPracticeTuning),
+  stringCount: 6,
+  tuning: customPracticeTuning,
+});
+assert.equal(
+  getPracticeExampleTuning(customPracticeExample).registerStatus,
+  "unregistered",
+);
+assert.equal(
+  getPracticeExampleTuning(customPracticeExample).midiPitchesHighToLow,
+  null,
+);
+assert.match(
+  customPracticeExample.accessibleDescription,
+  /octave register is unverified/,
+);
 
 type SoundingVoicingStringState = Exclude<
   VoicingStringState,
@@ -1855,5 +2012,5 @@ assert.deepEqual(
 );
 
 console.log(
-  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), and ${verifiedPracticeExampleCount} authored practice tabs.`,
+  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), ${verifiedPracticeExampleCount} authored practice tabs, and ${verifiedResolvedPracticeContextCount} resolved practice contexts.`,
 );

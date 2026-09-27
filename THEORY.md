@@ -335,14 +335,36 @@ neck. Choosing a generated grip returns the interface to `Selected Voicing` so
 the requested physical assignment is visible. These modes are never described
 as equivalent.
 
-## Authored Practice tablature contract
+## Authored and resolved Practice tablature contract
 
-Practice examples are static, reviewed playing prompts rather than shapes or
-generated voicings. Every shipped example declares its tuning, rhythmic grid,
-tempo, repetition count, events, accessible description, and pitch scope. The
-current library uses the verified six-string Standard E register in the same
-highest-to-lowest internal order as the fretboard: E4, B3, G3, D3, A2, E2. The
-display labels those strings `e`, `B`, `G`, `D`, `A`, `E` from top to bottom.
+Practice examples begin as immutable, reviewed six-string Standard E reference
+scores rather than shapes or generated voicings. Every source example declares
+its tuning, rhythmic grid, tempo, repetition count, events, accessible
+description, and pitch scope. The source register follows the fretboard's
+highest-to-lowest order: E4, B3, G3, D3, A2, E2. The source display labels are
+`e`, `B`, `G`, `D`, `A`, `E` from top to bottom.
+
+Every source score has one explicit resolution recipe. At render time a pure
+resolver derives a new score from the shared Redux key, scale, string count,
+and exact pitch-class tuning. The source events are never mutated. Scale
+recipes preserve authored scale-degree order against the selected scale;
+five-tone recipes use a stable scale subset; tonic-triad recipes use the
+selected scale's tonic triad; tonic-transpose recipes preserve the authored
+chromatic intervals. Chromatic coordination exercises preserve their sounding
+pitches and remain intentionally independent of key and scale.
+
+Resolved scores support 6-, 7-, and 8-string guitars. General exercises use
+the highest six strings; low-register rhythm and chug recipes use the lowest
+six strings so the selected instrument's bass string participates. The
+resolver chooses a fret from `0` through `24` that produces the intended pitch
+class in the selected tuning while preserving same-string articulation
+direction. It derives the displayed pitch scope from the resolved events.
+
+Registered preset tunings carry verified MIDI registers. Custom tuning edits
+still resolve note-correct physical string and fret positions from their exact
+pitch classes, but expose no MIDI register and explicitly label octave register
+as unverified. Resolved Practice output must not infer an octave, bass, or
+inversion from a pitch-class-only custom tuning.
 
 Each score is one 4/4 measure divided into quarters, eighths, triplets, or
 sixteenths. Notes and rests occupy explicit grid slots. A simultaneous event
@@ -360,12 +382,12 @@ numeric fret on the same string. A bend target is one or two frets above its
 source and remains on the same string.
 
 Tonal examples declare an allowed pitch-class set. Executable verification
-checks every sounded fret and bend target against that set, while chromatic
-coordination exercises declare their chromatic scope explicitly. The authored
-tabs do not transpose to the Redux key, follow custom tuning, claim a fingering
-or barre, or become verified chord grips. The Practice interface must label
-their fixed Standard E context honestly while it may show the current
-Fretboard key and scale separately.
+checks every source and resolved sounded fret and bend target against its set,
+while chromatic coordination exercises declare their chromatic scope
+explicitly. Resolution does not turn a Practice score into a fingering, barre,
+or verified chord grip. A musical-context change during a session stops the
+transport, resets the playhead, swaps in the newly resolved score, and is
+announced to assistive technology.
 
 ### Practice timing and metronome contract
 

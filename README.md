@@ -30,12 +30,16 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   Practice Lab (`/practice`).
 - Switch the complete application between persisted Graphite, Light, and Ember
   themes from the shared top-right header control.
+- Set key, scale type, guitar string count, and per-string tuning in the shared
+  Musical Context bar below navigation. Fretboard, Progression, and Practice
+  consume the same Redux-owned context.
 - Browse eight grouped Practice Library categories covering a rotating Daily
   Mix, Scales & Modes, String Skipping, Rhythm & Chugs, Alternate Picking,
   Legato, Sweep Picking, and Bends & Vibrato.
-- Open any of 33 authored exercises in a focused Practice Session with one large
-  six-string score, concise instruction, a tempo-synchronized visual playhead,
-  position feedback, local controls, and a simple completion flow.
+- Open any of 33 authored exercises in a focused Practice Session with a score
+  resolved for the selected key, scale, 6-/7-/8-string guitar, and tuning, plus
+  concise instruction, a tempo-synchronized visual playhead, position feedback,
+  local controls, and a simple completion flow.
 - Reflow the exercise-card grid, score, guidance, and session control rail for
   tablet and phone viewports.
 - Browse 225 editorially reviewed, genuinely distinct relative progression
@@ -93,12 +97,19 @@ of expanding a dashboard in place. Its eight grouped categories contain 33
 authored exercises, including a rotating Daily Mix and focused scale, string
 skipping, rhythm, picking, legato, sweep, bend, and vibrato work.
 
-The 33 authored examples use verified six-string Standard E tuning and expose
-their fixed context beside each score. They include scale navigation, string
-skips, chug grids, alternate-picking paths, legato, sweep motion, bends, and
-vibrato with structured fret and articulation data rather than decorative
-ASCII. The session never implies that a fixed tab was transposed or retuned
-automatically.
+The 33 immutable source examples are reviewed in verified six-string Standard E
+tuning. A pure recipe resolver derives the displayed score from the selected
+key, scale type, 6-/7-/8-string guitar, and exact pitch-class tuning without
+mutating that source material. Scale navigation, alternate picking, legato,
+string skipping, rhythm and chug, sweep, bend, and vibrato recipes preserve
+their intended musical or technical relationship rather than merely relabeling
+fixed frets. Chromatic coordination drills remain intentionally key-independent.
+
+Registered Standard E, Standard B, and Standard F♯ presets expose verified
+register. Custom per-string tuning remains playable and pitch-class-correct,
+but the score labels its octave register as unverified because the tuning UI
+does not collect octave numbers. Changing musical context during playback
+stops the transport, resets the playhead, and announces the new context.
 
 The focused session currently provides:
 
@@ -225,6 +236,7 @@ Toolkit, Sass, and Biome.
 | `src/app/practice/page.tsx` | Guided daily-practice route |
 | `src/app/layout.tsx` | Root Redux provider and pre-hydration theme bootstrap shared by every route |
 | `src/components/AppShell` | Shared route surface, navigation, and theme control |
+| `src/components/MusicalContextBar` | Shared key, scale, guitar, and per-string tuning controls below navigation |
 | `src/components/ThemeSelector` | Native persisted Graphite, Light, and Ember selector |
 | `src/components/Fretboard/Fretboard.tsx` | Dashboard composition and fretboard rendering |
 | `src/components/Fretboard/FretboardNeck.tsx` | Reusable all-tone and exact-voicing neck visualization |
@@ -233,6 +245,8 @@ Toolkit, Sass, and Biome.
 | `src/components/PracticeLab` | Practice Library, focused Practice Session, Session Complete, local session state, and graphical tab player |
 | `src/features/practice/session.ts` | Practice-session display helpers and control option contracts |
 | `src/features/practice/tablature.ts` | Typed tuning, rhythm, event, notation, and pitch helpers for authored tabs |
+| `src/features/practice/recipes.ts` | Immutable transformation intent for every authored Practice score |
+| `src/features/practice/resolvePracticeTab.ts` | Pure key-, scale-, string-, and tuning-aware Practice score resolver |
 | `src/features/practice/timing.ts` | Pure Practice beat, slot, timeline, and metronome-pulse planning |
 | `src/features/practice/audio/PracticeMetronomeEngine.ts` | Headless Web Audio transport and look-ahead metronome scheduler |
 | `src/lib/motion.ts` | Shared restrained motion durations, easing, and Practice presentation variants |
@@ -240,7 +254,7 @@ Toolkit, Sass, and Biome.
 | `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
 | `src/features/voicings` | Formula-independent dynamic chord generation, ranking, and accessible descriptions |
 | `src/data/practiceRoutines.ts` | Typed practice routines and research-source records |
-| `src/data/practiceTabExamples.ts` | Thirty-three structured Standard E practice scores |
+| `src/data/practiceTabExamples.ts` | Thirty-three immutable structured Standard E reference scores |
 | `src/data/progressionCatalog.ts` | Static reviewed progression templates outside Redux |
 | `src/data/progressionSources.ts` | Machine-readable source and license ledger |
 | `src/helpers/musicTheory.ts` | 12-TET pitch classes, note spelling, scales, chord construction, and chord-tone roles |
@@ -279,26 +293,28 @@ both write to `.next`.
 
 ### Current validation snapshot
 
-As of 2026-09-01:
+As of 2026-09-26:
 
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
-  with 761,718 validated generated voicings.
+  with 761,718 validated generated voicings, plus 33 authored Practice tabs and
+  all 7,425 registered key/scale/string-count Practice resolution contexts.
 - `npx tsc --noEmit` passes.
-- Focused Biome checks pass for the progression workspace, physical-location
-  grouping, per-step voicing state, and executable theory suite; direct
-  Progression Workspace Sass compilation also passes.
-- `npm run lint` reports an existing baseline of 5 formatting errors and 2
-  warnings in untouched baseline files.
+- Focused Biome checks pass for all touched Practice resolver, context-bar,
+  session, tablature, and executable-theory files.
+- `npm run lint` still reports the existing untouched baseline: 7 formatting or
+  semantic errors and 2 import warnings.
 - A development-server route smoke check returns 200 for
   `open-axis-pop?key=E&scale=minor` after the position explorer compiles.
 - `npm run build` was attempted without a development server but stalled during
-  optimized compilation without emitting an error and was stopped before route
-  smoke testing; it is not a passing build result.
-- No browser instance was connected for diagram screenshot, visual, focus, or
-  interaction inspection. The repository does not include an E2E,
-  visual-regression, or CI workflow.
+  optimized compilation without emitting an error and was stopped. This Next
+  15.5.3 CLI does not expose the documented `--webpack` fallback flag.
+- Live Chrome verification passes for Practice direct load, exercise query URL
+  and browser Back behavior, a playing-session reset on context change,
+  7-string and custom-tuning resolution labels, and Graphite/Light/Ember context
+  bar contrast at desktop width. Narrow-screen and automated visual-regression
+  coverage remain unavailable; the repository has no E2E or CI workflow.
 
 ## Current limitations
 
@@ -323,8 +339,9 @@ exercise countdown or reference-instrument system:
   tempo, click subdivision, an audible metronome, a looping synchronized visual
   playhead, and manual completion state. Its duration display is static, click
   subdivision does not alter authored score timing, and reference-instrument
-  controls do not produce audio. Scores remain fixed Standard E examples rather
-  than automatic transpositions.
+  controls do not produce audio. Displayed scores resolve from immutable
+  Standard E references; custom pitch-class tunings cannot claim an exact
+  octave register until octave-aware tuning input exists.
 - There are no drums, backing tracks, reference-note playback, progression
   trainer, saved practice progress, practice scoring, or account system. Only
   the visual theme preference is persisted.

@@ -295,10 +295,12 @@
     font-size: 11px;
     font-weight: 620;
     text-decoration: none;
-    transition:
-      border-color $transition,
-      color $transition,
-      background $transition;
+
+    @include interactive-control-motion(
+      $hover-lift: -1px,
+      $hover-scale: 1.005,
+      $press-scale: 0.98
+    );
 
     &:hover {
       border-color: color-mix(in srgb, $cyan 48%, transparent);

@@ -20,7 +20,11 @@ $note-5-color: var(--semantic-note-5);
 $note-6-color: var(--semantic-note-6);
 $note-7-color: var(--semantic-note-7);
 
-$transition: 0.22s ease;
+$motion-ease: cubic-bezier(0.22, 1, 0.36, 1);
+$motion-press-ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+$motion-hover-duration: 0.24s;
+$motion-press-duration: 0.09s;
+$transition: 0.22s $motion-ease;
 $fretBoardWidth: 100%;
 
 $control-radius: 12px;

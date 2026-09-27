@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
 import AppNavigation from "@/components/AppNavigation/AppNavigation";
+import RouteTransition from "@/components/AppShell/RouteTransition";
+import MusicalContextBar from "@/components/MusicalContextBar/MusicalContextBar";
 import ThemeSelector from "@/components/ThemeSelector/ThemeSelector";
 import "./appShell.scss";
 
@@ -19,8 +21,9 @@ export default function AppShell({ children }: AppShellProps) {
         </div>
         <ThemeSelector />
       </header>
+      <MusicalContextBar />
       <main className="appShell__surface" id="main-content" tabIndex={-1}>
-        {children}
+        <RouteTransition>{children}</RouteTransition>
       </main>
     </div>
   );

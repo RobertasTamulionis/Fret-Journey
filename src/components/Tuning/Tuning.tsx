@@ -1,4 +1,5 @@
 "use client";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type React from "react";
 import { useState } from "react";
 import {
@@ -8,6 +9,11 @@ import {
   guitarStringIds,
 } from "@/helpers/fretboardHelpers";
 import type { PitchClass } from "@/helpers/typesHelpers";
+import {
+  type FretJourneyMotionCustom,
+  tuningNoteVariants,
+  tuningSelectionVariants,
+} from "@/lib/motion";
 import { setTuningNote } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import "./tuning.scss";
@@ -22,6 +28,9 @@ export default function Tuning(): React.ReactElement {
   const [activeStringIndex, setActiveStringIndex] = useState<number | null>(
     null,
   );
+  const motionCustom: FretJourneyMotionCustom = {
+    reducedMotion: Boolean(useReducedMotion()),
+  };
 
   const selectTuningNote = (
     pitchClass: PitchClass,
@@ -41,17 +50,19 @@ export default function Tuning(): React.ReactElement {
       const isSelected = tuning[tuningNoteIndex] === pitchClass;
 
       return (
-        <button
+        <motion.button
           aria-pressed={isSelected}
+          custom={motionCustom}
           key={pitchClass}
           onClick={() => selectTuningNote(pitchClass, tuningNoteIndex)}
           className={`tuning__selection-note ${
             isSelected ? "tuning__selection-note--active" : ""
           }`}
           type="button"
+          variants={tuningNoteVariants}
         >
           {formatPitchClass(pitchClass)}
-        </button>
+        </motion.button>
       );
     });
   };
@@ -89,15 +100,22 @@ export default function Tuning(): React.ReactElement {
             >
               {formatPitchClass(tuningPitchClass)}
             </button>
-            <div
-              aria-hidden={!isSelectionOpen}
-              className={`tuning__selection ${
-                isSelectionOpen ? "tuning__selection--active" : ""
-              }`}
-              id={selectionId}
-            >
-              {isSelectionOpen ? tuningSelection(index) : null}
-            </div>
+            <AnimatePresence initial={false}>
+              {isSelectionOpen && (
+                <motion.div
+                  animate="visible"
+                  className="tuning__selection tuning__selection--active"
+                  custom={motionCustom}
+                  exit="exit"
+                  id={selectionId}
+                  initial="hidden"
+                  key={selectionId}
+                  variants={tuningSelectionVariants}
+                >
+                  {tuningSelection(index)}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         );
       })}

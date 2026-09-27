@@ -8,11 +8,11 @@ import {
 import type { PracticeTabExample } from "@/features/practice/tablature";
 import {
   formatPracticeTabNote,
+  getPracticeExampleTuning,
   getPracticeTabBeatSize,
   getPracticeTabCountLabels,
   getPracticeTabLegend,
   practiceTabSlotCount,
-  practiceTabTunings,
 } from "@/features/practice/tablature";
 
 type PracticeTablatureProps = {
@@ -63,7 +63,7 @@ export default function PracticeTablature({
   example,
   showPlayhead = false,
 }: PracticeTablatureProps) {
-  const tuning = practiceTabTunings[example.tuningId];
+  const tuning = getPracticeExampleTuning(example);
   const slots = practiceTabSlotCount[example.subdivision];
   const countLabels = getPracticeTabCountLabels(example.subdivision);
   const legend = useMemo(() => getPracticeTabLegend(example), [example]);
@@ -281,7 +281,12 @@ export default function PracticeTablature({
       </section>
 
       <figcaption className="practiceTab__caption">
-        <span className="practiceTab__tuning">{tuning.label}</span>
+        <span className="practiceTab__tuning">
+          {tuning.label}
+          {tuning.registerStatus === "unregistered" && (
+            <small>Pitch classes exact · octave register unverified</small>
+          )}
+        </span>
         {legend.length > 0 && (
           <ul aria-label="Tablature notation">
             {legend.map((item) => (

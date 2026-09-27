@@ -1,4 +1,17 @@
-import type { PitchClass } from "@/helpers/typesHelpers";
+import type {
+  PitchClass,
+  RegisteredTuningState,
+  ScaleName,
+  TonicName,
+} from "@/helpers/typesHelpers";
+
+export type PracticeTabTuning = {
+  label: string;
+  midiPitchesHighToLow: readonly number[] | null;
+  pitchClassesHighToLow: readonly PitchClass[];
+  registerStatus: RegisteredTuningState["status"];
+  stringLabelsHighToLow: readonly string[];
+};
 
 export const practiceTabTunings = {
   "standard-6": {
@@ -6,12 +19,13 @@ export const practiceTabTunings = {
     label: "6-string · Standard E",
     midiPitchesHighToLow: [64, 59, 55, 50, 45, 40],
     pitchClassesHighToLow: [4, 11, 7, 2, 9, 4] as readonly PitchClass[],
+    registerStatus: "verified",
     stringLabelsHighToLow: ["e", "B", "G", "D", "A", "E"],
   },
-} as const;
+} as const satisfies Record<string, PracticeTabTuning & { id: string }>;
 
 export type PracticeTabTuningId = keyof typeof practiceTabTunings;
-export type PracticeTabStringNumber = 1 | 2 | 3 | 4 | 5 | 6;
+export type PracticeTabStringNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8;
 export type PracticeTabStroke = "down" | "up";
 export type PracticeTabSubdivision =
   | "quarters"
@@ -77,6 +91,12 @@ export type PracticeTabExample = {
   pitchScope: PracticeTabPitchScope;
   repetitions: number;
   subdivision: PracticeTabSubdivision;
+  resolvedContext?: {
+    key: TonicName;
+    label: string;
+    scale: ScaleName;
+  };
+  tuning?: PracticeTabTuning;
   tuningId: PracticeTabTuningId;
 };
 
@@ -133,15 +153,26 @@ export const getPracticeTabBeatSize = (
 ): number => practiceTabSlotCount[subdivision] / 4;
 
 export const getPracticeTabPitchClass = (
-  tuningId: PracticeTabTuningId,
+  tuning: PracticeTabTuningId | readonly PitchClass[],
   stringNumber: PracticeTabStringNumber,
   fret: number,
 ): PitchClass => {
-  const openPitchClass =
-    practiceTabTunings[tuningId].pitchClassesHighToLow[stringNumber - 1];
+  const openPitchClass = (
+    typeof tuning === "string"
+      ? practiceTabTunings[tuning].pitchClassesHighToLow
+      : tuning
+  )[stringNumber - 1];
+
+  if (openPitchClass === undefined) {
+    throw new Error(`String ${stringNumber} is outside the selected tuning.`);
+  }
 
   return ((openPitchClass + fret) % 12) as PitchClass;
 };
+
+export const getPracticeExampleTuning = (
+  example: PracticeTabExample,
+): PracticeTabTuning => example.tuning ?? practiceTabTunings[example.tuningId];
 
 export const formatPracticeTabNote = (
   note: PracticeTabNote,

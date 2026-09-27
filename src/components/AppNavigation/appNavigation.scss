@@ -1,4 +1,5 @@
 @use "variables" as *;
+@use "mixins" as *;
 
 .appNavigation {
   display: inline-grid;
@@ -24,16 +25,15 @@
     font-weight: 620;
     letter-spacing: -0.01em;
     text-decoration: none;
-    transition:
-      color $transition,
-      border-color $transition,
-      background $transition,
-      box-shadow $transition,
-      transform $transition;
+
+    @include interactive-control-motion(
+      $hover-lift: -1px,
+      $hover-scale: 1.005,
+      $press-scale: 0.98
+    );
 
     &:hover {
       color: var(--color-text-strong);
-      transform: translateY(-1px);
     }
 
     &[aria-current="page"] {

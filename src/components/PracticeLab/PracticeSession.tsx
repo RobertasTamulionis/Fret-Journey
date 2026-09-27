@@ -20,8 +20,6 @@ import {
 } from "@/features/practice/timing";
 import {
   type FretJourneyMotionCustom,
-  getMotionTransition,
-  motionDurations,
   practiceCountInVariants,
   practiceDisclosureVariants,
   practiceRevealContainerVariants,
@@ -116,16 +114,7 @@ function PracticeToggle({
   pressed,
 }: PracticeToggleProps) {
   return (
-    <motion.button
-      aria-pressed={pressed}
-      onClick={onToggle}
-      transition={getMotionTransition(
-        motionCustom.reducedMotion,
-        motionDurations.fast,
-      )}
-      type="button"
-      whileTap={motionCustom.reducedMotion ? undefined : { scale: 0.985 }}
-    >
+    <button aria-pressed={pressed} onClick={onToggle} type="button">
       <span>{label}</span>
       <AnimatePresence initial={false} mode="popLayout">
         <motion.strong
@@ -140,7 +129,7 @@ function PracticeToggle({
           {pressed ? "On" : "Off"}
         </motion.strong>
       </AnimatePresence>
-    </motion.button>
+    </button>
   );
 }
 

@@ -31,7 +31,7 @@ $practice-accent: var(--semantic-practice-accent);
 
     > span {
       color: $practice-accent;
-      font-size: 10px;
+      font-size: 14px;
       font-weight: 740;
       letter-spacing: 0.12em;
       text-transform: uppercase;
@@ -60,7 +60,7 @@ $practice-accent: var(--semantic-practice-accent);
       display: block;
       margin-top: 16px;
       color: var(--color-text-faint);
-      font-size: 10px;
+      font-size: 14px;
       line-height: 1.5;
     }
   }
@@ -230,7 +230,7 @@ $practice-accent: var(--semantic-practice-accent);
     margin-top: 12px;
     overflow: hidden;
     color: var(--color-text-muted);
-    font-size: 10px;
+    font-size: 14px;
     line-height: 1.6;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
@@ -343,7 +343,7 @@ $practice-accent: var(--semantic-practice-accent);
       border-radius: 16px;
       background: var(--panel-background-soft);
       color: var(--color-text-muted);
-      font-size: 10px;
+      font-size: 14px;
       line-height: 1.6;
     }
 
@@ -399,7 +399,7 @@ $practice-accent: var(--semantic-practice-accent);
   background: transparent;
   box-shadow: none;
   color: var(--color-text-soft);
-  font-size: 10px;
+  font-size: 14px;
 
   &:hover {
     background: color-mix(in srgb, var(--color-control) 58%, transparent);
@@ -431,10 +431,6 @@ $practice-accent: var(--semantic-practice-accent);
   color: var(--color-on-accent);
   font-size: 11px;
   font-weight: 760;
-  transition:
-    transform 180ms ease-in-out,
-    box-shadow 180ms ease-in-out,
-    filter 180ms ease-in-out;
 
   &__content {
     min-width: 120px;
@@ -455,14 +451,12 @@ $practice-accent: var(--semantic-practice-accent);
       0 15px 32px color-mix(in srgb, $practice-accent 32%, transparent),
       inset 0 1px 0 color-mix(in srgb, white 38%, transparent);
     filter: brightness(1.06);
-    transform: translateY(-2px);
   }
 
   &:active {
     box-shadow:
       inset 3px 3px 9px color-mix(in srgb, black 30%, transparent),
       0 6px 16px color-mix(in srgb, $practice-accent 18%, transparent);
-    transform: translateY(0) scale(0.985);
   }
 
   &[data-status="playing"] {
@@ -579,7 +573,7 @@ $practice-accent: var(--semantic-practice-accent);
 
     span {
       color: var(--color-text-soft);
-      font-size: 10px;
+      font-size: 14px;
       font-weight: 650;
     }
 
@@ -626,7 +620,7 @@ $practice-accent: var(--semantic-practice-accent);
     box-shadow: inset 0 1px 0 var(--color-highlight);
     color: var(--color-text-strong);
     font: inherit;
-    font-size: 10px;
+    font-size: 14px;
 
     &:focus-visible {
       border-color: color-mix(in srgb, $practice-accent 58%, transparent);
@@ -662,7 +656,6 @@ $practice-accent: var(--semantic-practice-accent);
 
     &:active {
       box-shadow: inset 3px 3px 8px var(--color-shadow);
-      transform: scale(0.96);
     }
   }
 
@@ -827,7 +820,7 @@ $practice-accent: var(--semantic-practice-accent);
     strong {
       color: $practice-accent;
       font-family: var(--font-geist-mono), monospace;
-      font-size: 10px;
+      font-size: 14px;
     }
   }
 
@@ -899,7 +892,7 @@ $practice-accent: var(--semantic-practice-accent);
     background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
     color: var(--color-text-muted);
     font-family: var(--font-geist-mono), monospace;
-    font-size: 10px;
+    font-size: 14px;
   }
 
   &__cell {
@@ -1082,10 +1075,18 @@ $practice-accent: var(--semantic-practice-accent);
   }
 
   &__tuning {
+    display: grid;
+    gap: 3px;
     color: var(--color-text-soft);
     font-family: var(--font-geist-mono), monospace;
-    font-size: 8px;
+    font-size: 14px;
     white-space: nowrap;
+
+    small {
+      color: var(--color-text-muted);
+      font-size: 14px;
+      white-space: normal;
+    }
   }
 }
 

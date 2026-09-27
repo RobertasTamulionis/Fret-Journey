@@ -1,5 +1,43 @@
 @use "variables" as *;
 
+@mixin interactive-control-motion(
+  $hover-lift: -2px,
+  $hover-scale: 1.01,
+  $press-scale: 0.97
+) {
+  translate: 0 0;
+  scale: 1;
+  transform-origin: center;
+  transition:
+    translate $motion-hover-duration $motion-ease,
+    scale 0.18s $motion-ease,
+    color $transition,
+    box-shadow $transition,
+    border-color $transition,
+    background-color $transition,
+    filter $transition,
+    opacity $transition;
+
+  @media (hover: hover) {
+    &:hover:not(:disabled) {
+      translate: 0 $hover-lift;
+      scale: $hover-scale;
+    }
+  }
+
+  &:active:not(:disabled) {
+    translate: 0 0;
+    scale: $press-scale;
+    transition-duration: $motion-press-duration;
+    transition-timing-function: $motion-press-ease;
+  }
+
+  &:disabled {
+    translate: 0 0;
+    scale: 1;
+  }
+}
+
 @mixin neomorphic-button(
   $width: auto,
   $height: 40px,
@@ -21,23 +59,17 @@
   font-weight: 560;
   letter-spacing: -0.01em;
   cursor: pointer;
-  transition:
-    transform $transition,
-    color $transition,
-    box-shadow $transition,
-    border-color $transition,
-    background $transition;
 
-  &:hover {
-    transform: translateY(-1px);
+  @include interactive-control-motion;
+
+  &:hover:not(:disabled) {
     border-color: color-mix(in srgb, var(--button-accent) 42%, transparent);
     color: var(--button-accent);
     background: var(--control-background-hover);
     box-shadow: var(--shadow-control-hover);
   }
 
-  &:active {
-    transform: translateY(0);
+  &:active:not(:disabled) {
     box-shadow:
       inset 3px 3px 8px var(--color-shadow),
       inset -2px -2px 6px var(--color-highlight);

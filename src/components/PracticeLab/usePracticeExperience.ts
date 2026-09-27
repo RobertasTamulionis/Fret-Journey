@@ -1,9 +1,14 @@
-import { useReducer } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import {
   type PracticeRoutineId,
   practiceRoutines,
 } from "@/data/practiceRoutines";
 import { practiceTabExamples } from "@/data/practiceTabExamples";
+import {
+  getPracticeContextLabel,
+  resolvePracticeTab,
+} from "@/features/practice/resolvePracticeTab";
 import {
   clampPracticeTempo,
   type PracticeExperienceScreen,
@@ -11,6 +16,7 @@ import {
   practiceDefaultCountInBeats,
 } from "@/features/practice/session";
 import type { PracticeTabSubdivision } from "@/features/practice/tablature";
+import { useAppSelector } from "@/lib/redux/store";
 import usePracticeTransport from "./usePracticeTransport";
 
 type PracticeExperienceState = {
@@ -36,6 +42,10 @@ type PracticeExperienceAction =
       type: "open-exercise";
     }
   | { type: "back-to-library" }
+  | {
+      selection: PracticeExerciseSelection | null;
+      type: "sync-url";
+    }
   | { type: "complete" }
   | { type: "repeat" }
   | { tempo: number; type: "set-tempo" }
@@ -50,7 +60,12 @@ type PracticeExperienceAction =
 const firstExample =
   practiceTabExamples[practiceRoutines[0].steps[0].exampleId];
 
-const initialState: PracticeExperienceState = {
+type PracticeExerciseSelection = {
+  routineId: PracticeRoutineId;
+  stepIndex: number;
+};
+
+const defaultState: PracticeExperienceState = {
   clickSubdivision: firstExample.subdivision,
   countInEnabled: true,
   instrument: "clean-guitar",
@@ -63,6 +78,51 @@ const initialState: PracticeExperienceState = {
   tempo: firstExample.bpm,
   volume: 70,
 };
+
+const findExerciseSelection = (
+  exerciseId?: string,
+): PracticeExerciseSelection | null => {
+  if (!exerciseId) {
+    return null;
+  }
+
+  for (const routine of practiceRoutines) {
+    const stepIndex = routine.steps.findIndex(
+      ({ exampleId }) => exampleId === exerciseId,
+    );
+
+    if (stepIndex !== -1) {
+      return { routineId: routine.id, stepIndex };
+    }
+  }
+
+  return null;
+};
+
+const openExerciseState = (
+  state: PracticeExperienceState,
+  selection: PracticeExerciseSelection,
+): PracticeExperienceState => {
+  const routine =
+    practiceRoutines.find(({ id }) => id === selection.routineId) ??
+    practiceRoutines[0];
+  const step = routine.steps[selection.stepIndex] ?? routine.steps[0];
+  const example = practiceTabExamples[step.exampleId];
+
+  return {
+    ...state,
+    clickSubdivision: example.subdivision,
+    routineId: routine.id,
+    screen: "session",
+    stepIndex: routine.steps.indexOf(step),
+    tempo: example.bpm,
+  };
+};
+
+const createInitialState = (
+  selection: PracticeExerciseSelection | null,
+): PracticeExperienceState =>
+  selection ? openExerciseState(defaultState, selection) : defaultState;
 
 const clampVolume = (volume: number): number =>
   Math.min(100, Math.max(0, volume));
@@ -83,6 +143,22 @@ const reducer = (
       };
     case "back-to-library":
       return { ...state, screen: "library" };
+    case "sync-url":
+      if (!action.selection) {
+        return state.screen === "library"
+          ? state
+          : { ...state, screen: "library" };
+      }
+
+      if (
+        state.screen !== "library" &&
+        state.routineId === action.selection.routineId &&
+        state.stepIndex === action.selection.stepIndex
+      ) {
+        return state;
+      }
+
+      return openExerciseState(state, action.selection);
     case "complete":
       return { ...state, screen: "complete" };
     case "repeat":
@@ -113,14 +189,41 @@ const exerciseOrder = practiceRoutines.flatMap((routine) =>
   routine.steps.map((_, stepIndex) => ({ routineId: routine.id, stepIndex })),
 );
 
-export default function usePracticeExperience() {
-  const [state, dispatch] = useReducer(reducer, initialState);
+export default function usePracticeExperience(exerciseId?: string) {
+  const router = useRouter();
+  const { currentKey, currentScale, registeredTuning, stringCount, tuning } =
+    useAppSelector((reduxState) => reduxState.fretboard);
+  const urlSelection = useMemo(
+    () => findExerciseSelection(exerciseId),
+    [exerciseId],
+  );
+  const [state, dispatch] = useReducer(
+    reducer,
+    urlSelection,
+    createInitialState,
+  );
   const activeRoutine =
     practiceRoutines.find(({ id }) => id === state.routineId) ??
     practiceRoutines[0];
   const activeStep =
     activeRoutine.steps[state.stepIndex] ?? activeRoutine.steps[0];
-  const activeExample = practiceTabExamples[activeStep.exampleId];
+  const practiceContext = useMemo(
+    () => ({
+      currentKey,
+      currentScale,
+      registeredTuning,
+      stringCount,
+      tuning,
+    }),
+    [currentKey, currentScale, registeredTuning, stringCount, tuning],
+  );
+  const activeExample = useMemo(
+    () => resolvePracticeTab(activeStep.exampleId, practiceContext),
+    [activeStep.exampleId, practiceContext],
+  );
+  const contextSignature = `${currentKey}|${currentScale}|${stringCount}|${tuning.join(",")}|${registeredTuning.status}`;
+  const previousContextSignature = useRef(contextSignature);
+  const [contextAnnouncement, setContextAnnouncement] = useState("");
   const orderIndex = exerciseOrder.findIndex(
     ({ routineId, stepIndex }) =>
       routineId === activeRoutine.id && stepIndex === state.stepIndex,
@@ -139,7 +242,32 @@ export default function usePracticeExperience() {
     countInBeats: practiceDefaultCountInBeats,
   });
 
-  const openExercise = (routineId: PracticeRoutineId, stepIndex: number) => {
+  useEffect(() => {
+    transport.stop();
+    dispatch({ selection: urlSelection, type: "sync-url" });
+
+    if (exerciseId && !urlSelection) {
+      router.replace("/practice", { scroll: false });
+    }
+  }, [exerciseId, router, transport.stop, urlSelection]);
+
+  useEffect(() => {
+    if (previousContextSignature.current === contextSignature) {
+      return;
+    }
+
+    previousContextSignature.current = contextSignature;
+    transport.stop();
+    setContextAnnouncement(
+      `Practice stopped and reset for ${getPracticeContextLabel(practiceContext)}.`,
+    );
+  }, [contextSignature, practiceContext, transport.stop]);
+
+  const openExercise = (
+    routineId: PracticeRoutineId,
+    stepIndex: number,
+    navigation: "push" | "replace" = "push",
+  ) => {
     const routine =
       practiceRoutines.find(({ id }) => id === routineId) ??
       practiceRoutines[0];
@@ -154,11 +282,17 @@ export default function usePracticeExperience() {
       stepIndex: routine.steps.indexOf(step),
       type: "open-exercise",
     });
+    router[navigation](
+      `/practice?exercise=${encodeURIComponent(step.exampleId)}`,
+      {
+        scroll: false,
+      },
+    );
   };
 
   const openNextExercise = () => {
     if (nextExercise) {
-      openExercise(nextExercise.routineId, nextExercise.stepIndex);
+      openExercise(nextExercise.routineId, nextExercise.stepIndex, "replace");
     }
   };
 
@@ -209,6 +343,7 @@ export default function usePracticeExperience() {
   const backToLibrary = () => {
     transport.stop();
     dispatch({ type: "back-to-library" });
+    router.replace("/practice", { scroll: false });
   };
 
   const completeExercise = () => {
@@ -227,6 +362,7 @@ export default function usePracticeExperience() {
     activeStep,
     backToLibrary,
     completeExercise,
+    contextAnnouncement,
     dispatch,
     handlePrimaryAction,
     hasNextExercise: nextExercise !== undefined,
