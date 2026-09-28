@@ -1,7 +1,6 @@
 import {
   getPracticeTabBeatSize,
   type PracticeTabSubdivision,
-  practiceTabSlotCount,
 } from "./tablature";
 
 export const practiceBeatsPerMeasure = 4;
@@ -39,20 +38,16 @@ export const clampPracticeTempo = (tempo: number): number =>
 export const getPracticeSecondsPerBeat = (tempo: number): number =>
   60 / clampPracticeTempo(tempo);
 
-export const getPracticeSlotsPerBeat = (
+export const getPracticeSubdivisionUnitsPerBeat = (
   subdivision: PracticeTabSubdivision,
 ): number => getPracticeTabBeatSize(subdivision);
 
-export const getPracticeSecondsPerSlot = (
+export const getPracticeSecondsPerEvent = (
   tempo: number,
   subdivision: PracticeTabSubdivision,
 ): number =>
-  getPracticeSecondsPerBeat(tempo) / getPracticeSlotsPerBeat(subdivision);
-
-export const getPracticeSlotDurationMs = (
-  tempo: number,
-  subdivision: PracticeTabSubdivision,
-): number => getPracticeSecondsPerSlot(tempo, subdivision) * 1_000;
+  getPracticeSecondsPerBeat(tempo) /
+  getPracticeSubdivisionUnitsPerBeat(subdivision);
 
 export const getPracticeExerciseBeatAtAudioTime = (
   anchor: PracticeTimelineAnchor,
@@ -69,28 +64,28 @@ export const getPracticeAudioTimeAtExerciseBeat = (
   (exerciseBeat - anchor.exerciseBeat) *
     getPracticeSecondsPerBeat(anchor.tempo);
 
-export const getPracticeActiveSlotAtBeat = (
+export const getPracticeActiveEventIndexAtBeat = (
   exerciseBeat: number,
-  authoredSubdivision: PracticeTabSubdivision,
+  subdivision: PracticeTabSubdivision,
+  eventCount: number,
 ): number => {
-  const slotsPerBeat = getPracticeSlotsPerBeat(authoredSubdivision);
-  const slotCount = practiceTabSlotCount[authoredSubdivision];
-  const measureBeat = positiveModulo(exerciseBeat, practiceBeatsPerMeasure);
+  const eventsPerBeat = getPracticeSubdivisionUnitsPerBeat(subdivision);
+  const boundedEventCount = Math.max(1, Math.floor(eventCount));
 
-  return Math.min(
-    slotCount - 1,
-    Math.floor(measureBeat * slotsPerBeat + schedulingEpsilon),
+  return positiveModulo(
+    Math.floor(exerciseBeat * eventsPerBeat + schedulingEpsilon),
+    boundedEventCount,
   );
 };
 
-export const getPracticeSlotStartBeat = (
+export const getPracticeEventStartBeat = (
   exerciseBeat: number,
-  authoredSubdivision: PracticeTabSubdivision,
+  subdivision: PracticeTabSubdivision,
 ): number => {
-  const slotsPerBeat = getPracticeSlotsPerBeat(authoredSubdivision);
+  const eventsPerBeat = getPracticeSubdivisionUnitsPerBeat(subdivision);
 
   return (
-    Math.floor(exerciseBeat * slotsPerBeat + schedulingEpsilon) / slotsPerBeat
+    Math.floor(exerciseBeat * eventsPerBeat + schedulingEpsilon) / eventsPerBeat
   );
 };
 
@@ -104,7 +99,7 @@ export const planPracticeMetronomePulses = ({
     return [];
   }
 
-  const pulsesPerBeat = getPracticeSlotsPerBeat(subdivision);
+  const pulsesPerBeat = getPracticeSubdivisionUnitsPerBeat(subdivision);
   const firstPulse = Math.ceil(fromBeat * pulsesPerBeat - schedulingEpsilon);
   const finalPulse = Math.ceil(toBeat * pulsesPerBeat - schedulingEpsilon);
   const pulses: PracticeMetronomePulse[] = [];

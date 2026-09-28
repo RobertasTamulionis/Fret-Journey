@@ -386,28 +386,30 @@ checks every source and resolved sounded fret and bend target against its set,
 while chromatic coordination exercises declare their chromatic scope
 explicitly. Resolution does not turn a Practice score into a fingering, barre,
 or verified chord grip. A musical-context change during a session stops the
-transport, resets the playhead, swaps in the newly resolved score, and is
-announced to assistive technology.
+transport, resets Follow Along to the first event, swaps in the newly resolved
+score, and is announced to assistive technology.
 
 ### Practice timing and metronome contract
 
-All authored Practice measures use one shared four-beat axis. Authored
-subdivision determines visual score-slot boundaries; the independently selected
-click subdivision determines only which beat and subdivision pulses the
-metronome schedules. Changing click subdivision never rewrites authored score
-timing.
+Authored Practice events retain their notes, frets, rests, durations, and static
+TAB positions. The selected subdivision does not rebuild that TAB grid. It
+defines both the Follow Along event rate and the metronome pulse density:
+quarters advance one event per beat, eighths two, triplets three, and
+sixteenths four. Grouped simultaneous notes remain one event, and a rest remains
+one event regardless of its authored visual span.
 
 Pure helpers in `src/features/practice/timing.ts` define beat/audio-time
-conversion, active-slot selection, and metronome pulse planning. Beat one is a
+conversion, active-event selection, and metronome pulse planning. Beat one is a
 structural metronome accent at beats `0`, `4`, `8`, and so on; it is separate
 from authored note accents and does not imply note or reference-instrument
-playback. The Web Audio transport and visual playhead must derive from this same
-beat model.
+playback. The Web Audio transport and discrete current-event highlight derive
+from this same beat model.
 
 Count-in duration is a transport input, not an authored-score property or a
 fixed engine invariant. Count-in enablement and exercise metronome enablement
-are independent. Pausing preserves the current authored slot boundary; Resume
-may run a fresh configured count-in before continuing from that boundary.
+are independent. Pausing preserves the current selected-subdivision event
+boundary; Resume may run a fresh configured count-in before continuing from
+that boundary.
 
 ## Verification
 

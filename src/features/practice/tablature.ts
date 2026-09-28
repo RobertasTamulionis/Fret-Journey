@@ -174,6 +174,11 @@ export const getPracticeExampleTuning = (
   example: PracticeTabExample,
 ): PracticeTabTuning => example.tuning ?? practiceTabTunings[example.tuningId];
 
+export const getPracticeSequenceEvents = (
+  example: PracticeTabExample,
+): readonly PracticeTabEvent[] =>
+  [...example.events].sort((first, second) => first.at - second.at);
+
 export const formatPracticeTabNote = (
   note: PracticeTabNote,
   duration: number,

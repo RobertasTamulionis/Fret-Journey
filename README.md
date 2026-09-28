@@ -38,8 +38,8 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   Legato, Sweep Picking, and Bends & Vibrato.
 - Open any of 33 authored exercises in a focused Practice Session with a score
   resolved for the selected key, scale, 6-/7-/8-string guitar, and tuning, plus
-  concise instruction, a tempo-synchronized visual playhead, position feedback,
-  local controls, and a simple completion flow.
+  concise instruction, a tempo-synchronized current-event highlight, position
+  feedback, local controls, and a simple completion flow.
 - Reflow the exercise-card grid, score, guidance, and session control rail for
   tablet and phone viewports.
 - Browse 225 editorially reviewed, genuinely distinct relative progression
@@ -109,28 +109,29 @@ Registered Standard E, Standard B, and Standard F♯ presets expose verified
 register. Custom per-string tuning remains playable and pitch-class-correct,
 but the score labels its octave register as unverified because the tuning UI
 does not collect octave numbers. Changing musical context during playback
-stops the transport, resets the playhead, and announces the new context.
+stops the transport, resets Follow Along to the first event, and announces the
+new context.
 
 The focused session currently provides:
 
 - Start, Pause, and Resume transport states, with a manually selected completion
   action rather than automatic completion.
-- A default four-beat count-in followed by a looping visual playhead whose
-  timing follows the selected tempo and the score's authored subdivision. The
-  transport boundary can supply a different count-in length without changing
-  the audio engine.
+- A default four-beat count-in followed by a looping current-event highlight.
+  The selected subdivision controls both events per beat and metronome pulses;
+  the transport boundary can supply a different count-in length without
+  changing the audio engine.
 - A synthesized Web Audio metronome with a distinct beat-one accent, optional
   subdivision clicks, and click volume. Count-in and exercise metronome
   playback are independent controls.
-- A guided score that emphasizes the current slot with position, shape, and
-  contrast; fades previous slots; leaves upcoming slots neutral; and scrolls
-  horizontally to keep the active slot visible when needed.
+- A static guided score that emphasizes the current grouped note or rest, fades
+  played events, and leaves upcoming events neutral. It does not animate a
+  playhead between TAB positions.
 - Current-position feedback for the active fret, authored pattern marker, and
   picking direction, including updates when a pattern shifts along the neck or
   reverses direction.
 - A prominent exercise-duration display. This value is the exercise's authored
   practice window and remains static; it is not a running countdown.
-- Local, ephemeral tempo, click-subdivision, metronome, reference-instrument,
+- Local, ephemeral tempo, subdivision, metronome, reference-instrument,
   and volume preferences. The reference-instrument controls remain structural
   preferences and do not currently produce audio.
 - A Session Complete view for repeating the exercise, opening the next
@@ -247,7 +248,7 @@ Toolkit, Sass, and Biome.
 | `src/features/practice/tablature.ts` | Typed tuning, rhythm, event, notation, and pitch helpers for authored tabs |
 | `src/features/practice/recipes.ts` | Immutable transformation intent for every authored Practice score |
 | `src/features/practice/resolvePracticeTab.ts` | Pure key-, scale-, string-, and tuning-aware Practice score resolver |
-| `src/features/practice/timing.ts` | Pure Practice beat, slot, timeline, and metronome-pulse planning |
+| `src/features/practice/timing.ts` | Pure Practice beat, event-index, timeline, and metronome-pulse planning |
 | `src/features/practice/audio/PracticeMetronomeEngine.ts` | Headless Web Audio transport and look-ahead metronome scheduler |
 | `src/lib/motion.ts` | Shared restrained motion durations, easing, and Practice presentation variants |
 | `src/features/theme/themes.ts` | Theme options, validation, storage key, and bootstrap script |
@@ -336,10 +337,11 @@ exercise countdown or reference-instrument system:
   tuning controls rather than fret-0 note positions.
 - Fret markers are display-only rather than selectable practice targets.
 - Practice Session provides local Start/Pause/Resume, configurable count-in,
-  tempo, click subdivision, an audible metronome, a looping synchronized visual
-  playhead, and manual completion state. Its duration display is static, click
-  subdivision does not alter authored score timing, and reference-instrument
-  controls do not produce audio. Displayed scores resolve from immutable
+  tempo, subdivision, an audible metronome, a looping synchronized current-event
+  highlight, and manual completion state. Its duration display is static;
+  subdivision controls event advancement and click density without rebuilding
+  or rewriting the TAB. Reference-instrument controls do not produce audio.
+  Displayed scores resolve from immutable
   Standard E references; custom pitch-class tunings cannot claim an exact
   octave register until octave-aware tuning input exists.
 - There are no drums, backing tracks, reference-note playback, progression

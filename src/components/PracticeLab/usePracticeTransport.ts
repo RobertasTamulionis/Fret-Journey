@@ -12,7 +12,7 @@ type UsePracticeTransportOptions = PracticeMetronomeConfig & {
 };
 
 const initialSnapshot: PracticeTransportSnapshot = {
-  activeSlot: 0,
+  activeEventIndex: 0,
   countInBeatsRemaining: 0,
   exerciseBeat: 0,
   phase: "idle",
@@ -22,16 +22,16 @@ const snapshotsMatchForPresentation = (
   current: PracticeTransportSnapshot,
   next: PracticeTransportSnapshot,
 ): boolean =>
-  current.activeSlot === next.activeSlot &&
+  current.activeEventIndex === next.activeEventIndex &&
   current.countInBeatsRemaining === next.countInBeatsRemaining &&
   current.phase === next.phase;
 
 export default function usePracticeTransport({
-  authoredSubdivision,
-  clickSubdivision,
   countInBeats,
   countInEnabled,
+  eventCount,
   metronomeEnabled,
+  subdivision,
   tempo,
   volume,
 }: UsePracticeTransportOptions) {
@@ -42,21 +42,14 @@ export default function usePracticeTransport({
     useState<PracticeTransportSnapshot>(initialSnapshot);
   const config = useMemo<PracticeMetronomeConfig>(
     () => ({
-      authoredSubdivision,
-      clickSubdivision,
       countInEnabled,
+      eventCount,
       metronomeEnabled,
+      subdivision,
       tempo,
       volume,
     }),
-    [
-      authoredSubdivision,
-      clickSubdivision,
-      countInEnabled,
-      metronomeEnabled,
-      tempo,
-      volume,
-    ],
+    [countInEnabled, eventCount, metronomeEnabled, subdivision, tempo, volume],
   );
   const initialConfigRef = useRef(config);
 

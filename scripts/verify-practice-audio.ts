@@ -1,36 +1,60 @@
 import assert from "node:assert/strict";
+import { practiceTabExamples } from "../src/data/practiceTabExamples";
 import {
   type PracticeMetronomeConfig,
   PracticeMetronomeEngine,
   type PracticeMetronomeEnvironment,
 } from "../src/features/practice/audio/PracticeMetronomeEngine";
+import { getPracticeSequenceEvents } from "../src/features/practice/tablature";
 import {
-  getPracticeActiveSlotAtBeat,
+  getPracticeActiveEventIndexAtBeat,
   getPracticeAudioTimeAtExerciseBeat,
+  getPracticeEventStartBeat,
   getPracticeExerciseBeatAtAudioTime,
   getPracticeSecondsPerBeat,
-  getPracticeSecondsPerSlot,
-  getPracticeSlotStartBeat,
+  getPracticeSecondsPerEvent,
   planPracticeMetronomePulses,
 } from "../src/features/practice/timing";
 
 assert.equal(getPracticeSecondsPerBeat(120), 0.5);
 assert.equal(getPracticeSecondsPerBeat(1), 2);
 assert.equal(getPracticeSecondsPerBeat(400), 0.25);
-assert.equal(getPracticeSecondsPerSlot(120, "sixteenths"), 0.125);
-assert.equal(getPracticeSecondsPerSlot(60, "triplets"), 1 / 3);
+assert.equal(getPracticeSecondsPerEvent(120, "sixteenths"), 0.125);
+assert.equal(getPracticeSecondsPerEvent(60, "triplets"), 1 / 3);
 
 const anchor = { audioTime: 10, exerciseBeat: 2, tempo: 120 };
 assert.equal(getPracticeExerciseBeatAtAudioTime(anchor, 11), 4);
 assert.equal(getPracticeAudioTimeAtExerciseBeat(anchor, 4), 11);
 
-assert.equal(getPracticeActiveSlotAtBeat(0, "eighths"), 0);
-assert.equal(getPracticeActiveSlotAtBeat(0.5, "eighths"), 1);
-assert.equal(getPracticeActiveSlotAtBeat(3.999, "sixteenths"), 15);
-assert.equal(getPracticeActiveSlotAtBeat(4, "sixteenths"), 0);
-assert.equal(getPracticeActiveSlotAtBeat(8.5, "eighths"), 1);
-assert.equal(getPracticeSlotStartBeat(2.74, "eighths"), 2.5);
-assert.equal(getPracticeSlotStartBeat(2.74, "sixteenths"), 2.5);
+assert.equal(getPracticeActiveEventIndexAtBeat(0, "eighths", 8), 0);
+assert.equal(getPracticeActiveEventIndexAtBeat(0.5, "eighths", 8), 1);
+assert.equal(getPracticeActiveEventIndexAtBeat(3.999, "sixteenths", 8), 7);
+assert.equal(getPracticeActiveEventIndexAtBeat(4, "sixteenths", 8), 0);
+assert.equal(getPracticeActiveEventIndexAtBeat(8.5, "eighths", 8), 1);
+assert.equal(getPracticeEventStartBeat(2.74, "eighths"), 2.5);
+assert.equal(getPracticeEventStartBeat(2.74, "sixteenths"), 2.5);
+
+const dailyResetSequence = getPracticeSequenceEvents(
+  practiceTabExamples["daily-reset"],
+);
+assert.deepEqual(
+  dailyResetSequence.map(({ at }) => at),
+  [0, 1, 2, 3, 4, 5, 6, 7],
+  "Follow Along must use musical slot order rather than source-array order",
+);
+
+const chugsRiffSequence = getPracticeSequenceEvents(
+  practiceTabExamples["chugs-riff"],
+);
+assert.equal(chugsRiffSequence[3].kind, "rest");
+assert.equal(chugsRiffSequence[4].kind, "notes");
+if (chugsRiffSequence[4].kind === "notes") {
+  assert.equal(
+    chugsRiffSequence[4].notes.length,
+    2,
+    "A simultaneous chord must remain one Follow Along event",
+  );
+}
 
 const quarterPulses = planPracticeMetronomePulses({
   fromBeat: 0,
@@ -64,10 +88,31 @@ assert.deepEqual(
   ],
 );
 assert.deepEqual(
-  eighthPulses.map(({ beat }) => getPracticeActiveSlotAtBeat(beat, "eighths")),
+  eighthPulses.map(({ beat }) =>
+    getPracticeActiveEventIndexAtBeat(beat, "eighths", 8),
+  ),
   [0, 1],
-  "An authored eighth-note exercise must use its own visual slot grid",
+  "Eighth-note clicks and Follow Along events must share one beat projection",
 );
+
+for (const tempo of [60, 120, 180]) {
+  for (const subdivision of ["eighths", "triplets", "sixteenths"] as const) {
+    const performanceAnchor = { audioTime: 0, exerciseBeat: 0, tempo };
+    const secondsPerEvent = getPracticeSecondsPerEvent(tempo, subdivision);
+
+    for (let event = 0; event < 16; event += 1) {
+      const exerciseBeat = getPracticeExerciseBeatAtAudioTime(
+        performanceAnchor,
+        event * secondsPerEvent + secondsPerEvent * 0.1,
+      );
+      assert.equal(
+        getPracticeActiveEventIndexAtBeat(exerciseBeat, subdivision, 8),
+        event % 8,
+        `${tempo} BPM ${subdivision} event ${event} must project from Web Audio time`,
+      );
+    }
+  }
+}
 
 assert.deepEqual(
   planPracticeMetronomePulses({
@@ -197,10 +242,10 @@ const createFakeEnvironment = () => {
 };
 
 const baseConfig: PracticeMetronomeConfig = {
-  authoredSubdivision: "eighths",
-  clickSubdivision: "quarters",
   countInEnabled: true,
+  eventCount: 8,
   metronomeEnabled: false,
+  subdivision: "quarters",
   tempo: 120,
   volume: 70,
 };
@@ -210,6 +255,10 @@ const verifyPracticeMetronomeEngine = async () => {
   const countInEngine = new PracticeMetronomeEngine(baseConfig, {
     environment: countInHarness.environment,
   });
+  countInEngine.configure({ ...baseConfig, subdivision: "sixteenths" });
+  assert.equal(countInEngine.getSnapshot().phase, "idle");
+  assert.equal(countInEngine.getSnapshot().activeEventIndex, 0);
+  countInEngine.configure(baseConfig);
 
   const firstStart = countInEngine.start({ countInBeats: 2 });
   const duplicateStart = countInEngine.start({ countInBeats: 2 });
@@ -224,6 +273,15 @@ const verifyPracticeMetronomeEngine = async () => {
   assert.equal(countInHarness.context.oscillators.length, 1);
   assert.equal(countInHarness.context.oscillators[0].startTime, 0.05);
   assert.equal(countInHarness.callbacks.size, 1);
+
+  const quarterCountInClicks = [...countInHarness.context.oscillators];
+  countInEngine.configure({ ...baseConfig, subdivision: "eighths" });
+  assert.equal(countInEngine.getSnapshot().phase, "counting-in");
+  assert.equal(countInEngine.getSnapshot().activeEventIndex, 0);
+  assert.ok(
+    quarterCountInClicks.every(({ stopTimes }) => stopTimes.at(-1) === 0),
+    "A count-in subdivision change must cancel queued old-subdivision clicks",
+  );
 
   const queuedCountInClicks = [...countInHarness.context.oscillators];
   countInEngine.configure({ ...baseConfig, countInEnabled: false });
@@ -244,6 +302,18 @@ const verifyPracticeMetronomeEngine = async () => {
   assert.equal(countInEngine.getSnapshot().phase, "playing");
   countInEngine.pause();
   assert.equal(countInEngine.getSnapshot().phase, "paused");
+  const pausedExerciseBeat = countInEngine.getSnapshot().exerciseBeat;
+  countInEngine.configure({ ...baseConfig, subdivision: "sixteenths" });
+  assert.equal(countInEngine.getSnapshot().exerciseBeat, pausedExerciseBeat);
+  assert.equal(
+    countInEngine.getSnapshot().activeEventIndex,
+    getPracticeActiveEventIndexAtBeat(
+      pausedExerciseBeat,
+      "sixteenths",
+      baseConfig.eventCount,
+    ),
+    "A paused subdivision change must reproject the event without moving time",
+  );
   assert.equal(countInHarness.callbacks.size, 0);
   assert.ok(
     countInHarness.context.oscillators.every(
@@ -258,6 +328,7 @@ const verifyPracticeMetronomeEngine = async () => {
   assert.equal(countInEngine.getSnapshot().countInBeatsRemaining, 3);
   countInEngine.stop();
   assert.equal(countInEngine.getSnapshot().phase, "idle");
+  assert.equal(countInEngine.getSnapshot().activeEventIndex, 0);
   assert.equal(countInHarness.callbacks.size, 0);
 
   const silentHarness = createFakeEnvironment();
@@ -305,9 +376,9 @@ const verifyPracticeMetronomeEngine = async () => {
   const subdivisionEngine = new PracticeMetronomeEngine(
     {
       ...baseConfig,
-      clickSubdivision: "quarters",
       countInEnabled: false,
       metronomeEnabled: true,
+      subdivision: "quarters",
     },
     { environment: subdivisionHarness.environment, lookAheadSeconds: 1.2 },
   );
@@ -316,10 +387,7 @@ const verifyPracticeMetronomeEngine = async () => {
 
   const exerciseBeatBeforeSubdivisionChanges =
     subdivisionEngine.getSnapshot().exerciseBeat;
-  const authoredSlotBeforeSubdivisionChanges =
-    subdivisionEngine.getSnapshot().activeSlot;
-
-  for (const clickSubdivision of [
+  for (const subdivision of [
     "eighths",
     "triplets",
     "sixteenths",
@@ -331,31 +399,35 @@ const verifyPracticeMetronomeEngine = async () => {
 
     subdivisionEngine.configure({
       ...baseConfig,
-      clickSubdivision,
       countInEnabled: false,
       metronomeEnabled: true,
+      subdivision,
     });
 
     assert.equal(
       subdivisionEngine.getSnapshot().exerciseBeat,
       exerciseBeatBeforeSubdivisionChanges,
-      `${clickSubdivision} clicks must not move the exercise beat`,
+      `${subdivision} must not move the exercise beat`,
     );
     assert.equal(
-      subdivisionEngine.getSnapshot().activeSlot,
-      authoredSlotBeforeSubdivisionChanges,
-      `${clickSubdivision} clicks must not alter the authored Follow Along slot`,
+      subdivisionEngine.getSnapshot().activeEventIndex,
+      getPracticeActiveEventIndexAtBeat(
+        exerciseBeatBeforeSubdivisionChanges,
+        subdivision,
+        baseConfig.eventCount,
+      ),
+      `${subdivision} must recalculate the Follow Along event from the same exercise beat`,
     );
     assert.ok(
       clicksScheduledUnderPreviousSubdivision.every(
         ({ stopTimes }) => stopTimes.at(-1) === 0.8,
       ),
-      `${clickSubdivision} clicks must replace queued pulses from the previous subdivision`,
+      `${subdivision} must replace queued pulses from the previous subdivision`,
     );
     assert.ok(
       subdivisionHarness.context.oscillators.length >
         clicksScheduledUnderPreviousSubdivision.length,
-      `${clickSubdivision} clicks must schedule a new audible pulse plan`,
+      `${subdivision} must schedule a new audible pulse plan`,
     );
   }
 

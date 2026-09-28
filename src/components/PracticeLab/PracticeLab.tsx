@@ -35,7 +35,7 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
     openExercise,
     openNextExercise,
     repeatExercise,
-    setClickSubdivision,
+    setSubdivision,
     setMetronomeVolume,
     setTempo,
     state,
@@ -84,9 +84,8 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
 
             {state.screen === "session" && (
               <PracticeSession
-                activeSlot={transport.snapshot.activeSlot}
+                activeEventIndex={transport.snapshot.activeEventIndex}
                 audioError={transport.audioError}
-                clickSubdivision={state.clickSubdivision}
                 countInBeatsRemaining={transport.snapshot.countInBeatsRemaining}
                 countInEnabled={state.countInEnabled}
                 example={activeExample}
@@ -100,7 +99,7 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
                   dispatch({ instrument, type: "set-instrument" })
                 }
                 onPrimaryAction={handlePrimaryAction}
-                onClickSubdivisionChange={setClickSubdivision}
+                onSubdivisionChange={setSubdivision}
                 onTempoChange={setTempo}
                 onToggleCountIn={toggleCountIn}
                 onToggleInstrumentPlayback={() =>
@@ -114,6 +113,7 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
                 routine={activeRoutine}
                 step={activeStep}
                 stepIndex={state.stepIndex}
+                subdivision={state.selectedSubdivision}
                 tempo={state.tempo}
                 transportStatus={transport.snapshot.phase}
                 volume={state.volume}

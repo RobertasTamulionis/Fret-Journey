@@ -1,18 +1,15 @@
 import type {
   PracticeTabExample,
   PracticeTabMarker,
-  PracticeTabNoteEvent,
   PracticeTabSubdivision,
 } from "./tablature";
+import { getPracticeSequenceEvents } from "./tablature";
 
 export type {
   PracticeAudioTransportPhase as PracticeTransportStatus,
   PracticeTransportSnapshot,
 } from "./audio/PracticeMetronomeEngine";
-export {
-  clampPracticeTempo,
-  getPracticeSlotDurationMs,
-} from "./timing";
+export { clampPracticeTempo } from "./timing";
 
 export type PracticeExperienceScreen = "library" | "session" | "complete";
 export type PracticeInstrument = "clean-guitar" | "piano" | "simple-tone";
@@ -39,20 +36,12 @@ export const formatPracticeDurationAsClock = (duration: string): string => {
 
 export const getPracticePositionSnapshot = (
   example: PracticeTabExample,
-  activeSlot: number,
+  activeEventIndex: number,
 ): PracticePositionSnapshot => {
-  let noteEvent: PracticeTabNoteEvent | undefined;
+  const sequenceEvents = getPracticeSequenceEvents(example);
+  const activeEvent = sequenceEvents[activeEventIndex % sequenceEvents.length];
+  const activeSlot = activeEvent?.at ?? 0;
   let marker: PracticeTabMarker | undefined;
-
-  for (const event of example.events) {
-    if (
-      event.kind === "notes" &&
-      event.at <= activeSlot &&
-      (!noteEvent || event.at > noteEvent.at)
-    ) {
-      noteEvent = event;
-    }
-  }
 
   for (const candidate of example.markers ?? []) {
     if (candidate.at <= activeSlot && (!marker || candidate.at > marker.at)) {
@@ -60,7 +49,7 @@ export const getPracticePositionSnapshot = (
     }
   }
 
-  if (!noteEvent) {
+  if (!activeEvent || activeEvent.kind === "rest") {
     return {
       direction: null,
       fret: null,
@@ -70,15 +59,15 @@ export const getPracticePositionSnapshot = (
 
   const frets = [
     ...new Set(
-      noteEvent.notes.map(({ fret }) => (fret === "x" ? "Muted" : fret)),
+      activeEvent.notes.map(({ fret }) => (fret === "x" ? "Muted" : fret)),
     ),
   ];
 
   return {
     direction:
-      noteEvent.stroke === "down"
+      activeEvent.stroke === "down"
         ? "Downstroke"
-        : noteEvent.stroke === "up"
+        : activeEvent.stroke === "up"
           ? "Upstroke"
           : null,
     fret:

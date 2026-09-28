@@ -900,7 +900,7 @@ $practice-accent: var(--semantic-practice-accent);
     position: relative;
     display: grid;
     place-items: center;
-    transition: opacity 180ms ease-in-out;
+    transition: opacity 70ms ease-in-out;
 
     &.isBeat::after {
       content: "";
@@ -909,48 +909,33 @@ $practice-accent: var(--semantic-practice-accent);
       inset: 3px auto 3px 0;
       background: color-mix(in srgb, var(--color-tab-beat) 34%, transparent);
     }
-
-    &.isCurrent::before {
-      content: "";
-      position: absolute;
-      z-index: 0;
-      inset: -2px 0;
-      border-left: 3px solid $practice-accent;
-      border-right: 1px solid color-mix(in srgb, $practice-accent 38%, transparent);
-      background: linear-gradient(
-        180deg,
-        color-mix(in srgb, $practice-accent 8%, transparent),
-        color-mix(in srgb, $practice-accent 17%, transparent),
-        color-mix(in srgb, $practice-accent 8%, transparent)
-      );
-      box-shadow:
-        -4px 0 12px color-mix(in srgb, $practice-accent 18%, transparent),
-        4px 0 18px color-mix(in srgb, $practice-accent 8%, transparent);
-      opacity: 0;
-      transform: scaleX(0.88);
-      transform-origin: left center;
-      transition:
-        opacity 150ms ease-in-out,
-        transform 180ms ease-in-out;
-    }
   }
 
-  &.hasPlayhead .practiceTab__cell.isCurrent {
-    &::before {
-      opacity: 1;
-      transform: scaleX(1);
-    }
-
+  &__cell.isCurrent {
     .practiceTab__note {
       border-color: color-mix(in srgb, white 30%, $practice-accent);
       background: $practice-accent;
-      box-shadow: 0 0 16px color-mix(in srgb, $practice-accent 32%, transparent);
+      box-shadow: 0 0 12px color-mix(in srgb, $practice-accent 28%, transparent);
       color: var(--color-on-accent);
-      transform: translateY(-2px) scale(1.1);
+      transform: scale(1.04);
+    }
+
+    .practiceTab__attack,
+    .practiceTab__rest {
+      color: $practice-accent;
+      opacity: 1;
+      transform: scale(1.04);
+    }
+
+    .practiceTab__rest {
+      padding: 3px 5px;
+      border-radius: 4px;
+      background: $practice-accent;
+      color: var(--color-on-accent);
     }
   }
 
-  &.hasPlayhead .practiceTab__cell.isPast > * {
+  &__cell.isPlayed > * {
     opacity: 0.38;
   }
 
@@ -977,6 +962,15 @@ $practice-accent: var(--semantic-practice-accent);
   &__note {
     position: relative;
     z-index: 2;
+  }
+
+  &__attack,
+  &__rest {
+    transition:
+      background 70ms ease-in-out,
+      color 70ms ease-in-out,
+      opacity 70ms ease-in-out,
+      transform 70ms ease-in-out;
   }
 
   &__attack b,
@@ -1027,9 +1021,9 @@ $practice-accent: var(--semantic-practice-accent);
     font-size: 13px;
     font-weight: 720;
     transition:
-      transform 180ms ease-in-out,
-      background 180ms ease-in-out,
-      box-shadow 180ms ease-in-out;
+      transform 70ms ease-in-out,
+      background 70ms ease-in-out,
+      box-shadow 70ms ease-in-out;
 
     &.isAccent {
       border-color: color-mix(in srgb, $practice-accent 32%, transparent);
@@ -1364,7 +1358,9 @@ $practice-accent: var(--semantic-practice-accent);
   .exerciseCard::after,
   .practicePrimaryAction,
   .practiceTab__cell,
+  .practiceTab__attack,
   .practiceTab__note,
+  .practiceTab__rest,
   .positionReadout__value {
     transition: none;
   }

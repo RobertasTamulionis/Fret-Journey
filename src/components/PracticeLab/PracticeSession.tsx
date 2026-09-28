@@ -30,9 +30,8 @@ import PracticeDisclosure from "./PracticeDisclosure";
 import PracticeTablature from "./PracticeTablature";
 
 type PracticeSessionProps = {
-  activeSlot: number;
+  activeEventIndex: number;
   audioError: string | null;
-  clickSubdivision: PracticeTabSubdivision;
   countInBeatsRemaining: number;
   countInEnabled: boolean;
   example: PracticeTabExample;
@@ -45,7 +44,7 @@ type PracticeSessionProps = {
   onInstrumentChange: (instrument: PracticeInstrument) => void;
   onMetronomeVolumeChange: (volume: number) => void;
   onPrimaryAction: () => void | Promise<void>;
-  onClickSubdivisionChange: (subdivision: PracticeTabSubdivision) => void;
+  onSubdivisionChange: (subdivision: PracticeTabSubdivision) => void;
   onTempoChange: (tempo: number) => void;
   onToggleCountIn: () => void;
   onToggleInstrumentPlayback: () => void;
@@ -54,6 +53,7 @@ type PracticeSessionProps = {
   routine: PracticeRoutine;
   step: PracticeStep;
   stepIndex: number;
+  subdivision: PracticeTabSubdivision;
   tempo: number;
   transportStatus: PracticeTransportStatus;
   volume: number;
@@ -220,9 +220,8 @@ function PracticeTempoControl({
 }
 
 export default function PracticeSession({
-  activeSlot,
+  activeEventIndex,
   audioError,
-  clickSubdivision,
   countInBeatsRemaining,
   countInEnabled,
   example,
@@ -235,7 +234,7 @@ export default function PracticeSession({
   onInstrumentChange,
   onMetronomeVolumeChange,
   onPrimaryAction,
-  onClickSubdivisionChange,
+  onSubdivisionChange,
   onTempoChange,
   onToggleCountIn,
   onToggleInstrumentPlayback,
@@ -244,11 +243,12 @@ export default function PracticeSession({
   routine,
   step,
   stepIndex,
+  subdivision,
   tempo,
   transportStatus,
   volume,
 }: PracticeSessionProps) {
-  const position = getPracticePositionSnapshot(example, activeSlot);
+  const position = getPracticePositionSnapshot(example, activeEventIndex);
   const primaryActionLabel = getPrimaryActionLabel(transportStatus);
   const primaryActionIcon =
     transportStatus === "playing" || transportStatus === "counting-in"
@@ -373,9 +373,9 @@ export default function PracticeSession({
 
           <motion.div custom={motionCustom} variants={practiceRevealVariants}>
             <PracticeTablature
-              activeSlot={activeSlot}
+              activeEventIndex={activeEventIndex}
               example={example}
-              showPlayhead={transportStatus !== "idle"}
+              showFollowAlong={transportStatus !== "idle"}
             />
           </motion.div>
 
@@ -466,17 +466,15 @@ export default function PracticeSession({
           </section>
 
           <section className="sessionControlGroup">
-            <label htmlFor="practice-metronome-subdivision">
-              Metronome subdivision
-            </label>
+            <label htmlFor="practice-subdivision">Subdivision</label>
             <select
-              id="practice-metronome-subdivision"
+              id="practice-subdivision"
               onChange={(event) =>
-                onClickSubdivisionChange(
+                onSubdivisionChange(
                   event.target.value as PracticeTabSubdivision,
                 )
               }
-              value={clickSubdivision}
+              value={subdivision}
             >
               {practiceSubdivisionOptions.map((option) => (
                 <option key={option.value} value={option.value}>

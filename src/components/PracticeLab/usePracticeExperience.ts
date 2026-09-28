@@ -20,7 +20,6 @@ import { useAppSelector } from "@/lib/redux/store";
 import usePracticeTransport from "./usePracticeTransport";
 
 type PracticeExperienceState = {
-  clickSubdivision: PracticeTabSubdivision;
   countInEnabled: boolean;
   instrument: PracticeInstrument;
   instrumentPlaybackEnabled: boolean;
@@ -28,6 +27,7 @@ type PracticeExperienceState = {
   metronomeVolume: number;
   routineId: PracticeRoutineId;
   screen: PracticeExperienceScreen;
+  selectedSubdivision: PracticeTabSubdivision;
   stepIndex: number;
   tempo: number;
   volume: number;
@@ -49,7 +49,7 @@ type PracticeExperienceAction =
   | { type: "complete" }
   | { type: "repeat" }
   | { tempo: number; type: "set-tempo" }
-  | { subdivision: PracticeTabSubdivision; type: "set-click-subdivision" }
+  | { subdivision: PracticeTabSubdivision; type: "set-subdivision" }
   | { type: "toggle-count-in" }
   | { type: "toggle-metronome" }
   | { type: "toggle-instrument-playback" }
@@ -66,7 +66,6 @@ type PracticeExerciseSelection = {
 };
 
 const defaultState: PracticeExperienceState = {
-  clickSubdivision: firstExample.subdivision,
   countInEnabled: true,
   instrument: "clean-guitar",
   instrumentPlaybackEnabled: false,
@@ -74,6 +73,7 @@ const defaultState: PracticeExperienceState = {
   metronomeVolume: 70,
   routineId: practiceRoutines[0].id,
   screen: "library",
+  selectedSubdivision: firstExample.subdivision,
   stepIndex: 0,
   tempo: firstExample.bpm,
   volume: 70,
@@ -111,9 +111,9 @@ const openExerciseState = (
 
   return {
     ...state,
-    clickSubdivision: example.subdivision,
     routineId: routine.id,
     screen: "session",
+    selectedSubdivision: example.subdivision,
     stepIndex: routine.steps.indexOf(step),
     tempo: example.bpm,
   };
@@ -135,9 +135,9 @@ const reducer = (
     case "open-exercise":
       return {
         ...state,
-        clickSubdivision: action.exampleSubdivision,
         routineId: action.routineId,
         screen: "session",
+        selectedSubdivision: action.exampleSubdivision,
         stepIndex: action.stepIndex,
         tempo: action.exampleBpm,
       };
@@ -165,8 +165,8 @@ const reducer = (
       return { ...state, screen: "session" };
     case "set-tempo":
       return { ...state, tempo: clampPracticeTempo(action.tempo) };
-    case "set-click-subdivision":
-      return { ...state, clickSubdivision: action.subdivision };
+    case "set-subdivision":
+      return { ...state, selectedSubdivision: action.subdivision };
     case "toggle-count-in":
       return { ...state, countInEnabled: !state.countInEnabled };
     case "toggle-metronome":
@@ -230,10 +230,10 @@ export default function usePracticeExperience(exerciseId?: string) {
   );
   const nextExercise = exerciseOrder[orderIndex + 1];
   const transportConfig = {
-    authoredSubdivision: activeExample.subdivision,
-    clickSubdivision: state.clickSubdivision,
     countInEnabled: state.countInEnabled,
+    eventCount: activeExample.events.length,
     metronomeEnabled: state.metronomeEnabled,
+    subdivision: state.selectedSubdivision,
     tempo: state.tempo,
     volume: state.metronomeVolume,
   };
@@ -306,9 +306,9 @@ export default function usePracticeExperience(exerciseId?: string) {
     dispatch({ tempo: nextTempo, type: "set-tempo" });
   };
 
-  const setClickSubdivision = (subdivision: PracticeTabSubdivision) => {
-    configureTransport({ clickSubdivision: subdivision });
-    dispatch({ subdivision, type: "set-click-subdivision" });
+  const setSubdivision = (subdivision: PracticeTabSubdivision) => {
+    configureTransport({ subdivision });
+    dispatch({ subdivision, type: "set-subdivision" });
   };
 
   const toggleCountIn = () => {
@@ -369,7 +369,7 @@ export default function usePracticeExperience(exerciseId?: string) {
     openExercise,
     openNextExercise,
     repeatExercise,
-    setClickSubdivision,
+    setSubdivision,
     setMetronomeVolume,
     setTempo,
     state,

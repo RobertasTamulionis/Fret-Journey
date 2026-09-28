@@ -130,7 +130,7 @@ markers remain visual output rather than selectable practice targets.
   `src/features/practice/resolvePracticeTab.ts` resolves context-specific scores.
 - `src/features/practice/session.ts` owns derived session display helpers and
   the bounded tempo, subdivision, and instrument option contracts.
-- `src/features/practice/timing.ts` owns pure beat, slot, timeline, and
+- `src/features/practice/timing.ts` owns pure beat, event-index, timeline, and
   metronome-pulse planning; `src/features/practice/audio` owns the headless Web
   Audio transport and scheduler.
 - `docs/PROGRESSION_SOURCES.md` documents provenance, licenses, and the import
@@ -281,7 +281,7 @@ Animations
 - subtle
 - never distracting
 - Use Motion through `motion/react` for reusable presentation transitions.
-  Motion must never own musical timing, transport state, active-slot
+  Motion must never own musical timing, transport state, active-event
   calculation, or Web Audio scheduling.
 - Prefer opacity and small transforms, respect reduced-motion preferences, and
   avoid animating high-frequency tablature nodes or state that is already
@@ -370,13 +370,12 @@ Current ownership and terminology:
   coordination recipes stay key-independent. Custom tunings must be labeled as
   octave-register-unverified rather than borrowing preset MIDI registers.
 - Changing key, scale, string count, or tuning during a session must stop the
-  transport, reset the playhead, render the new resolved score, and announce
-  the reset through an `aria-live` region.
+  transport, reset Follow Along to the first event, render the new resolved
+  score, and announce the reset through an `aria-live` region.
 - Start, Pause, and Resume control a transport-configured count-in (currently
-  four beats), audible metronome, and looping visual playhead. Web Audio time is
-  the transport clock. Visual snapshots and audible pulses share pure
-  beat/timing helpers; click subdivision remains independent from authored
-  score subdivision and must not rewrite the score or its playhead timing.
+  four beats), audible metronome, and looping current-event highlight. Web Audio
+  time is the transport clock. The selected subdivision controls both events
+  per beat and metronome pulse density without rebuilding the authored TAB.
 - The exercise-duration value is a static authored practice window, not a
   countdown. Completion is user-triggered; there is no automatic completion,
   scoring, or saved history.
@@ -387,7 +386,7 @@ Current ownership and terminology:
 ## Practice Design and Interaction Principles
 
 - In the session, prioritize the current exercise, readable graphical
-  tablature, active playhead/note, authored practice window, tempo, and primary
+  tablature, active event, authored practice window, tempo, and primary
   transport action. Settings and the compact pattern diagram stay secondary.
 - Keep idle, playing, paused, and completed states visually and semantically
   distinct. Completed is a separate screen; it is not another transport status.
@@ -397,8 +396,9 @@ Current ownership and terminology:
 - Communicate past, current, and upcoming score states through position, shape,
   contrast, and text as well as color. Keep notation readable while the current
   fret, pattern-position marker, and direction update.
-- Keep playhead movement subtle and synchronized with the existing timing
-  helper. Do not replace the practice engine solely to animate the score.
+- Keep Follow Along discrete: highlight only the current grouped note or rest,
+  fade played events, and leave upcoming events neutral. Presentation effects
+  must not determine musical timing.
 - Preserve native keyboard operation, visible focus states, semantic control
   labels, screen-transition focus management, a focusable horizontally
   scrollable score, and reduced-motion behavior. Do not add custom keyboard
@@ -410,15 +410,15 @@ Current ownership and terminology:
 
 ## Practice Audio Architecture
 
-- `src/features/practice/timing.ts` owns pure beat/slot conversion and pulse
-  planning. Both the visual playhead and scheduled clicks derive from that beat
-  axis.
+- `src/features/practice/timing.ts` owns pure beat/event-index conversion and
+  pulse planning. Both the current-event highlight and scheduled clicks derive
+  from that beat axis and the same selected subdivision.
 - `PracticeMetronomeEngine` has no React imports. It owns the Web Audio timeline
   and schedules a short look-ahead window against `AudioContext.currentTime`;
   its timeout only wakes the scheduler and is not the musical clock.
 - React samples transport snapshots with `requestAnimationFrame` for visual
   presentation. It does not advance musical time and avoids rerendering when
-  the visible phase, active slot, and count-in value have not changed.
+  the visible phase, active event, and count-in value have not changed.
 - Audio context creation/resume stays inside Start or Resume user gestures.
   Pause, exercise changes, manual completion, unmount, and tempo or pulse-plan
   changes cancel queued sources. A generation guard prevents stale activations
@@ -499,8 +499,9 @@ Current ownership and terminology:
 - Practice content remains a curated guided-routine library. Its durations,
   clean-tempo rules, success criteria, musical prompts, health note, and
   external research links remain instructional copy. The current session has a
-  looping visual playhead synchronized to its local tempo and the authored tab
-  subdivision, plus structural metronome and instrument preferences. It still
+  looping current-event highlight synchronized to its local tempo and selected
+  subdivision, plus structural metronome and instrument preferences. The TAB
+  sequence remains visually static. It still
   has no running countdown, backing track, reference-note audio, automatic
   completion, or saved completion system. Its first audio layer is a scheduled
   synthesized metronome with count-in, beat-one accent, and subdivision clicks.
