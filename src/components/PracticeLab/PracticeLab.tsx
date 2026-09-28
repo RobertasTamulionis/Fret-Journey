@@ -100,7 +100,7 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
                   dispatch({ instrument, type: "set-instrument" })
                 }
                 onPrimaryAction={handlePrimaryAction}
-                onSubdivisionChange={setClickSubdivision}
+                onClickSubdivisionChange={setClickSubdivision}
                 onTempoChange={setTempo}
                 onToggleCountIn={toggleCountIn}
                 onToggleInstrumentPlayback={() =>

@@ -15,6 +15,14 @@ import {
   practiceTabSlotCount,
 } from "@/features/practice/tablature";
 
+const exerciseRhythmLabels: Record<PracticeTabExample["subdivision"], string> =
+  {
+    quarters: "Quarter notes",
+    eighths: "8th notes",
+    triplets: "Triplets",
+    sixteenths: "16th notes",
+  };
+
 type PracticeTablatureProps = {
   activeSlot?: number;
   example: PracticeTabExample;
@@ -146,8 +154,8 @@ export default function PracticeTablature({
             <dd>{example.bpm} BPM</dd>
           </div>
           <div>
-            <dt>Grid</dt>
-            <dd>{example.subdivision}</dd>
+            <dt>Exercise rhythm</dt>
+            <dd>{exerciseRhythmLabels[example.subdivision]}</dd>
           </div>
           <div>
             <dt>Loop</dt>

@@ -66,7 +66,7 @@ assert.deepEqual(
 assert.deepEqual(
   eighthPulses.map(({ beat }) => getPracticeActiveSlotAtBeat(beat, "eighths")),
   [0, 1],
-  "Matching visual slots and audible subdivisions must use the same beat axis",
+  "An authored eighth-note exercise must use its own visual slot grid",
 );
 
 assert.deepEqual(
@@ -300,6 +300,66 @@ const verifyPracticeMetronomeEngine = async () => {
     "A tempo change must cancel every click queued under the old tempo",
   );
   assert.equal(tempoHarness.callbacks.size, 1);
+
+  const subdivisionHarness = createFakeEnvironment();
+  const subdivisionEngine = new PracticeMetronomeEngine(
+    {
+      ...baseConfig,
+      clickSubdivision: "quarters",
+      countInEnabled: false,
+      metronomeEnabled: true,
+    },
+    { environment: subdivisionHarness.environment, lookAheadSeconds: 1.2 },
+  );
+  await subdivisionEngine.start({ countInBeats: 0 });
+  subdivisionHarness.context.currentTime = 0.8;
+
+  const exerciseBeatBeforeSubdivisionChanges =
+    subdivisionEngine.getSnapshot().exerciseBeat;
+  const authoredSlotBeforeSubdivisionChanges =
+    subdivisionEngine.getSnapshot().activeSlot;
+
+  for (const clickSubdivision of [
+    "eighths",
+    "triplets",
+    "sixteenths",
+    "quarters",
+  ] as const) {
+    const clicksScheduledUnderPreviousSubdivision = [
+      ...subdivisionHarness.context.oscillators,
+    ];
+
+    subdivisionEngine.configure({
+      ...baseConfig,
+      clickSubdivision,
+      countInEnabled: false,
+      metronomeEnabled: true,
+    });
+
+    assert.equal(
+      subdivisionEngine.getSnapshot().exerciseBeat,
+      exerciseBeatBeforeSubdivisionChanges,
+      `${clickSubdivision} clicks must not move the exercise beat`,
+    );
+    assert.equal(
+      subdivisionEngine.getSnapshot().activeSlot,
+      authoredSlotBeforeSubdivisionChanges,
+      `${clickSubdivision} clicks must not alter the authored Follow Along slot`,
+    );
+    assert.ok(
+      clicksScheduledUnderPreviousSubdivision.every(
+        ({ stopTimes }) => stopTimes.at(-1) === 0.8,
+      ),
+      `${clickSubdivision} clicks must replace queued pulses from the previous subdivision`,
+    );
+    assert.ok(
+      subdivisionHarness.context.oscillators.length >
+        clicksScheduledUnderPreviousSubdivision.length,
+      `${clickSubdivision} clicks must schedule a new audible pulse plan`,
+    );
+  }
+
+  await subdivisionEngine.dispose();
 
   await tempoEngine.dispose();
   assert.equal(tempoHarness.callbacks.size, 0);

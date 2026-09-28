@@ -45,7 +45,7 @@ type PracticeSessionProps = {
   onInstrumentChange: (instrument: PracticeInstrument) => void;
   onMetronomeVolumeChange: (volume: number) => void;
   onPrimaryAction: () => void | Promise<void>;
-  onSubdivisionChange: (subdivision: PracticeTabSubdivision) => void;
+  onClickSubdivisionChange: (subdivision: PracticeTabSubdivision) => void;
   onTempoChange: (tempo: number) => void;
   onToggleCountIn: () => void;
   onToggleInstrumentPlayback: () => void;
@@ -235,7 +235,7 @@ export default function PracticeSession({
   onInstrumentChange,
   onMetronomeVolumeChange,
   onPrimaryAction,
-  onSubdivisionChange,
+  onClickSubdivisionChange,
   onTempoChange,
   onToggleCountIn,
   onToggleInstrumentPlayback,
@@ -466,11 +466,13 @@ export default function PracticeSession({
           </section>
 
           <section className="sessionControlGroup">
-            <label htmlFor="practice-subdivision">Click subdivision</label>
+            <label htmlFor="practice-metronome-subdivision">
+              Metronome subdivision
+            </label>
             <select
-              id="practice-subdivision"
+              id="practice-metronome-subdivision"
               onChange={(event) =>
-                onSubdivisionChange(
+                onClickSubdivisionChange(
                   event.target.value as PracticeTabSubdivision,
                 )
               }
