@@ -71,9 +71,10 @@ The application currently supports:
 - registered default pitches for 6-, 7-, and 8-string guitars
 - formula-independent dynamic diagrams containing every authored tone for all
   current scale and progression chords on 6-, 7-, and 8-string guitars
-- a progression-detail position explorer exposing every returned compact grip
-  by physical neck region, with session-local selections remembered per chord
-  step and reflected in the complete-progression overview
+- a progression-detail voicing navigator preserving every returned compact
+  grip by physical neck region, showing one primary grip at a time, with
+  session-local selections remembered per chord step and reflected in the
+  compact progression-shape strip
 
 The shared shell exposes `/`, `/progressions`, `/progressions/[slug]`, and
 `/practice` with real links and browser-history behavior. Fret cells and fret
@@ -376,9 +377,10 @@ Current ownership and terminology:
   four beats), audible metronome, and looping current-event highlight. Web Audio
   time is the transport clock. The selected subdivision controls both events
   per beat and metronome pulse density without rebuilding the authored TAB.
-- The exercise-duration value is a static authored practice window, not a
-  countdown. Completion is user-triggered; there is no automatic completion,
-  scoring, or saved history.
+- The authored exercise duration initializes an editable local countdown. It
+  derives elapsed time from the Web Audio transport, starts after count-in,
+  pauses and resumes with playback, and pauses the transport at zero.
+  Completion remains user-triggered; there is no scoring or saved history.
 - Count-in and exercise metronome enablement are separate controls. The
   metronome synthesizes a distinct beat-one accent plus optional subdivisions;
   reference-instrument controls remain preference-only and produce no audio.
@@ -386,8 +388,8 @@ Current ownership and terminology:
 ## Practice Design and Interaction Principles
 
 - In the session, prioritize the current exercise, readable graphical
-  tablature, active event, authored practice window, tempo, and primary
-  transport action. Settings and the compact pattern diagram stay secondary.
+  tablature, active event, editable practice timer, tempo, and primary transport
+  action. Settings and the compact pattern diagram stay secondary.
 - Keep idle, playing, paused, and completed states visually and semantically
   distinct. Completed is a separate screen; it is not another transport status.
 - Keep Practice consistent with Fret Journey's premium theme-driven visual
@@ -500,9 +502,9 @@ Current ownership and terminology:
   clean-tempo rules, success criteria, musical prompts, health note, and
   external research links remain instructional copy. The current session has a
   looping current-event highlight synchronized to its local tempo and selected
-  subdivision, plus structural metronome and instrument preferences. The TAB
-  sequence remains visually static. It still
-  has no running countdown, backing track, reference-note audio, automatic
+  subdivision, an editable transport-synchronized countdown, plus structural
+  metronome and instrument preferences. The TAB sequence remains visually
+  static. It still has no backing track, reference-note audio, automatic
   completion, or saved completion system. Its first audio layer is a scheduled
   synthesized metronome with count-in, beat-one accent, and subdivision clicks.
 - Authored Practice tablature is a verified immutable Standard E reference
@@ -525,10 +527,10 @@ Current ownership and terminology:
   8-string instruments are outside the named CAGED form.
 - Harmonic Minor and Phrygian Dominant expose 3NPS only. Minor Blues exposes
   Blues Boxes only.
-- There is no running exercise countdown, drums, backing track, reference-note
-  playback, progression trainer, saved practice progress, practice scoring,
-  account system, E2E runner, visual-regression suite, or CI workflow. Theme
-  preference is the only local persistence.
+- There are no drums, backing tracks, reference-note playback, progression
+  trainer, saved practice progress, practice scoring, account system, E2E
+  runner, visual-regression suite, or CI workflow. Theme preference is the only
+  local persistence.
 
 ---
 
@@ -585,10 +587,9 @@ now ship. The following remains future work:
   required-tone, omission, and doubling rules.
 - Add a deliberate registered-pitch workflow before supporting custom or
   re-entrant tuning diagrams.
-- Keep Practice countdown and audio beyond the first metronome layer, automatic
-  progression-wide voice-leading, progression building, AI suggestions,
-  favorites/history, accounts, cloud persistence, practice scoring, and song
-  associations deferred.
+- Keep Practice audio beyond the first metronome layer, automatic progression-
+  wide voice-leading, progression building, AI suggestions, favorites/history,
+  accounts, cloud persistence, practice scoring, and song associations deferred.
 
 Do not implement this remaining backlog until the user explicitly reopens it.
 

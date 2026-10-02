@@ -15,6 +15,8 @@ export type PracticeExperienceScreen = "library" | "session" | "complete";
 export type PracticeInstrument = "clean-guitar" | "piano" | "simple-tone";
 
 export const practiceDefaultCountInBeats = 4;
+export const practiceDurationMinimumMinutes = 1;
+export const practiceDurationMaximumMinutes = 120;
 
 export type PracticePositionSnapshot = {
   direction: string | null;
@@ -24,15 +26,34 @@ export type PracticePositionSnapshot = {
 
 const durationPattern = /^(\d+)\s*min$/i;
 
-export const formatPracticeDurationAsClock = (duration: string): string => {
+export const getPracticeDurationSeconds = (duration: string): number => {
   const match = duration.trim().match(durationPattern);
 
   if (!match) {
-    return duration;
+    return practiceDurationMinimumMinutes * 60;
   }
 
-  return `${match[1]}:00`;
+  return clampPracticeDurationMinutes(Number.parseInt(match[1], 10)) * 60;
 };
+
+export const clampPracticeDurationMinutes = (minutes: number): number =>
+  Math.min(
+    practiceDurationMaximumMinutes,
+    Math.max(practiceDurationMinimumMinutes, Math.round(minutes)),
+  );
+
+export const formatPracticeTime = (seconds: number): string => {
+  const safeSeconds = Math.max(0, Math.ceil(seconds));
+  const minutes = Math.floor(safeSeconds / 60);
+  const remainingSeconds = safeSeconds % 60;
+
+  return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+};
+
+export const getPracticeRemainingSeconds = (
+  durationSeconds: number,
+  elapsedSeconds: number,
+): number => Math.max(0, Math.ceil(durationSeconds - elapsedSeconds));
 
 export const getPracticePositionSnapshot = (
   example: PracticeTabExample,

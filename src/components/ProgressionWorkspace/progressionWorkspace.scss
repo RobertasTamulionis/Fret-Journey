@@ -1,51 +1,33 @@
-@use "mixins" as *;
 @use "variables" as *;
 
 .progressionWorkspace {
   display: grid;
-  gap: 24px;
+  gap: 14px;
 
-  &__loading {
-    min-height: 420px;
-    display: grid;
-    place-items: center;
-    color: $muted;
-    font-size: 13px;
-  }
+  &__loading { min-height: 420px; display: grid; place-items: center; color: $muted; }
 
   &__hero {
     display: grid;
-    grid-template-columns: minmax(0, 1.5fr) minmax(360px, 0.75fr);
+    grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
     align-items: end;
-    gap: 42px;
-    padding: 8px 4px 4px;
+    gap: 32px;
+    padding: 4px;
   }
 
   &__backLink {
-    width: max-content;
     display: inline-flex;
-    align-items: center;
     gap: 7px;
-    margin-bottom: 28px;
+    margin-bottom: 14px;
     color: $muted;
     font-size: 11px;
     font-weight: 620;
     text-decoration: none;
-    transition: color $transition;
 
-    &:hover {
-      color: $cyan;
-    }
-
-    &:focus-visible {
-      outline: 2px solid var(--color-focus);
-      outline-offset: 4px;
-      border-radius: 4px;
-    }
+    &:hover { color: $cyan; }
+    &:focus-visible { outline: 2px solid var(--color-focus); outline-offset: 4px; }
   }
 
-  &__eyebrow,
-  &__sectionEyebrow {
+  &__eyebrow, &__sectionEyebrow {
     display: block;
     color: $cyan;
     font-size: 9px;
@@ -54,626 +36,226 @@
     text-transform: uppercase;
   }
 
-  &__heading {
-    margin: 8px 0 0 !important;
+  &__identity h1 {
+    margin: 5px 0 0 !important;
     color: $white !important;
-    font-size: 36px !important;
+    font-size: 31px !important;
     font-weight: 720 !important;
-    letter-spacing: -0.048em !important;
+    letter-spacing: -0.045em !important;
     text-transform: none !important;
   }
 
-  &__formula,
-  &__chordNames {
-    font-family: var(--font-geist-mono), monospace;
-  }
+  &__formula, &__chordNames { font-family: var(--font-geist-mono), monospace; }
+  &__formula { margin: 10px 0 0; color: var(--color-text-strong); font-size: 19px; font-weight: 650; }
+  &__chordNames { margin: 5px 0 0; color: $cyan; font-size: 13px; }
 
-  &__formula {
-    margin: 22px 0 0;
-    color: var(--color-text-strong);
-    font-size: 23px;
-    font-weight: 650;
-    letter-spacing: -0.04em;
-  }
-
-  &__chordNames {
-    margin: 9px 0 0;
-    color: $cyan;
-    font-size: 15px;
-    font-weight: 580;
-  }
-
+  &__heroAside { display: grid; justify-items: end; gap: 10px; }
   &__why {
-    padding: 20px;
-    border: 1px solid color-mix(in srgb, $cyan 14%, transparent);
-    border-radius: 17px;
-    background: var(--panel-background-soft);
+    margin: 0;
+    color: var(--color-text-soft);
+    font-size: 11px;
+    line-height: 1.55;
+    text-align: right;
 
-    > span {
-      color: $cyan;
-      font-size: 9px;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-    }
-
-    p {
-      margin: 10px 0 0;
-      color: var(--color-text-soft);
-      font-size: 13px;
-      line-height: 1.65;
-    }
+    strong { margin-right: 8px; color: $cyan; font-size: 9px; letter-spacing: 0.06em; text-transform: uppercase; }
   }
 
   &__compatibilityNotice {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    display: flex;
     align-items: center;
-    gap: 14px;
-    padding: 14px 17px;
-    border: 1px solid
-      color-mix(in srgb, var(--semantic-warning) 24%, transparent);
-    border-radius: 13px;
-    background: color-mix(
-      in srgb,
-      var(--semantic-warning) 5.5%,
-      transparent
-    );
+    gap: 12px;
+    padding: 9px 13px;
+    border: 1px solid color-mix(in srgb, var(--semantic-warning) 24%, transparent);
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--semantic-warning) 5%, transparent);
     color: var(--color-text-soft);
-    font-size: 11px;
-    line-height: 1.5;
+    font-size: 10px;
 
-    strong {
-      color: var(--semantic-warning);
-      font-size: 11px;
-    }
-  }
-
-  &__timelinePanel,
-  &__activeChord,
-  &__neckPanel,
-  &__overview {
-    min-width: 0;
-    padding: 20px;
-    border: 1px solid $border;
-    border-radius: 19px;
-    background:
-      radial-gradient(
-        circle at 100% 0%,
-        color-mix(in srgb, $cyan 4.5%, transparent),
-        transparent 31%
-      ),
-      var(--panel-background);
-    box-shadow: var(--shadow-panel);
-  }
-
-  &__sectionHeader {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
-    margin-bottom: 16px;
-
-    h2 {
-      margin: 6px 0 0;
-      color: $white;
-      font-size: 16px;
-      font-weight: 680;
-      letter-spacing: -0.02em;
-    }
-
-    > p {
-      max-width: 520px;
-      margin: 2px 0 0;
-      color: $muted;
-      font-size: 11px;
-      line-height: 1.5;
-      text-align: right;
-    }
-  }
-
-  &__timelineNavigation {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-
-    button {
-      height: 32px;
-      padding-inline: 11px;
-      font-size: 10px;
-    }
-
-    span {
-      min-width: 42px;
-      color: $muted;
-      font-family: var(--font-geist-mono), monospace;
-      font-size: 10px;
-      text-align: center;
-    }
+    strong { color: var(--semantic-warning); }
   }
 
   &__timeline {
     min-inline-size: 0;
     display: flex;
-    gap: 8px;
+    gap: 7px;
     margin: 0;
-    padding: 0;
+    padding: 9px;
     overflow-x: auto;
-    border: 0;
-  }
-
-  &__timelineStep {
-    min-width: 132px;
-    height: 80px;
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
-    align-content: center;
-    align-items: baseline;
-    gap: 5px 9px;
-    padding: 11px 13px;
-    border-radius: 12px;
-    text-align: left;
-
-    > span {
-      color: $cyan;
-      font-family: var(--font-geist-mono), monospace;
-      font-size: 12px;
-      font-weight: 680;
-    }
-
-    strong {
-      min-width: 0;
-      overflow: hidden;
-      color: $white;
-      font-size: 13px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-
-    small {
-      grid-column: 1 / -1;
-      color: $muted;
-      font-size: 9px;
-    }
-
-    &--active {
-      border-color: color-mix(in srgb, $cyan 52%, transparent);
-      background: var(--control-background-active);
-      box-shadow:
-        inset 2px 2px 7px var(--color-shadow),
-        0 0 17px color-mix(in srgb, $cyan 10%, transparent);
-    }
-  }
-
-  &__activeChord {
-    display: grid;
-    gap: 20px;
-  }
-
-  &__activeHeader {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 24px;
-    padding-bottom: 16px;
-    border-bottom: 1px solid color-mix(in srgb, $cyan 10%, transparent);
-
-    h2 {
-      margin: 6px 0 0;
-      color: $white;
-      font-size: 27px;
-      font-weight: 720;
-      letter-spacing: -0.04em;
-    }
-
-    p {
-      margin: 8px 0 0;
-    }
-  }
-
-  &__noteList {
-    color: $cyan;
-    font-family: var(--font-geist-mono), monospace;
-    font-size: 13px;
-    font-weight: 590;
-  }
-
-  &__openButton {
-    min-width: 154px;
-  }
-
-  &__activeGrid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 390px;
-    align-items: start;
-    gap: 24px;
-  }
-
-  &__voicingColumn {
-    min-width: 0;
-    display: grid;
-    gap: 18px;
-  }
-
-  &__viewControls {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) 170px;
-    align-items: end;
-    gap: 18px;
-
-    fieldset {
-      min-inline-size: 0;
-      margin: 0;
-      padding: 0;
-      border: 0;
-
-      legend {
-        padding: 0;
-      }
-
-      > div {
-        display: grid;
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        gap: 8px;
-
-        button {
-          min-width: 0;
-          padding-inline: 10px;
-          font-size: 11px;
-        }
-      }
-    }
-  }
-
-  &__fretControl {
-    .fretCountSelector {
-      padding: 0;
-      border: 0;
-    }
-
-    legend {
-      padding: 0;
-    }
-  }
-
-  &__voicingFacts {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-    margin: 0;
-
-    > div {
-      min-width: 0;
-      display: grid;
-      gap: 5px;
-      padding: 11px;
-      border: 1px solid var(--color-border);
-      border-radius: 10px;
-      background: var(--panel-background-soft);
-    }
-
-    dt {
-      color: $muted;
-      font-size: 8px;
-      font-weight: 680;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-    }
-
-    dd {
-      min-width: 0;
-      margin: 0;
-      overflow: hidden;
-      color: $white;
-      font-size: 11px;
-      font-weight: 620;
-      text-overflow: ellipsis;
-      text-transform: capitalize;
-      white-space: nowrap;
-    }
-  }
-
-  &__diagramColumn {
-    display: grid;
-    justify-items: center;
-    gap: 10px;
-
-    > .progressionWorkspace__sectionEyebrow {
-      justify-self: start;
-    }
-  }
-
-  &__neckPanel {
-    display: grid;
-    gap: 16px;
-  }
-
-  &__neckPanel > .fretboard {
-    margin-top: 0;
-  }
-
-  &__positionExplorer {
-    min-width: 0;
-    display: grid;
-    gap: 14px;
-    padding: 15px;
-    border: 1px solid color-mix(in srgb, $cyan 13%, var(--color-border));
+    border: 1px solid $border;
     border-radius: 15px;
     background: var(--panel-background-soft);
   }
 
-  &__positionExplorerHeader {
+  &__timelineStep {
+    min-width: 118px;
+    height: 58px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-content: center;
+    align-items: baseline;
+    gap: 3px 8px;
+    padding: 8px 11px;
+    text-align: left;
+
+    > span { color: $cyan; font-family: var(--font-geist-mono), monospace; font-size: 11px; font-weight: 700; }
+    strong { overflow: hidden; color: $white; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+    small { grid-column: 1 / -1; color: $muted; font-size: 8px; text-transform: uppercase; }
+
+    &[aria-pressed="true"] {
+      border-color: color-mix(in srgb, $cyan 55%, transparent);
+      background: var(--control-background-active);
+      box-shadow: 0 0 14px color-mix(in srgb, $cyan 9%, transparent);
+
+      small { color: $cyan; }
+    }
+  }
+
+  &__main {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 292px;
+    border: 1px solid $border;
+    border-radius: 18px;
+    overflow: hidden;
+    background: var(--panel-background);
+    box-shadow: var(--shadow-panel);
+  }
+
+  &__neckWorkspace { min-width: 0; display: grid; align-content: start; gap: 10px; padding: 14px; }
+
+  &__activeHeader {
     display: flex;
     align-items: end;
     justify-content: space-between;
-    gap: 20px;
+    gap: 16px;
 
-    h3 {
-      margin: 5px 0 0;
-      color: $white;
-      font-size: 14px;
-      font-weight: 670;
-      letter-spacing: -0.015em;
-    }
-
-    > p {
-      margin: 0;
-      color: $muted;
-      font-size: 10px;
-      line-height: 1.4;
-      text-align: right;
-    }
+    h2 { margin: 3px 0 0; color: $white; font-size: 23px; letter-spacing: -0.035em; }
+    p { margin: 4px 0 0; color: $cyan; font-family: var(--font-geist-mono), monospace; font-size: 11px; }
   }
 
-  &__positionRegions {
-    min-width: 0;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  &__positionRegion {
-    min-width: 0;
-    height: auto;
-    min-height: 54px;
-    display: grid;
-    align-content: center;
-    gap: 4px;
-    padding: 9px 12px;
-    text-align: left;
-
-    strong {
-      color: var(--color-text-strong);
-      font-size: 11px;
-      font-weight: 670;
-    }
-
-    span {
-      color: $muted;
-      font-family: var(--font-geist-mono), monospace;
-      font-size: 8px;
-      white-space: nowrap;
-    }
-
-    &[aria-pressed="true"] {
-      border-color: color-mix(in srgb, $cyan 52%, transparent);
-      background: var(--control-background-active);
-      box-shadow: 0 0 14px color-mix(in srgb, $cyan 8%, transparent);
-
-      strong {
-        color: $cyan;
-      }
-    }
-
-    &:disabled {
-      opacity: 0.42;
-    }
-  }
-
-  &__positionResults {
-    min-width: 0;
-    display: grid;
-    gap: 10px;
-    padding-top: 2px;
-  }
-
-  &__positionResultsHeader {
+  &__neckActions {
     display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 12px;
-
-    h4,
-    p {
-      margin: 0;
-    }
-
-    h4 {
-      color: var(--color-text-soft);
-      font-size: 11px;
-      font-weight: 670;
-    }
-
-    p {
-      color: $muted;
-      font-family: var(--font-geist-mono), monospace;
-      font-size: 8px;
-      white-space: nowrap;
-    }
-  }
-
-  &__positionGallery {
-    min-width: 0;
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px;
-  }
-
-  &__positionGrip {
-    min-width: 0;
-    display: grid;
-    align-content: start;
+    align-items: end;
     gap: 7px;
-    padding: 9px;
-    border: 1px solid var(--color-border);
-    border-radius: 13px;
-    background: var(--panel-background);
 
-    &[data-active="true"] {
-      border-color: color-mix(in srgb, $cyan 38%, transparent);
-      box-shadow: 0 0 15px color-mix(in srgb, $cyan 6%, transparent);
+    fieldset { display: flex; gap: 5px; margin: 0; padding: 0; border: 0; }
+    legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    button { height: 32px; padding-inline: 10px; font-size: 9px; }
+    button[aria-pressed="true"] { border-color: color-mix(in srgb, $cyan 52%, transparent); color: $cyan; }
+
+    .fretCountSelector { padding: 0; border: 0; }
+    .fretCountSelector__heading {
+      margin: 0 0 5px !important;
+      font-size: 9px !important;
+      letter-spacing: 0.06em !important;
     }
-
-    > .chordDiagram {
-      max-width: none;
-      padding: 7px;
-      border: 0;
-      background: transparent;
-      box-shadow: none;
-    }
-
-    > p {
-      min-width: 0;
-      display: grid;
-      gap: 3px;
-      margin: 0;
-      padding: 0 5px 4px;
-
-      strong,
-      span {
-        min-width: 0;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-      }
-
-      strong {
-        color: var(--color-text-soft);
-        font-size: 9px;
-        font-weight: 650;
-      }
-
-      span {
-        color: $muted;
-        font-size: 8px;
-        text-transform: capitalize;
-      }
-    }
+    .fretCountSelector button { min-width: 36px; }
   }
 
-  &__positionGripHeader {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
-    padding-inline: 5px;
-    color: $muted;
-    font-size: 8px;
-    font-weight: 680;
-    letter-spacing: 0.055em;
-    text-transform: uppercase;
+  &__neckWorkspace > .fretboard {
+    grid-template-columns: 48px minmax(0, 1fr);
+    margin-top: 0;
+    padding: 13px;
 
-    strong {
-      color: $cyan;
-      font-size: 8px;
-      font-weight: 680;
-      letter-spacing: 0;
-      text-transform: none;
-    }
+    &::before { top: 13px; left: 59px; }
+    .fretboard__fret-piece, .fretboard__number { min-width: 0; }
   }
 
-  &__overview {
-    display: grid;
-  }
-
-  &__overviewGrid {
-    display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  &__overviewCard {
+  &__voicingPanel {
     min-width: 0;
     display: grid;
     align-content: start;
     justify-items: stretch;
     gap: 10px;
-    padding: 12px;
-    border: 1px solid var(--color-border);
-    border-radius: 15px;
+    padding: 14px;
+    border-left: 1px solid var(--color-border);
     background: var(--panel-background-soft);
 
-    &--active {
-      border-color: color-mix(in srgb, $cyan 42%, transparent);
-      box-shadow: 0 0 18px color-mix(in srgb, $cyan 7%, transparent);
-    }
-
-    > .chordDiagram {
-      max-width: none;
-      border: 0;
-      background: transparent;
-      box-shadow: none;
-    }
-
-    > button {
-      height: 32px;
-      padding-inline: 10px;
-      font-size: 10px;
-    }
+    h2 { margin: 4px 0 0; color: $white; font-size: 21px; }
+    > div:first-child p { margin: 4px 0 0; color: $muted; font-size: 9px; }
+    > .chordDiagram { max-width: none; padding: 8px; border: 0; background: transparent; box-shadow: none; }
+    > .chordDiagram .chordDiagram__graphic { height: 200px; }
   }
 
-  &__overviewHeading {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 8px;
+  &__regions { min-inline-size: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 5px; margin: 0; padding: 0; border: 0; }
+  &__regions legend { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+  &__regions button { min-width: 0; height: 30px; padding-inline: 5px; font-size: 8px; }
+  &__regions button[aria-pressed="true"] { border-color: color-mix(in srgb, $cyan 50%, transparent); color: $cyan; }
 
-    span {
-      color: $cyan;
-      font-family: var(--font-geist-mono), monospace;
-      font-size: 11px;
-      font-weight: 680;
-    }
+  &__voicingNavigation {
+    display: grid;
+    grid-template-columns: 34px 1fr 34px;
+    align-items: center;
+    gap: 7px;
 
-    strong {
-      min-width: 0;
-      overflow: hidden;
-      color: $white;
-      font-size: 11px;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    button { width: 34px; height: 30px; padding: 0; }
+    span { color: var(--color-text-soft); font-family: var(--font-geist-mono), monospace; font-size: 10px; text-align: center; }
   }
 
-  &__overviewLocation {
-    margin: -5px 0 0;
-    color: $muted;
-    font-family: var(--font-geist-mono), monospace;
-    font-size: 9px;
-    text-align: center;
+  &__voicingFacts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+    margin: 0;
+
+    div { min-width: 0; display: grid; gap: 3px; padding: 7px; border: 1px solid var(--color-border); border-radius: 8px; }
+    dt { color: $muted; font-size: 7px; letter-spacing: 0.05em; text-transform: uppercase; }
+    dd { margin: 0; overflow: hidden; color: var(--color-text-soft); font-size: 8px; text-overflow: ellipsis; text-transform: capitalize; white-space: nowrap; }
   }
 
+  &__shapes {
+    min-width: 0;
+    display: grid;
+    grid-template-columns: 140px minmax(0, 1fr);
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid $border;
+    border-radius: 16px;
+    background: var(--panel-background-soft);
+  }
+
+  &__shapesHeader h2 { margin: 4px 0 0; color: $white; font-size: 14px; }
+  &__shapeStrip { min-width: 0; display: flex; gap: 8px; overflow-x: auto; }
+
+  &__shapePreview {
+    min-width: 150px;
+    flex: 1 1 0;
+    display: grid;
+    gap: 4px;
+    padding: 8px;
+    text-align: left;
+
+    > span { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; }
+    strong { color: $white; font-size: 10px; }
+    small { color: $muted; font-size: 8px; }
+    > .chordDiagram { max-width: none; height: 104px; padding: 0; border: 0; background: transparent; box-shadow: none; }
+    .chordDiagram__caption, .chordDiagram__tuning { display: none; }
+    .chordDiagram__graphic { height: 100px; }
+
+    &[aria-pressed="true"] { border-color: color-mix(in srgb, $cyan 52%, transparent); background: var(--control-background-active); }
+  }
 }
 
-@media (max-width: 1450px) {
+@media (max-width: 1200px) {
   .progressionWorkspace {
-    &__hero {
-      grid-template-columns: minmax(0, 1.25fr) minmax(340px, 0.75fr);
-    }
+    &__main { grid-template-columns: minmax(0, 1fr) 270px; }
+    &__neckActions > button:last-child { display: none; }
+  }
+}
 
-    &__activeGrid {
-      grid-template-columns: minmax(0, 1fr) 340px;
-    }
-
-    &__positionGallery,
-    &__overviewGrid {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
+@media (max-width: 900px) {
+  .progressionWorkspace {
+    &__hero, &__main, &__shapes { grid-template-columns: 1fr; }
+    &__heroAside { justify-items: stretch; }
+    &__why { text-align: left; }
+    &__activeHeader { align-items: flex-start; flex-direction: column; }
+    &__neckActions { flex-wrap: wrap; }
+    &__voicingPanel { border-top: 1px solid var(--color-border); border-left: 0; }
+    &__shapes { align-items: start; }
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .progressionWorkspace__backLink {
-    transition: none;
-  }
+  .progressionWorkspace, .progressionWorkspace * { scroll-behavior: auto; transition: none; }
 }

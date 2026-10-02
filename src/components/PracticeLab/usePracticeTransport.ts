@@ -14,6 +14,7 @@ type UsePracticeTransportOptions = PracticeMetronomeConfig & {
 const initialSnapshot: PracticeTransportSnapshot = {
   activeEventIndex: 0,
   countInBeatsRemaining: 0,
+  elapsedExerciseSeconds: 0,
   exerciseBeat: 0,
   phase: "idle",
 };
@@ -24,6 +25,8 @@ const snapshotsMatchForPresentation = (
 ): boolean =>
   current.activeEventIndex === next.activeEventIndex &&
   current.countInBeatsRemaining === next.countInBeatsRemaining &&
+  Math.floor(current.elapsedExerciseSeconds) ===
+    Math.floor(next.elapsedExerciseSeconds) &&
   current.phase === next.phase;
 
 export default function usePracticeTransport({

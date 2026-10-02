@@ -10,10 +10,7 @@ import { useAppSelector } from "@/lib/redux/store";
 import "./musicalContextBar.scss";
 
 const supportsMusicalContext = (pathname: string): boolean =>
-  pathname === "/" ||
-  pathname === "/progressions" ||
-  pathname.startsWith("/progressions/") ||
-  pathname === "/practice";
+  pathname === "/" || pathname === "/practice";
 
 export default function MusicalContextBar() {
   const pathname = usePathname();

@@ -14,7 +14,6 @@ export type ProgressionDifficultyFilter =
   | "beginner"
   | "intermediate"
   | "advanced";
-export type ProgressionSort = "recommended" | "shortest" | "alphabetical";
 export type ProgressionVisualizationMode =
   | "selected-voicing"
   | "all-chord-tones";
@@ -30,7 +29,6 @@ export type ProgressionLabState = {
   mood: string;
   search: string;
   selectedVoicingSignaturesByStepId: Record<string, string>;
-  sort: ProgressionSort;
   style: string;
   visualizationMode: ProgressionVisualizationMode;
 };
@@ -46,7 +44,6 @@ const initialState: ProgressionLabState = {
   mood: "all",
   search: "",
   selectedVoicingSignaturesByStepId: {},
-  sort: "recommended",
   style: "all",
   visualizationMode: "selected-voicing",
 };
@@ -59,18 +56,6 @@ const progressionLabSlice = createSlice({
       state.activeStepIndex = 0;
       state.selectedVoicingSignaturesByStepId = {};
       state.visualizationMode = "selected-voicing";
-    },
-    resetProgressionFilters: (state) => {
-      state.category = initialState.category;
-      state.chordCount = initialState.chordCount;
-      state.compatibility = initialState.compatibility;
-      state.device = initialState.device;
-      state.difficulty = initialState.difficulty;
-      state.harmonicScope = initialState.harmonicScope;
-      state.mood = initialState.mood;
-      state.search = initialState.search;
-      state.sort = initialState.sort;
-      state.style = initialState.style;
     },
     setProgressionActiveStep: (state, action: PayloadAction<number>) => {
       if (Number.isInteger(action.payload) && action.payload >= 0) {
@@ -113,9 +98,6 @@ const progressionLabSlice = createSlice({
     setProgressionSearch: (state, action: PayloadAction<string>) => {
       state.search = action.payload;
     },
-    setProgressionSort: (state, action: PayloadAction<ProgressionSort>) => {
-      state.sort = action.payload;
-    },
     setProgressionStyle: (state, action: PayloadAction<string>) => {
       state.style = action.payload;
     },
@@ -150,7 +132,6 @@ const progressionLabSlice = createSlice({
 
 export const {
   resetProgressionDetail,
-  resetProgressionFilters,
   setProgressionActiveStep,
   setProgressionCategory,
   setProgressionChordCount,
@@ -160,7 +141,6 @@ export const {
   setProgressionHarmonicScope,
   setProgressionMood,
   setProgressionSearch,
-  setProgressionSort,
   setProgressionStyle,
   setProgressionVisualizationMode,
   setSelectedVoicingSignature,

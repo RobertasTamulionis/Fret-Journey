@@ -1,61 +1,100 @@
 @use "variables" as *;
 
 .progressionContext {
-  display: grid;
-  gap: 16px;
-  padding: 20px;
-  border: 1px solid $border;
-  border-radius: 18px;
-  background: var(--panel-background);
-  box-shadow: var(--shadow-panel);
+  position: relative;
+  min-width: min(100%, 360px);
 
   &__summary {
+    min-height: 40px;
     display: flex;
-    align-items: baseline;
-    gap: 10px;
-    color: $muted;
-    font-size: 12px;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    padding: 0 13px;
+    border: 1px solid var(--color-border);
+    border-radius: 11px;
+    background: var(--control-background);
+    box-shadow: var(--shadow-control);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker { display: none; }
 
     strong {
-      color: $white;
+      color: var(--color-text-strong);
       font-family: var(--font-geist-mono), monospace;
-      font-size: 12px;
+      font-size: 11px;
       font-weight: 620;
+    }
+
+    > span {
+      color: $cyan;
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 3px;
     }
   }
 
-  &__summaryLabel {
-    font-size: 10px;
-    font-weight: 680;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
+  &[open] &__summary {
+    border-color: color-mix(in srgb, $cyan 46%, transparent);
   }
 
   &__controls {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 120;
+    width: min(900px, calc(100vw - 48px));
     display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 24px;
-    padding-top: 16px;
-    border-top: 1px solid color-mix(in srgb, $cyan 10%, transparent);
-
-    > * {
-      min-width: 0;
-    }
-
-    .availableScales__scales {
-      grid-template-columns: repeat(5, minmax(0, 1fr));
-    }
-
-    .availableScales__scale:last-child:nth-child(odd) {
-      grid-column: auto;
-    }
+    gap: 16px;
+    padding: 16px;
+    border: 1px solid color-mix(in srgb, $cyan 22%, var(--color-border));
+    border-radius: 16px;
+    background: var(--color-surface-raised);
+    box-shadow: var(--shadow-elevated);
   }
 
-  &--compact {
-    padding: 14px 16px;
+  &__tonalControls {
+    display: grid;
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+    gap: 16px;
   }
 
-  &--compact &__summary {
-    justify-content: space-between;
+  &__instrumentControls {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: end;
+    gap: 16px;
+    padding-top: 14px;
+    border-top: 1px solid var(--color-border);
+
+    fieldset {
+      min-inline-size: 0;
+      margin: 0;
+      padding: 0;
+      border: 0;
+    }
+
+    .tuning { position: relative; display: flex; gap: 5px; padding: 0; }
+    .tuning__noteWrapper { position: static; height: 38px; }
+    .tuning__note { height: 38px; }
+    .tuning__selection { top: calc(100% + 8px); right: 0; left: auto; }
+  }
+
+  &--compact { min-width: min(100%, 330px); }
+}
+
+@media (max-width: 900px) {
+  .progressionContext {
+    width: 100%;
+
+    &__controls { right: auto; left: 0; }
+    &__tonalControls, &__instrumentControls { grid-template-columns: 1fr; }
   }
 }

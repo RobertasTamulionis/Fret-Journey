@@ -35,6 +35,8 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
     openExercise,
     openNextExercise,
     repeatExercise,
+    remainingSeconds,
+    setDurationMinutes,
     setSubdivision,
     setMetronomeVolume,
     setTempo,
@@ -93,8 +95,10 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
                 instrumentPlaybackEnabled={state.instrumentPlaybackEnabled}
                 metronomeEnabled={state.metronomeEnabled}
                 metronomeVolume={state.metronomeVolume}
+                durationMinutes={state.durationSeconds / 60}
                 onBack={backToLibrary}
                 onComplete={completeExercise}
+                onDurationChange={setDurationMinutes}
                 onInstrumentChange={(instrument) =>
                   dispatch({ instrument, type: "set-instrument" })
                 }
@@ -110,6 +114,7 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
                 onVolumeChange={(volume) =>
                   dispatch({ type: "set-volume", volume })
                 }
+                remainingSeconds={remainingSeconds}
                 routine={activeRoutine}
                 step={activeStep}
                 stepIndex={state.stepIndex}

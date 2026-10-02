@@ -16,10 +16,15 @@ type RouteTransitionProps = {
 
 function FrozenRouter({ children }: RouteTransitionProps) {
   const routerContext = useContext(LayoutRouterContext);
+  const pathname = usePathname();
   const frozenRouterContext = useRef(routerContext).current;
+  const frozenPathname = useRef(pathname).current;
+  // Same-route query changes must stay live; only freeze a tree that is exiting.
+  const activeRouterContext =
+    pathname === frozenPathname ? routerContext : frozenRouterContext;
 
   return (
-    <LayoutRouterContext.Provider value={frozenRouterContext}>
+    <LayoutRouterContext.Provider value={activeRouterContext}>
       {children}
     </LayoutRouterContext.Provider>
   );

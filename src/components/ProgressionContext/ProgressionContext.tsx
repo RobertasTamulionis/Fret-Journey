@@ -6,17 +6,18 @@ import {
   scaleDefinitions,
 } from "@/helpers/fretboardHelpers";
 import { useAppSelector } from "@/lib/redux/store";
+import AvailableKeys from "../AvailableKeys/AvailableKeys";
 import AvailableScales from "../AvailableScales/AvailableScales";
+import StringCountSelector from "../StringCountSelector/StringCountSelector";
+import Tuning from "../Tuning/Tuning";
 import "./progressionContext.scss";
 
 type ProgressionContextProps = {
   compact?: boolean;
-  controls?: boolean;
 };
 
 export default function ProgressionContext({
   compact = false,
-  controls = true,
 }: ProgressionContextProps) {
   const { currentKey, currentScale, registeredTuning, stringCount } =
     useAppSelector((state) => state.fretboard);
@@ -28,25 +29,33 @@ export default function ProgressionContext({
   )}`;
 
   return (
-    <section
+    <details
       aria-label="Shared musical and instrument context"
       className={`progressionContext ${
         compact ? "progressionContext--compact" : ""
       }`}
     >
-      <div
+      <summary
         aria-atomic="true"
         aria-live="polite"
         className="progressionContext__summary"
       >
-        <span className="progressionContext__summaryLabel">Current setup</span>
         <strong>{contextLabel}</strong>
-      </div>
-      {controls && (
-        <div className="progressionContext__controls">
+        <span aria-hidden="true">Edit</span>
+      </summary>
+      <div className="progressionContext__controls">
+        <div className="progressionContext__tonalControls">
+          <AvailableKeys />
           <AvailableScales />
         </div>
-      )}
-    </section>
+        <div className="progressionContext__instrumentControls">
+          <StringCountSelector />
+          <fieldset>
+            <legend>String tuning</legend>
+            <Tuning />
+          </fieldset>
+        </div>
+      </div>
+    </details>
   );
 }

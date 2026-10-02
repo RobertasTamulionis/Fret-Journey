@@ -28,6 +28,7 @@ export type PracticeMetronomeConfig = {
 export type PracticeTransportSnapshot = {
   activeEventIndex: number;
   countInBeatsRemaining: number;
+  elapsedExerciseSeconds: number;
   exerciseBeat: number;
   phase: PracticeAudioTransportPhase;
 };
@@ -54,6 +55,7 @@ type ActiveRun = {
   anchor: PracticeTimelineAnchor;
   countInBeats: number;
   countInStartAudioTime: number;
+  elapsedExerciseSecondsAtPlaybackStart: number;
   playbackStartAudioTime: number;
   playbackStartBeat: number;
 };
@@ -86,6 +88,7 @@ const defaultEnvironment: PracticeMetronomeEnvironment = {
 const defaultSnapshot: PracticeTransportSnapshot = {
   activeEventIndex: 0,
   countInBeatsRemaining: 0,
+  elapsedExerciseSeconds: 0,
   exerciseBeat: 0,
   phase: "idle",
 };
@@ -118,6 +121,7 @@ export class PracticeMetronomeEngine {
   private lookAheadSeconds: number;
   private mode: "idle" | "paused" | "running" = "idle";
   private pausedExerciseBeat = 0;
+  private pausedExerciseSeconds = 0;
   private run: ActiveRun | null = null;
   private runGain: GainNode | null = null;
   private scheduledClicks = new Set<ScheduledClick>();
@@ -211,6 +215,7 @@ export class PracticeMetronomeEngine {
       snapshot.exerciseBeat,
       this.config.subdivision,
     );
+    this.pausedExerciseSeconds = snapshot.elapsedExerciseSeconds;
     this.mode = "paused";
     this.run = null;
     this.cancelScheduledAudio();
@@ -233,6 +238,7 @@ export class PracticeMetronomeEngine {
     this.activationPromise = null;
     this.mode = "idle";
     this.pausedExerciseBeat = 0;
+    this.pausedExerciseSeconds = 0;
     this.run = null;
     this.cancelScheduledAudio();
   }
@@ -250,6 +256,7 @@ export class PracticeMetronomeEngine {
           this.config.eventCount,
         ),
         countInBeatsRemaining: 0,
+        elapsedExerciseSeconds: this.pausedExerciseSeconds,
         exerciseBeat: this.pausedExerciseBeat,
         phase: "paused",
       };
@@ -277,6 +284,7 @@ export class PracticeMetronomeEngine {
             ),
           ),
         ),
+        elapsedExerciseSeconds: this.run.elapsedExerciseSecondsAtPlaybackStart,
         exerciseBeat: this.run.playbackStartBeat,
         phase: "counting-in",
       };
@@ -294,6 +302,9 @@ export class PracticeMetronomeEngine {
         this.config.eventCount,
       ),
       countInBeatsRemaining: 0,
+      elapsedExerciseSeconds:
+        this.run.elapsedExerciseSecondsAtPlaybackStart +
+        Math.max(0, now - this.run.playbackStartAudioTime),
       exerciseBeat,
       phase: "playing",
     };
@@ -383,6 +394,7 @@ export class PracticeMetronomeEngine {
       },
       countInBeats,
       countInStartAudioTime,
+      elapsedExerciseSecondsAtPlaybackStart: this.pausedExerciseSeconds,
       playbackStartAudioTime,
       playbackStartBeat: fromExerciseBeat,
     };
@@ -424,6 +436,10 @@ export class PracticeMetronomeEngine {
     const exerciseBeat = getPracticeExerciseBeatAtAudioTime(
       this.run.anchor,
       now,
+    );
+    this.run.elapsedExerciseSecondsAtPlaybackStart += Math.max(
+      0,
+      now - this.run.playbackStartAudioTime,
     );
     this.run.anchor = {
       audioTime: now,

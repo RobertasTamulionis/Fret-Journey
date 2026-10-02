@@ -18,8 +18,6 @@ import {
   type ProgressionCompatibilityFilter,
   type ProgressionDifficultyFilter,
   type ProgressionHarmonicScopeFilter,
-  type ProgressionSort,
-  resetProgressionFilters,
   setProgressionCategory,
   setProgressionChordCount,
   setProgressionCompatibility,
@@ -28,7 +26,6 @@ import {
   setProgressionHarmonicScope,
   setProgressionMood,
   setProgressionSearch,
-  setProgressionSort,
   setProgressionStyle,
 } from "@/lib/redux/slices/progressionLabSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
@@ -102,41 +99,39 @@ function ProgressionCard({ item }: { item: LibraryItem }) {
 
   return (
     <article className="progressionCard">
-      <div className="progressionCard__topline">
-        <span className="progressionCard__category">
-          {categoryLabels[progression.category]}
-        </span>
-        <span
-          className={`progressionCard__compatibility ${
-            isCompatible ? "progressionCard__compatibility--compatible" : ""
-          }`}
-        >
-          {isCompatible
-            ? "Fits current scale"
-            : `Best in ${getCompatibleScaleLabel(progression)}`}
-        </span>
-      </div>
-      <h2 className="progressionCard__title">{progression.title}</h2>
-      <p className="progressionCard__formula">{resolved.formula}</p>
-      <p className="progressionCard__chords">
-        {resolved.chordNames.join(" – ")}
-      </p>
-      <div className="progressionCard__tags">
-        {progression.moodTags[0] && <span>{progression.moodTags[0]}</span>}
-        <span>{progression.form === "loop" ? "Loop" : "Sequence"}</span>
-        <span>{progression.steps.length} chords</span>
-        {coloredScopes.map((scope) => (
-          <span className="progressionCard__tag--color" key={scope}>
-            {deviceLabels[scope]}
-          </span>
-        ))}
-      </div>
       <Link
         className="progressionCard__link"
         href={buildProgressionHref(progression.slug, currentKey, currentScale)}
       >
-        Inspect progression
-        <span aria-hidden="true">↗</span>
+        <div className="progressionCard__topline">
+          <span className="progressionCard__category">
+            {categoryLabels[progression.category]}
+          </span>
+          <span
+            className={`progressionCard__compatibility ${
+              isCompatible ? "progressionCard__compatibility--compatible" : ""
+            }`}
+          >
+            {isCompatible
+              ? "Fits current scale"
+              : `Best in ${getCompatibleScaleLabel(progression)}`}
+          </span>
+        </div>
+        <h2 className="progressionCard__title">{progression.title}</h2>
+        <p className="progressionCard__formula">{resolved.formula}</p>
+        <p className="progressionCard__chords">
+          {resolved.chordNames.join(" – ")}
+        </p>
+        <div className="progressionCard__tags">
+          {progression.moodTags[0] && <span>{progression.moodTags[0]}</span>}
+          <span>{progression.form === "loop" ? "Loop" : "Sequence"}</span>
+          <span>{progression.steps.length} chords</span>
+          {coloredScopes.map((scope) => (
+            <span className="progressionCard__tag--color" key={scope}>
+              {deviceLabels[scope]}
+            </span>
+          ))}
+        </div>
       </Link>
     </article>
   );
@@ -243,21 +238,13 @@ export default function ProgressionLibrary() {
       });
 
     return items.sort((first, second) => {
-      if (filters.sort === "alphabetical") {
-        return first.progression.title.localeCompare(second.progression.title);
-      }
-
-      if (filters.sort === "shortest") {
-        return (
-          first.progression.steps.length - second.progression.steps.length ||
-          first.progression.title.localeCompare(second.progression.title)
-        );
-      }
-
       const compatibilityDifference =
         Number(second.resolved.compatible) - Number(first.resolved.compatible);
 
-      return compatibilityDifference;
+      return (
+        compatibilityDifference ||
+        first.progression.title.localeCompare(second.progression.title)
+      );
     });
   }, [currentKey, currentScale, filters]);
 
@@ -286,25 +273,30 @@ export default function ProgressionLibrary() {
       <header className="progressionLibrary__hero">
         <div>
           <span className="progressionLibrary__eyebrow">Harmony discovery</span>
-          <h1 className="progressionLibrary__heading">Progression Lab</h1>
-          <p className="progressionLibrary__introduction">
-            Explore reviewed harmonic formulas, transpose them without losing
-            their identity, and follow every chord onto the guitar.
-          </p>
+          <div className="progressionLibrary__titleRow">
+            <h1 className="progressionLibrary__heading">Progression Lab</h1>
+            <span className="progressionLibrary__templateCount">
+              <strong>{progressionCatalog.length}</strong> verified templates
+            </span>
+          </div>
         </div>
         <div className="progressionLibrary__heroActions">
-          <span>{progressionCatalog.length} verified templates</span>
-          <button
-            disabled={filteredItems.length === 0}
-            onClick={inspire}
-            type="button"
-          >
-            Inspire me
-          </button>
+          <ProgressionContext compact />
+          <div className="progressionLibrary__inspireControl">
+            <button
+              aria-describedby="inspire-me-description"
+              disabled={filteredItems.length === 0}
+              onClick={inspire}
+              type="button"
+            >
+              Inspire me
+            </button>
+            <span id="inspire-me-description" role="tooltip">
+              Open a random progression from the current results.
+            </span>
+          </div>
         </div>
       </header>
-
-      <ProgressionContext />
 
       <section
         aria-labelledby="progression-filters-heading"
@@ -317,13 +309,6 @@ export default function ProgressionLibrary() {
               {filteredItems.length} of {progressionCatalog.length} templates
             </p>
           </div>
-          <button
-            className="progressionFilters__reset"
-            onClick={() => dispatch(resetProgressionFilters())}
-            type="button"
-          >
-            Reset filters
-          </button>
         </div>
 
         <div className="progressionFilters__grid">
@@ -340,60 +325,6 @@ export default function ProgressionLibrary() {
           </label>
 
           <label>
-            <span>Scale fit</span>
-            <select
-              onChange={(event) =>
-                dispatch(
-                  setProgressionCompatibility(
-                    event.target.value as ProgressionCompatibilityFilter,
-                  ),
-                )
-              }
-              value={filters.compatibility}
-            >
-              <option value="all">All, compatible first</option>
-              <option value="compatible">Compatible only</option>
-              <option value="incompatible">Incompatible only</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Chord count</span>
-            <select
-              onChange={(event) =>
-                dispatch(
-                  setProgressionChordCount(
-                    event.target.value as ProgressionChordCountFilter,
-                  ),
-                )
-              }
-              value={filters.chordCount}
-            >
-              <option value="all">Any length</option>
-              <option value="2-3">2–3 chords</option>
-              <option value="4">4 chords</option>
-              <option value="5-8">5–8 chords</option>
-            </select>
-          </label>
-
-          <label>
-            <span>Category</span>
-            <select
-              onChange={(event) =>
-                dispatch(setProgressionCategory(event.target.value))
-              }
-              value={filters.category}
-            >
-              <option value="all">All categories</option>
-              {categories.map((category) => (
-                <option key={category} value={category}>
-                  {categoryLabels[category]}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
             <span>Style</span>
             <select
               onChange={(event) =>
@@ -405,23 +336,6 @@ export default function ProgressionLibrary() {
               {styles.map((style) => (
                 <option key={style} value={style}>
                   {style}
-                </option>
-              ))}
-            </select>
-          </label>
-
-          <label>
-            <span>Harmonic device</span>
-            <select
-              onChange={(event) =>
-                dispatch(setProgressionDevice(event.target.value))
-              }
-              value={filters.device}
-            >
-              <option value="all">All devices</option>
-              {devices.map((device) => (
-                <option key={device} value={device}>
-                  {deviceLabels[device]}
                 </option>
               ))}
             </select>
@@ -445,24 +359,6 @@ export default function ProgressionLibrary() {
           </label>
 
           <label>
-            <span>Harmony</span>
-            <select
-              onChange={(event) =>
-                dispatch(
-                  setProgressionHarmonicScope(
-                    event.target.value as ProgressionHarmonicScopeFilter,
-                  ),
-                )
-              }
-              value={filters.harmonicScope}
-            >
-              <option value="all">Diatonic + color</option>
-              <option value="diatonic">Diatonic only</option>
-              <option value="borrowed-chromatic">Borrowed / chromatic</option>
-            </select>
-          </label>
-
-          <label>
             <span>Difficulty</span>
             <select
               onChange={(event) =>
@@ -482,21 +378,96 @@ export default function ProgressionLibrary() {
           </label>
 
           <label>
-            <span>Sort</span>
+            <span>Chord count</span>
             <select
               onChange={(event) =>
                 dispatch(
-                  setProgressionSort(event.target.value as ProgressionSort),
+                  setProgressionChordCount(
+                    event.target.value as ProgressionChordCountFilter,
+                  ),
                 )
               }
-              value={filters.sort}
+              value={filters.chordCount}
             >
-              <option value="recommended">Compatible first</option>
-              <option value="shortest">Shortest first</option>
-              <option value="alphabetical">Alphabetical</option>
+              <option value="all">Any length</option>
+              <option value="2-3">2–3 chords</option>
+              <option value="4">4 chords</option>
+              <option value="5-8">5–8 chords</option>
             </select>
           </label>
         </div>
+
+        <details className="progressionFilters__advanced">
+          <summary>Advanced filters</summary>
+          <div className="progressionFilters__advancedGrid">
+            <label>
+              <span>Scale fit</span>
+              <select
+                onChange={(event) =>
+                  dispatch(
+                    setProgressionCompatibility(
+                      event.target.value as ProgressionCompatibilityFilter,
+                    ),
+                  )
+                }
+                value={filters.compatibility}
+              >
+                <option value="all">All, compatible first</option>
+                <option value="compatible">Compatible only</option>
+                <option value="incompatible">Incompatible only</option>
+              </select>
+            </label>
+            <label>
+              <span>Category</span>
+              <select
+                onChange={(event) =>
+                  dispatch(setProgressionCategory(event.target.value))
+                }
+                value={filters.category}
+              >
+                <option value="all">All categories</option>
+                {categories.map((category) => (
+                  <option key={category} value={category}>
+                    {categoryLabels[category]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Harmonic device</span>
+              <select
+                onChange={(event) =>
+                  dispatch(setProgressionDevice(event.target.value))
+                }
+                value={filters.device}
+              >
+                <option value="all">All devices</option>
+                {devices.map((device) => (
+                  <option key={device} value={device}>
+                    {deviceLabels[device]}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              <span>Harmony</span>
+              <select
+                onChange={(event) =>
+                  dispatch(
+                    setProgressionHarmonicScope(
+                      event.target.value as ProgressionHarmonicScopeFilter,
+                    ),
+                  )
+                }
+                value={filters.harmonicScope}
+              >
+                <option value="all">Diatonic + color</option>
+                <option value="diatonic">Diatonic only</option>
+                <option value="borrowed-chromatic">Borrowed / chromatic</option>
+              </select>
+            </label>
+          </div>
+        </details>
       </section>
 
       {filteredItems.length > 0 ? (
@@ -509,12 +480,6 @@ export default function ProgressionLibrary() {
         <div className="progressionLibrary__empty">
           <strong>No reviewed progression matches every filter.</strong>
           <p>Try a broader scale fit, chord count, or harmonic scope.</p>
-          <button
-            onClick={() => dispatch(resetProgressionFilters())}
-            type="button"
-          >
-            Clear filters
-          </button>
         </div>
       )}
     </section>

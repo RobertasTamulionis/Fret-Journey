@@ -1,7 +1,7 @@
 "use client";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import {
   chromaticPitchClasses,
   formatPitchClass,
@@ -20,6 +20,8 @@ import "./tuning.scss";
 
 export default function Tuning(): React.ReactElement {
   const dispatch = useAppDispatch();
+  const tuningId = useId();
+  const tuningRef = useRef<HTMLDivElement>(null);
 
   const { tuning, currentKey, currentScale } = useAppSelector(
     (state) => state.fretboard,
@@ -31,6 +33,27 @@ export default function Tuning(): React.ReactElement {
   const motionCustom: FretJourneyMotionCustom = {
     reducedMotion: Boolean(useReducedMotion()),
   };
+
+  useEffect(() => {
+    if (activeStringIndex === null) {
+      return;
+    }
+
+    const closeOnOutsidePointerDown = (event: PointerEvent): void => {
+      if (
+        event.target instanceof Node &&
+        !tuningRef.current?.contains(event.target)
+      ) {
+        setActiveStringIndex(null);
+      }
+    };
+
+    document.addEventListener("pointerdown", closeOnOutsidePointerDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsidePointerDown);
+    };
+  }, [activeStringIndex]);
 
   const selectTuningNote = (
     pitchClass: PitchClass,
@@ -74,18 +97,20 @@ export default function Tuning(): React.ReactElement {
   };
 
   return (
-    <div className="tuning">
+    <div className="tuning" ref={tuningRef}>
       {tuning.map((tuningPitchClass, index: number) => {
+        const tuningLabel = formatPitchClass(tuningPitchClass);
         const noteIndex = getScaleDegree(
           tuningPitchClass,
           currentKey,
           currentScale,
         );
         const isSelectionOpen = activeStringIndex === index;
-        const selectionId = `tuning-selection-${index}`;
+        const selectionId = `${tuningId}-selection-${index}`;
         const tuningNoteClassName: string = `
           tuning__note
           ${noteIndex ? `tuning__note--${noteIndex}` : ""}
+          ${tuningLabel.includes("/") ? "tuning__note--enharmonic" : ""}
         `;
 
         return (
@@ -93,12 +118,12 @@ export default function Tuning(): React.ReactElement {
             <button
               aria-controls={selectionId}
               aria-expanded={isSelectionOpen}
-              aria-label={`Change tuning for string ${index + 1}, currently ${formatPitchClass(tuningPitchClass)}`}
+              aria-label={`Change tuning for string ${index + 1}, currently ${tuningLabel}`}
               onClick={() => setActiveNoteSelection(index)}
               className={tuningNoteClassName}
               type="button"
             >
-              {formatPitchClass(tuningPitchClass)}
+              {tuningLabel}
             </button>
             <AnimatePresence initial={false}>
               {isSelectionOpen && (

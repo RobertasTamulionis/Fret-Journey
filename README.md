@@ -50,10 +50,10 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   suspensions, added tones, and slash basses.
 - Step through a progression while the active chord name, note list, fretboard,
   large chart, and compact chart overview update together.
-- Choose among every returned compact voicing grouped by Open, frets 1–4,
-  frets 5–8, and frets 9–12. Each progression step remembers its selected grip
-  for the current workspace session, and the complete overview uses those
-  choices.
+- Navigate every returned compact voicing one at a time, grouped by Open,
+  frets 1–4, frets 5–8, and frets 9–12. Each progression step remembers its
+  selected grip for the current workspace session, and the compact progression
+  shape strip uses those choices.
 - Compare every chord tone across the neck with an exact selected voicing.
   Formula-independent diagrams dynamically place every authored tone for all
   current triads, sevenths, ninths, suspended chords, added tones, sixths, and
@@ -129,11 +129,12 @@ The focused session currently provides:
 - Current-position feedback for the active fret, authored pattern marker, and
   picking direction, including updates when a pattern shifts along the neck or
   reverses direction.
-- A prominent exercise-duration display. This value is the exercise's authored
-  practice window and remains static; it is not a running countdown.
-- Local, ephemeral tempo, subdivision, metronome, reference-instrument,
-  and volume preferences. The reference-instrument controls remain structural
-  preferences and do not currently produce audio.
+- An editable exercise countdown initialized from the authored practice window.
+  It derives elapsed time from the Web Audio transport, starts after count-in,
+  pauses and resumes with playback, and pauses the exercise at zero.
+- Local, ephemeral duration, tempo, subdivision, metronome,
+  reference-instrument, and volume preferences. The reference-instrument
+  controls remain structural preferences and do not currently produce audio.
 - A Session Complete view for repeating the exercise, opening the next
   exercise, or returning to the library. Completion and scores are not saved.
 
@@ -179,13 +180,15 @@ lowest physical string used and described as register-unverified. Compact
 four-fret shapes are preferred; unusual custom tunings can use a wider rendered
 fret window rather than losing the diagram.
 
-Progression workspaces expose every ranked alternative returned by the current
-generator instead of showing only the first few. Alternatives are grouped by
-physical neck location and labeled with exact fret coverage, bass/inversion,
-and difficulty. Selecting a grip updates the large chart and exact-position
-neck, while `All Chord Tones` remains a separate pitch-class map. Grip choices
-are local to the current workspace session and remembered per progression step;
-they are not saved progress or an automatically optimized voice-leading path.
+Progression workspaces preserve every ranked alternative returned by the
+current generator while presenting one primary voicing at a time. Alternatives
+are grouped by physical neck location and navigated with compact previous/next
+controls. Selecting a grip updates the supporting chord chart and hero
+exact-position neck, while `All Chord Tones` remains a separate pitch-class
+map. A compact clickable shape strip previews the selected grip for every
+progression step. Grip choices are local to the current workspace session and
+remembered per step; they are not saved progress or an automatically optimized
+voice-leading path.
 
 The complete source ledger and ingestion policy live in
 [docs/PROGRESSION_SOURCES.md](./docs/PROGRESSION_SOURCES.md). The catalog ships
@@ -320,8 +323,8 @@ As of 2026-09-26:
 ## Current limitations
 
 Fret Journey remains a visualization, exploration, and guided-routine tool.
-Practice now includes its first scheduled audio layer, but not a running
-exercise countdown or reference-instrument system:
+Practice now includes its first scheduled audio layer and an editable transport-
+synchronized exercise countdown, but not a reference-instrument system:
 
 - Dynamic diagrams include every authored chord tone for all current scale and
   progression chords. They do not yet generate omission-based shell voicings.
@@ -338,7 +341,8 @@ exercise countdown or reference-instrument system:
 - Fret markers are display-only rather than selectable practice targets.
 - Practice Session provides local Start/Pause/Resume, configurable count-in,
   tempo, subdivision, an audible metronome, a looping synchronized current-event
-  highlight, and manual completion state. Its duration display is static;
+  highlight, an editable countdown, and manual completion state. The countdown
+  starts after count-in, freezes while paused, and pauses playback at zero;
   subdivision controls event advancement and click density without rebuilding
   or rewriting the TAB. Reference-instrument controls do not produce audio.
   Displayed scores resolve from immutable
@@ -371,9 +375,9 @@ following work remains deferred:
   required-tone, omission, and doubling policies.
 - Define an explicit registered-pitch workflow for supported custom and
   re-entrant tunings.
-- If explicitly reopened, add Practice countdown or optional reference playback
-  as separate work beyond the current metronome layer. Keep drums, backing
-  tracks, practice scoring, accounts, cloud persistence, favorites/history,
-  progression building, and AI suggestions deferred.
+- If explicitly reopened, add optional reference playback as separate work
+  beyond the current metronome layer. Keep drums, backing tracks, practice
+  scoring, accounts, cloud persistence, favorites/history, progression
+  building, and AI suggestions deferred.
 
 This remaining backlog should stay deferred until it is explicitly reopened.

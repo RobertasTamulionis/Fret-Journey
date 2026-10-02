@@ -571,10 +571,15 @@ $practice-accent: var(--semantic-practice-accent);
     padding: 4px 2px 20px;
     border-bottom: 1px solid color-mix(in srgb, var(--color-border) 72%, transparent);
 
-    span {
+    > label,
+    > span {
       color: var(--color-text-soft);
       font-size: 14px;
       font-weight: 650;
+    }
+
+    > span {
+      margin-top: 16px;
     }
 
     strong {
@@ -592,6 +597,47 @@ $practice-accent: var(--semantic-practice-accent);
       color: var(--color-text-faint);
       font-size: 8px;
     }
+  }
+}
+
+.practiceDurationInput {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+
+  input {
+    width: 84px;
+    min-height: 38px;
+    padding: 0 10px;
+    border: 1px solid color-mix(in srgb, var(--color-border) 82%, transparent);
+    border-radius: 11px;
+    outline: none;
+    appearance: textfield;
+    background: var(--panel-background-soft);
+    color: var(--color-text-strong);
+    font-family: var(--font-geist-mono), monospace;
+    font-size: 16px;
+    font-weight: 720;
+    text-align: center;
+
+    &::-webkit-inner-spin-button,
+    &::-webkit-outer-spin-button {
+      margin: 0;
+      appearance: none;
+    }
+
+    &:focus-visible {
+      border-color: color-mix(in srgb, $practice-accent 58%, transparent);
+      outline: 2px solid color-mix(in srgb, $practice-accent 34%, transparent);
+      outline-offset: 2px;
+    }
+  }
+
+  span {
+    color: var(--color-text-muted);
+    font-size: 10px;
+    font-weight: 650;
   }
 }
 

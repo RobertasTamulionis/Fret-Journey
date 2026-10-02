@@ -10,7 +10,10 @@ import {
   resolvePracticeTab,
 } from "@/features/practice/resolvePracticeTab";
 import {
+  clampPracticeDurationMinutes,
   clampPracticeTempo,
+  getPracticeDurationSeconds,
+  getPracticeRemainingSeconds,
   type PracticeExperienceScreen,
   type PracticeInstrument,
   practiceDefaultCountInBeats,
@@ -21,6 +24,7 @@ import usePracticeTransport from "./usePracticeTransport";
 
 type PracticeExperienceState = {
   countInEnabled: boolean;
+  durationSeconds: number;
   instrument: PracticeInstrument;
   instrumentPlaybackEnabled: boolean;
   metronomeEnabled: boolean;
@@ -36,6 +40,7 @@ type PracticeExperienceState = {
 type PracticeExperienceAction =
   | {
       exampleBpm: number;
+      exerciseDurationSeconds: number;
       exampleSubdivision: PracticeTabSubdivision;
       routineId: PracticeRoutineId;
       stepIndex: number;
@@ -49,6 +54,7 @@ type PracticeExperienceAction =
   | { type: "complete" }
   | { type: "repeat" }
   | { tempo: number; type: "set-tempo" }
+  | { durationSeconds: number; type: "set-duration" }
   | { subdivision: PracticeTabSubdivision; type: "set-subdivision" }
   | { type: "toggle-count-in" }
   | { type: "toggle-metronome" }
@@ -67,6 +73,9 @@ type PracticeExerciseSelection = {
 
 const defaultState: PracticeExperienceState = {
   countInEnabled: true,
+  durationSeconds: getPracticeDurationSeconds(
+    practiceRoutines[0].steps[0].duration,
+  ),
   instrument: "clean-guitar",
   instrumentPlaybackEnabled: false,
   metronomeEnabled: false,
@@ -111,6 +120,7 @@ const openExerciseState = (
 
   return {
     ...state,
+    durationSeconds: getPracticeDurationSeconds(step.duration),
     routineId: routine.id,
     screen: "session",
     selectedSubdivision: example.subdivision,
@@ -135,6 +145,7 @@ const reducer = (
     case "open-exercise":
       return {
         ...state,
+        durationSeconds: action.exerciseDurationSeconds,
         routineId: action.routineId,
         screen: "session",
         selectedSubdivision: action.exampleSubdivision,
@@ -165,6 +176,8 @@ const reducer = (
       return { ...state, screen: "session" };
     case "set-tempo":
       return { ...state, tempo: clampPracticeTempo(action.tempo) };
+    case "set-duration":
+      return { ...state, durationSeconds: action.durationSeconds };
     case "set-subdivision":
       return { ...state, selectedSubdivision: action.subdivision };
     case "toggle-count-in":
@@ -241,6 +254,16 @@ export default function usePracticeExperience(exerciseId?: string) {
     ...transportConfig,
     countInBeats: practiceDefaultCountInBeats,
   });
+  const remainingSeconds = getPracticeRemainingSeconds(
+    state.durationSeconds,
+    transport.snapshot.elapsedExerciseSeconds,
+  );
+
+  useEffect(() => {
+    if (remainingSeconds === 0 && transport.snapshot.phase === "playing") {
+      transport.pause();
+    }
+  }, [remainingSeconds, transport.pause, transport.snapshot.phase]);
 
   useEffect(() => {
     transport.stop();
@@ -277,6 +300,7 @@ export default function usePracticeExperience(exerciseId?: string) {
     transport.stop();
     dispatch({
       exampleBpm: example.bpm,
+      exerciseDurationSeconds: getPracticeDurationSeconds(step.duration),
       exampleSubdivision: example.subdivision,
       routineId: routine.id,
       stepIndex: routine.steps.indexOf(step),
@@ -304,6 +328,13 @@ export default function usePracticeExperience(exerciseId?: string) {
     const nextTempo = clampPracticeTempo(tempo);
     configureTransport({ tempo: nextTempo });
     dispatch({ tempo: nextTempo, type: "set-tempo" });
+  };
+
+  const setDurationMinutes = (minutes: number) => {
+    dispatch({
+      durationSeconds: clampPracticeDurationMinutes(minutes) * 60,
+      type: "set-duration",
+    });
   };
 
   const setSubdivision = (subdivision: PracticeTabSubdivision) => {
@@ -334,7 +365,12 @@ export default function usePracticeExperience(exerciseId?: string) {
     ) {
       transport.pause();
     } else if (transport.snapshot.phase === "paused") {
-      await transport.resume();
+      if (remainingSeconds === 0) {
+        transport.stop();
+        await transport.start();
+      } else {
+        await transport.resume();
+      }
     } else {
       await transport.start();
     }
@@ -369,6 +405,8 @@ export default function usePracticeExperience(exerciseId?: string) {
     openExercise,
     openNextExercise,
     repeatExercise,
+    remainingSeconds,
+    setDurationMinutes,
     setSubdivision,
     setMetronomeVolume,
     setTempo,

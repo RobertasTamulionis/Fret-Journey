@@ -5,6 +5,12 @@ import {
   PracticeMetronomeEngine,
   type PracticeMetronomeEnvironment,
 } from "../src/features/practice/audio/PracticeMetronomeEngine";
+import {
+  clampPracticeDurationMinutes,
+  formatPracticeTime,
+  getPracticeDurationSeconds,
+  getPracticeRemainingSeconds,
+} from "../src/features/practice/session";
 import { getPracticeSequenceEvents } from "../src/features/practice/tablature";
 import {
   getPracticeActiveEventIndexAtBeat,
@@ -21,6 +27,15 @@ assert.equal(getPracticeSecondsPerBeat(1), 2);
 assert.equal(getPracticeSecondsPerBeat(400), 0.25);
 assert.equal(getPracticeSecondsPerEvent(120, "sixteenths"), 0.125);
 assert.equal(getPracticeSecondsPerEvent(60, "triplets"), 1 / 3);
+assert.equal(getPracticeDurationSeconds("7 min"), 420);
+assert.equal(getPracticeDurationSeconds("invalid"), 60);
+assert.equal(clampPracticeDurationMinutes(0), 1);
+assert.equal(clampPracticeDurationMinutes(121), 120);
+assert.equal(formatPracticeTime(0), "0:00");
+assert.equal(formatPracticeTime(65), "1:05");
+assert.equal(getPracticeRemainingSeconds(60, 0), 60);
+assert.equal(getPracticeRemainingSeconds(60, 1.1), 59);
+assert.equal(getPracticeRemainingSeconds(60, 60.1), 0);
 
 const anchor = { audioTime: 10, exerciseBeat: 2, tempo: 120 };
 assert.equal(getPracticeExerciseBeatAtAudioTime(anchor, 11), 4);
@@ -270,6 +285,7 @@ const verifyPracticeMetronomeEngine = async () => {
   await firstStart;
   assert.equal(countInEngine.getSnapshot().phase, "counting-in");
   assert.equal(countInEngine.getSnapshot().countInBeatsRemaining, 2);
+  assert.equal(countInEngine.getSnapshot().elapsedExerciseSeconds, 0);
   assert.equal(countInHarness.context.oscillators.length, 1);
   assert.equal(countInHarness.context.oscillators[0].startTime, 0.05);
   assert.equal(countInHarness.callbacks.size, 1);
@@ -300,8 +316,10 @@ const verifyPracticeMetronomeEngine = async () => {
 
   countInHarness.context.currentTime = 1.05;
   assert.equal(countInEngine.getSnapshot().phase, "playing");
+  assert.equal(countInEngine.getSnapshot().elapsedExerciseSeconds, 1.05);
   countInEngine.pause();
   assert.equal(countInEngine.getSnapshot().phase, "paused");
+  assert.equal(countInEngine.getSnapshot().elapsedExerciseSeconds, 1.05);
   const pausedExerciseBeat = countInEngine.getSnapshot().exerciseBeat;
   countInEngine.configure({ ...baseConfig, subdivision: "sixteenths" });
   assert.equal(countInEngine.getSnapshot().exerciseBeat, pausedExerciseBeat);
@@ -326,9 +344,11 @@ const verifyPracticeMetronomeEngine = async () => {
   await countInEngine.resume({ countInBeats: 3 });
   assert.equal(countInEngine.getSnapshot().phase, "counting-in");
   assert.equal(countInEngine.getSnapshot().countInBeatsRemaining, 3);
+  assert.equal(countInEngine.getSnapshot().elapsedExerciseSeconds, 1.05);
   countInEngine.stop();
   assert.equal(countInEngine.getSnapshot().phase, "idle");
   assert.equal(countInEngine.getSnapshot().activeEventIndex, 0);
+  assert.equal(countInEngine.getSnapshot().elapsedExerciseSeconds, 0);
   assert.equal(countInHarness.callbacks.size, 0);
 
   const silentHarness = createFakeEnvironment();
@@ -359,6 +379,8 @@ const verifyPracticeMetronomeEngine = async () => {
 
   tempoHarness.context.currentTime = 0.2;
   const beatBeforeTempoChange = tempoEngine.getSnapshot().exerciseBeat;
+  const elapsedBeforeTempoChange =
+    tempoEngine.getSnapshot().elapsedExerciseSeconds;
   tempoEngine.configure({
     ...baseConfig,
     countInEnabled: false,
@@ -366,6 +388,11 @@ const verifyPracticeMetronomeEngine = async () => {
     tempo: 60,
   });
   assert.equal(tempoEngine.getSnapshot().exerciseBeat, beatBeforeTempoChange);
+  assert.equal(
+    tempoEngine.getSnapshot().elapsedExerciseSeconds,
+    elapsedBeforeTempoChange,
+    "A tempo change must not alter elapsed practice time",
+  );
   assert.ok(
     oldTempoClicks.every(({ stopTimes }) => stopTimes.at(-1) === 0.2),
     "A tempo change must cancel every click queued under the old tempo",

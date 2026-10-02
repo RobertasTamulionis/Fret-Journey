@@ -2,10 +2,13 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
 import type { PracticeRoutine, PracticeStep } from "@/data/practiceRoutines";
 import {
-  formatPracticeDurationAsClock,
+  clampPracticeDurationMinutes,
+  formatPracticeTime,
   getPracticePositionSnapshot,
   type PracticeInstrument,
   type PracticeTransportStatus,
+  practiceDurationMaximumMinutes,
+  practiceDurationMinimumMinutes,
   practiceInstrumentOptions,
   practiceSubdivisionOptions,
 } from "@/features/practice/session";
@@ -34,6 +37,7 @@ type PracticeSessionProps = {
   audioError: string | null;
   countInBeatsRemaining: number;
   countInEnabled: boolean;
+  durationMinutes: number;
   example: PracticeTabExample;
   instrument: PracticeInstrument;
   instrumentPlaybackEnabled: boolean;
@@ -41,6 +45,7 @@ type PracticeSessionProps = {
   metronomeVolume: number;
   onBack: () => void;
   onComplete: () => void;
+  onDurationChange: (minutes: number) => void;
   onInstrumentChange: (instrument: PracticeInstrument) => void;
   onMetronomeVolumeChange: (volume: number) => void;
   onPrimaryAction: () => void | Promise<void>;
@@ -50,6 +55,7 @@ type PracticeSessionProps = {
   onToggleInstrumentPlayback: () => void;
   onToggleMetronome: () => void;
   onVolumeChange: (volume: number) => void;
+  remainingSeconds: number;
   routine: PracticeRoutine;
   step: PracticeStep;
   stepIndex: number;
@@ -59,17 +65,81 @@ type PracticeSessionProps = {
   volume: number;
 };
 
-const getPrimaryActionLabel = (status: PracticeTransportStatus) => {
+const getPrimaryActionLabel = (
+  status: PracticeTransportStatus,
+  timerExpired: boolean,
+) => {
   if (status === "playing" || status === "counting-in") {
     return "Pause";
   }
 
   if (status === "paused") {
-    return "Resume";
+    return timerExpired ? "Restart exercise" : "Resume";
   }
 
   return "Start exercise";
 };
+
+type PracticeDurationControlProps = {
+  durationMinutes: number;
+  onDurationChange: (minutes: number) => void;
+};
+
+function PracticeDurationControl({
+  durationMinutes,
+  onDurationChange,
+}: PracticeDurationControlProps) {
+  const [draftMinutes, setDraftMinutes] = useState(String(durationMinutes));
+
+  useEffect(() => {
+    setDraftMinutes(String(durationMinutes));
+  }, [durationMinutes]);
+
+  const commitDuration = () => {
+    const parsedMinutes = Number.parseInt(draftMinutes, 10);
+
+    if (Number.isNaN(parsedMinutes)) {
+      setDraftMinutes(String(durationMinutes));
+      return;
+    }
+
+    const nextMinutes = clampPracticeDurationMinutes(parsedMinutes);
+    setDraftMinutes(String(nextMinutes));
+
+    if (nextMinutes !== durationMinutes) {
+      onDurationChange(nextMinutes);
+    }
+  };
+
+  return (
+    <div className="practiceDurationInput">
+      <input
+        aria-label="Practice time in minutes"
+        id="practice-duration"
+        inputMode="numeric"
+        max={practiceDurationMaximumMinutes}
+        min={practiceDurationMinimumMinutes}
+        onBlur={commitDuration}
+        onChange={(event) => setDraftMinutes(event.target.value)}
+        onFocus={(event) => event.currentTarget.select()}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.currentTarget.blur();
+          }
+
+          if (event.key === "Escape") {
+            event.preventDefault();
+            setDraftMinutes(String(durationMinutes));
+          }
+        }}
+        step="1"
+        type="number"
+        value={draftMinutes}
+      />
+      <span>min</span>
+    </div>
+  );
+}
 
 type AnimatedReadoutValueProps = {
   children: ReactNode;
@@ -224,6 +294,7 @@ export default function PracticeSession({
   audioError,
   countInBeatsRemaining,
   countInEnabled,
+  durationMinutes,
   example,
   instrument,
   instrumentPlaybackEnabled,
@@ -231,6 +302,7 @@ export default function PracticeSession({
   metronomeVolume,
   onBack,
   onComplete,
+  onDurationChange,
   onInstrumentChange,
   onMetronomeVolumeChange,
   onPrimaryAction,
@@ -240,6 +312,7 @@ export default function PracticeSession({
   onToggleInstrumentPlayback,
   onToggleMetronome,
   onVolumeChange,
+  remainingSeconds,
   routine,
   step,
   stepIndex,
@@ -249,7 +322,11 @@ export default function PracticeSession({
   volume,
 }: PracticeSessionProps) {
   const position = getPracticePositionSnapshot(example, activeEventIndex);
-  const primaryActionLabel = getPrimaryActionLabel(transportStatus);
+  const timerExpired = remainingSeconds === 0;
+  const primaryActionLabel = getPrimaryActionLabel(
+    transportStatus,
+    timerExpired,
+  );
   const primaryActionIcon =
     transportStatus === "playing" || transportStatus === "counting-in"
       ? "Ⅱ"
@@ -257,6 +334,15 @@ export default function PracticeSession({
   const motionCustom: FretJourneyMotionCustom = {
     reducedMotion: Boolean(useReducedMotion()),
   };
+  const timerStatus = timerExpired
+    ? "Time is up · restart or choose a new duration"
+    : transportStatus === "playing"
+      ? "Counting down"
+      : transportStatus === "paused"
+        ? "Paused"
+        : transportStatus === "counting-in"
+          ? "Starts after count-in"
+          : "Starts with the exercise";
 
   return (
     <motion.div
@@ -455,9 +541,14 @@ export default function PracticeSession({
           variants={practiceRevealVariants}
         >
           <section className="sessionControls__time">
-            <span>Exercise time remaining</span>
-            <strong>{formatPracticeDurationAsClock(step.duration)}</strong>
-            <small>Default exercise window</small>
+            <label htmlFor="practice-duration">Practice time · minutes</label>
+            <PracticeDurationControl
+              durationMinutes={durationMinutes}
+              onDurationChange={onDurationChange}
+            />
+            <span>Time remaining</span>
+            <strong>{formatPracticeTime(remainingSeconds)}</strong>
+            <small aria-live="polite">{timerStatus}</small>
           </section>
 
           <section className="sessionControlGroup">
