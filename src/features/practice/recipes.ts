@@ -59,4 +59,12 @@ export const practiceExerciseRecipes = {
   "bends-control": recipe("tonic-transpose", 9),
   "vibrato-pulse": recipe("tonic-transpose", 9),
   "bends-phrase": recipe("tonic-transpose", 9),
+  "metal-tight-chugs": recipe("tonic-transpose", 4, "lowest-six"),
+  "metal-accent-shift": recipe("tonic-transpose", 4, "lowest-six"),
+  "metal-pedal-assault": recipe("scale", 4, "lowest-six"),
+  "metal-gallop-control": recipe("scale", 4, "lowest-six"),
+  "metal-phrygian-tension": recipe("scale", 4, "lowest-six"),
+  "metal-tremolo-horizon": recipe("scale", 4),
+  "metal-syncopated-stops": recipe("scale", 4, "lowest-six"),
+  "funk-pocket-stabs": recipe("tonic-triad", 9),
 } as const satisfies Record<PracticeTabExampleId, PracticeExerciseRecipe>;

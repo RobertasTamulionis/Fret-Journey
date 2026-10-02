@@ -69,6 +69,102 @@ $practice-accent: var(--semantic-practice-accent);
     display: grid;
     gap: 52px;
   }
+
+  &__empty {
+    display: grid;
+    gap: 6px;
+    padding: 32px;
+    border: 1px dashed var(--color-border);
+    border-radius: 20px;
+    color: var(--color-text-muted);
+
+    strong {
+      color: var(--color-text-strong);
+    }
+  }
+}
+
+.practiceFilters {
+  display: grid;
+  gap: 18px;
+  padding: 22px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 78%, transparent);
+  border-radius: 22px;
+  background: var(--panel-background);
+  box-shadow: var(--shadow-panel);
+
+  &__heading {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 20px;
+
+    div {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+    }
+
+    span {
+      color: var(--color-text-strong);
+      font-size: 16px;
+      font-weight: 700;
+    }
+
+    strong {
+      color: $practice-accent;
+      font-family: var(--font-geist-mono), monospace;
+      font-size: 12px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--color-text-faint);
+      font-size: 12px;
+    }
+  }
+
+  &__controls {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.5fr) repeat(3, minmax(160px, 1fr));
+    gap: 12px;
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: var(--color-text-faint);
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    input,
+    select {
+      width: 100%;
+      height: 42px;
+      padding: 0 36px 0 13px;
+      border: 1px solid var(--color-border);
+      border-radius: 12px;
+      background: var(--control-background);
+      color: var(--color-text-strong);
+      font: inherit;
+      font-size: 12px;
+      font-weight: 560;
+      letter-spacing: 0;
+      text-transform: none;
+    }
+
+    input {
+      padding-right: 13px;
+    }
+
+    input:focus-visible,
+    select:focus-visible {
+      outline: 2px solid var(--color-focus);
+      outline-offset: 2px;
+    }
+  }
 }
 
 .practiceCategory {
@@ -76,10 +172,6 @@ $practice-accent: var(--semantic-practice-accent);
   gap: 18px;
 
   &__header {
-    display: grid;
-    grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
-    align-items: end;
-    gap: 32px;
     padding-inline: 4px;
 
     span {
@@ -98,19 +190,12 @@ $practice-accent: var(--semantic-practice-accent);
       letter-spacing: -0.035em;
     }
 
-    p {
-      max-width: 720px;
-      margin: 0;
-      color: var(--color-text-muted);
-      font-size: 11px;
-      line-height: 1.65;
-    }
   }
 
   &__grid {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 14px;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
   }
 
   &__sources {
@@ -147,12 +232,12 @@ $practice-accent: var(--semantic-practice-accent);
 }
 
 .exerciseCard {
-  min-height: 220px;
+  min-height: 0;
   position: relative;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 24px;
+  padding: 18px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
   border-radius: 22px;
@@ -217,7 +302,7 @@ $practice-accent: var(--semantic-practice-accent);
   }
 
   > strong {
-    margin-top: 24px;
+    margin-top: 10px;
     color: var(--color-text-strong);
     font-size: 18px;
     font-weight: 680;
@@ -227,23 +312,23 @@ $practice-accent: var(--semantic-practice-accent);
 
   &__description {
     display: -webkit-box;
-    margin-top: 12px;
+    margin-top: 8px;
     overflow: hidden;
     color: var(--color-text-muted);
     font-size: 14px;
-    line-height: 1.6;
+    line-height: 1.5;
     -webkit-box-orient: vertical;
     -webkit-line-clamp: 3;
   }
 
   &__footer {
     display: flex;
+    align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-top: auto;
-    padding-top: 22px;
+    gap: 10px;
+    margin-top: 14px;
     color: var(--color-text-faint);
-    font-size: 9px;
+    font-size: 10px;
 
     span:last-child {
       color: var(--color-text-soft);
@@ -327,6 +412,30 @@ $practice-accent: var(--semantic-practice-accent);
       font-size: 13px;
       line-height: 1.65;
     }
+  }
+
+  &__metadata {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-top: 14px;
+
+    span {
+      padding: 6px 9px;
+      border-radius: 999px;
+      background: var(--panel-background-soft);
+      color: var(--color-text-muted);
+      font-size: 10px;
+      font-weight: 640;
+    }
+  }
+
+  &__focus {
+    display: block;
+    margin-top: 12px;
+    color: var(--color-text-muted);
+    font-size: 12px;
+    line-height: 1.55;
   }
 
   &__guidance {
@@ -1238,7 +1347,7 @@ $practice-accent: var(--semantic-practice-accent);
 
 @media (max-width: 1320px) {
   .practiceCategory__grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .practiceSession__layout {
@@ -1263,11 +1372,19 @@ $practice-accent: var(--semantic-practice-accent);
   }
 
   .practiceCategory__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .practiceFilters__controls {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 940px) {
+  .practiceCategory__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .practiceSession__layout {
     grid-template-columns: 1fr;
   }
@@ -1284,9 +1401,10 @@ $practice-accent: var(--semantic-practice-accent);
     grid-column: 1 / -1;
   }
 
-  .practiceCategory__header {
-    grid-template-columns: 1fr;
-    gap: 9px;
+  .practiceFilters__heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 }
 
@@ -1327,14 +1445,14 @@ $practice-accent: var(--semantic-practice-accent);
   }
 
   .practiceCategory__grid,
+  .practiceFilters__controls,
   .practiceSession__guidance,
   .sessionControls {
     grid-template-columns: 1fr;
   }
 
   .exerciseCard {
-    min-height: 190px;
-    padding: 21px;
+    padding: 17px;
   }
 
   .practiceSession__topbar {

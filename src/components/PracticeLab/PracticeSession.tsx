@@ -1,5 +1,9 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { type ReactNode, useEffect, useState } from "react";
+import {
+  formatPracticeTag,
+  practiceExerciseMetadata,
+} from "@/data/practiceExerciseMetadata";
 import type { PracticeRoutine, PracticeStep } from "@/data/practiceRoutines";
 import {
   clampPracticeDurationMinutes,
@@ -322,6 +326,7 @@ export default function PracticeSession({
   volume,
 }: PracticeSessionProps) {
   const position = getPracticePositionSnapshot(example, activeEventIndex);
+  const metadata = practiceExerciseMetadata[step.exampleId];
   const timerExpired = remainingSeconds === 0;
   const primaryActionLabel = getPrimaryActionLabel(
     transportStatus,
@@ -375,6 +380,13 @@ export default function PracticeSession({
                 {step.title}
               </h1>
               <p>{step.instruction}</p>
+              <div className="practiceSession__metadata">
+                <span>{formatPracticeTag(metadata.techniques[0])}</span>
+                <span>{formatPracticeTag(metadata.difficulty)}</span>
+                <span>{metadata.tempo.recommended} BPM recommended</span>
+                <span>{formatPracticeTag(subdivision)} note rate</span>
+              </div>
+              <small className="practiceSession__focus">{metadata.focus}</small>
             </div>
             <div className="practiceTransportAction">
               <button

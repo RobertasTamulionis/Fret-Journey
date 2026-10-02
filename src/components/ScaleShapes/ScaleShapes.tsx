@@ -91,22 +91,7 @@ function ScaleShapes() {
           aria-live="polite"
           className="scaleShapes__hint"
           id="scale-shape-hint"
-        >
-          {isCaged && (
-            <span aria-hidden="true" className="scaleShapes__anchor-key" />
-          )}
-          <strong>{activeShapeOption.label}</strong>
-          <span>
-            {isCaged && "Ringed notes trace the underlying tonic chord."}
-            {fretCount === 24 &&
-              " Two octave-equivalent placements are shown. Notes crossing fret 24 continue from fret 1."}
-            {fretCount === 12 &&
-              ` ${isCaged ? "Shapes" : "Notes"} crossing the octave continue from fret 12 back to fret 1.`}
-            {isCaged &&
-              tuning.length > 6 &&
-              " The named form uses the highest six strings."}
-          </span>
-        </p>
+        ></p>
       )}
     </section>
   );

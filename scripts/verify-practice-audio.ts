@@ -71,6 +71,31 @@ if (chugsRiffSequence[4].kind === "notes") {
   );
 }
 
+const gallopSequence = getPracticeSequenceEvents(
+  practiceTabExamples["metal-gallop-control"],
+);
+assert.deepEqual(
+  gallopSequence.map(({ at, kind }) => ({ at, kind })),
+  [
+    { at: 0, kind: "notes" },
+    { at: 1, kind: "rest" },
+    { at: 2, kind: "notes" },
+    { at: 3, kind: "notes" },
+    { at: 4, kind: "notes" },
+    { at: 5, kind: "rest" },
+    { at: 6, kind: "notes" },
+    { at: 7, kind: "notes" },
+    { at: 8, kind: "rest" },
+    { at: 12, kind: "notes" },
+  ],
+  "Gallops must preserve attack, silence, and chord-punch order",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(2.5, "sixteenths", gallopSequence.length),
+  0,
+  "The gallop sequence must loop from its final event to its first event",
+);
+
 const quarterPulses = planPracticeMetronomePulses({
   fromBeat: 0,
   subdivision: "quarters",

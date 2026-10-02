@@ -1,5 +1,6 @@
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { practiceExerciseMetadata } from "@/data/practiceExerciseMetadata";
 import {
   type PracticeRoutineId,
   practiceRoutines,
@@ -63,8 +64,8 @@ type PracticeExperienceAction =
   | { type: "set-volume"; volume: number }
   | { type: "set-metronome-volume"; volume: number };
 
-const firstExample =
-  practiceTabExamples[practiceRoutines[0].steps[0].exampleId];
+const firstExampleId = practiceRoutines[0].steps[0].exampleId;
+const firstExample = practiceTabExamples[firstExampleId];
 
 type PracticeExerciseSelection = {
   routineId: PracticeRoutineId;
@@ -84,7 +85,7 @@ const defaultState: PracticeExperienceState = {
   screen: "library",
   selectedSubdivision: firstExample.subdivision,
   stepIndex: 0,
-  tempo: firstExample.bpm,
+  tempo: practiceExerciseMetadata[firstExampleId].tempo.recommended,
   volume: 70,
 };
 
@@ -125,7 +126,7 @@ const openExerciseState = (
     screen: "session",
     selectedSubdivision: example.subdivision,
     stepIndex: routine.steps.indexOf(step),
-    tempo: example.bpm,
+    tempo: practiceExerciseMetadata[step.exampleId].tempo.recommended,
   };
 };
 
@@ -299,7 +300,7 @@ export default function usePracticeExperience(exerciseId?: string) {
 
     transport.stop();
     dispatch({
-      exampleBpm: example.bpm,
+      exampleBpm: practiceExerciseMetadata[step.exampleId].tempo.recommended,
       exerciseDurationSeconds: getPracticeDurationSeconds(step.duration),
       exampleSubdivision: example.subdivision,
       routineId: routine.id,

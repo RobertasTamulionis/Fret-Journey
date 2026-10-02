@@ -33,10 +33,10 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
 - Set key, scale type, guitar string count, and per-string tuning in the shared
   Musical Context bar below navigation. Fretboard, Progression, and Practice
   consume the same Redux-owned context.
-- Browse eight grouped Practice Library categories covering a rotating Daily
+- Browse nine grouped Practice Library categories covering a rotating Daily
   Mix, Scales & Modes, String Skipping, Rhythm & Chugs, Alternate Picking,
   Legato, Sweep Picking, and Bends & Vibrato.
-- Open any of 33 authored exercises in a focused Practice Session with a score
+- Open any of 41 authored exercises in a focused Practice Session with a score
   resolved for the selected key, scale, 6-/7-/8-string guitar, and tuning, plus
   concise instruction, a tempo-synchronized current-event highlight, position
   feedback, local controls, and a simple completion flow.
@@ -93,11 +93,11 @@ a visual preference and does not alter music data or Redux tonal state.
 
 Practice Lab separates browsing from playing. The Practice Library groups all
 authored exercises by technique and opens a dedicated Practice Session instead
-of expanding a dashboard in place. Its eight grouped categories contain 33
+of expanding a dashboard in place. Its nine grouped categories contain 41
 authored exercises, including a rotating Daily Mix and focused scale, string
 skipping, rhythm, picking, legato, sweep, bend, and vibrato work.
 
-The 33 immutable source examples are reviewed in verified six-string Standard E
+The 41 immutable source examples are reviewed in verified six-string Standard E
 tuning. A pure recipe resolver derives the displayed score from the selected
 key, scale type, 6-/7-/8-string guitar, and exact pitch-class tuning without
 mutating that source material. Scale navigation, alternate picking, legato,
@@ -258,7 +258,8 @@ Toolkit, Sass, and Biome.
 | `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
 | `src/features/voicings` | Formula-independent dynamic chord generation, ranking, and accessible descriptions |
 | `src/data/practiceRoutines.ts` | Typed practice routines and research-source records |
-| `src/data/practiceTabExamples.ts` | Thirty-three immutable structured Standard E reference scores |
+| `src/data/practiceTabExamples.ts` | Forty-one immutable structured Standard E reference scores |
+| `src/data/practiceExerciseMetadata.ts` | Searchable genre, technique, difficulty, tempo, family, focus, and theory-context metadata |
 | `src/data/progressionCatalog.ts` | Static reviewed progression templates outside Redux |
 | `src/data/progressionSources.ts` | Machine-readable source and license ledger |
 | `src/helpers/musicTheory.ts` | 12-TET pitch classes, note spelling, scales, chord construction, and chord-tone roles |
@@ -302,8 +303,8 @@ As of 2026-09-26:
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
-  with 761,718 validated generated voicings, plus 33 authored Practice tabs and
-  all 7,425 registered key/scale/string-count Practice resolution contexts.
+  with 761,718 validated generated voicings, plus 41 authored Practice tabs and
+  all 9,225 registered key/scale/string-count Practice resolution contexts.
 - `npx tsc --noEmit` passes.
 - Focused Biome checks pass for all touched Practice resolver, context-bar,
   session, tablature, and executable-theory files.

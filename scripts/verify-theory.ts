@@ -1,5 +1,11 @@
 import assert from "node:assert/strict";
 import {
+  practiceDifficulties,
+  practiceExerciseMetadata,
+  practiceGenres,
+  practiceTechniques,
+} from "../src/data/practiceExerciseMetadata";
+import {
   practiceRoutines,
   practiceSources,
 } from "../src/data/practiceRoutines";
@@ -564,6 +570,44 @@ assert.deepEqual(
   [...practiceTabExampleIds].sort(),
   "Routine steps and authored Practice tabs must stay in one-to-one alignment",
 );
+
+assert.deepEqual(
+  Object.keys(practiceExerciseMetadata).sort(),
+  [...practiceTabExampleIds].sort(),
+  "Every Practice tab must have exactly one metadata record",
+);
+const practiceFamilyLevels = new Set<string>();
+for (const exampleId of practiceTabExampleIds) {
+  const metadata = practiceExerciseMetadata[exampleId];
+  assert.ok(practiceDifficulties.includes(metadata.difficulty));
+  assert.ok(metadata.genres.length > 0, `${exampleId} needs a genre`);
+  assert.ok(metadata.techniques.length > 0, `${exampleId} needs a technique`);
+  metadata.genres.forEach((genre) => {
+    assert.ok(practiceGenres.includes(genre));
+  });
+  metadata.techniques.forEach((technique) => {
+    assert.ok(practiceTechniques.includes(technique));
+  });
+  assert.ok(metadata.focus.trim().length > 0, `${exampleId} needs a focus`);
+  assert.ok(metadata.familyId.trim().length > 0, `${exampleId} family`);
+  assert.ok(Number.isInteger(metadata.familyLevel) && metadata.familyLevel > 0);
+  const familyLevel = `${metadata.familyId}:${metadata.familyLevel}`;
+  assert.equal(
+    practiceFamilyLevels.has(familyLevel),
+    false,
+    `${exampleId} duplicates family level ${familyLevel}`,
+  );
+  practiceFamilyLevels.add(familyLevel);
+  assert.ok(metadata.tempo.min >= 20 && metadata.tempo.target <= 240);
+  assert.ok(metadata.tempo.min <= metadata.tempo.recommended);
+  assert.ok(metadata.tempo.recommended <= metadata.tempo.target);
+  if (metadata.musicalContext) {
+    assert.ok(
+      tonicOptions.some(({ name }) => name === metadata.musicalContext?.root),
+    );
+    assert.ok(scaleNames.includes(metadata.musicalContext.scale));
+  }
+}
 
 let verifiedPracticeExampleCount = 0;
 for (const exampleId of practiceTabExampleIds) {

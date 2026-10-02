@@ -61,8 +61,8 @@ The application currently supports:
 - persisted Graphite, Light, and Ember visual themes selected from the shared
   top-right header control on every route
 - a route-backed Practice Library, focused Practice Session, and Session
-  Complete flow covering a rotating Daily Mix plus seven focused technique
-  categories and 33 structured playable examples resolved for the shared key,
+  Complete flow covering a rotating Daily Mix plus eight focused technique
+  categories and 41 structured playable examples resolved for the shared key,
   scale, string count, and pitch-class tuning
 - a static catalog of 225 reviewed, genuinely distinct relative progression
   templates with search, filtering, compatibility ranking, and source records
@@ -124,7 +124,9 @@ markers remain visual output rather than selectable practice targets.
   `src/data/progressionSources.ts` is the machine-readable source ledger.
 - `src/data/practiceRoutines.ts` holds typed routine copy and its visible
   research-source records outside Redux.
-- `src/data/practiceTabExamples.ts` holds the 33 authored Standard E scores;
+- `src/data/practiceTabExamples.ts` holds the 41 authored Standard E scores;
+  `src/data/practiceExerciseMetadata.ts` owns their searchable genre,
+  technique, difficulty, tempo, family, focus, and theory-context metadata;
   `src/features/practice/tablature.ts` owns their tuning, grid, event, pitch,
   articulation, notation, and accessibility types and helpers;
   `src/features/practice/recipes.ts` declares immutable transformation intent;
@@ -358,7 +360,7 @@ Current ownership and terminology:
 ## Current Practice Behavior
 
 - Preserve the primary flow `Practice Library -> Practice Session -> Session
-  Complete`. The library groups eight technique categories and 33 authored
+  Complete`. The library groups nine technique categories and 41 authored
   exercises; it should feel like choosing a workout rather than configuring
   software.
 - Practice selection and session controls are local and ephemeral. React owns
@@ -624,8 +626,8 @@ Current verified baseline as of 2026-09-26:
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
-  with 761,718 validated generated voicings, plus 33 authored Practice tabs and
-  7,425 registered Practice-resolution contexts.
+  with 761,718 validated generated voicings, plus 41 authored Practice tabs and
+  9,225 registered Practice-resolution contexts.
 - `npx tsc --noEmit` passes.
 - Focused Biome checks pass for the touched Practice resolver, context bar,
   session, tablature, and theory-suite files.

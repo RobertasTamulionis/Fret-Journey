@@ -7,6 +7,7 @@ export type PracticeRoutineId =
   | "rhythm-chugs"
   | "alternate-picking"
   | "legato"
+  | "metal-riff-forge"
   | "sweep-picking"
   | "bends-vibrato";
 
@@ -211,6 +212,121 @@ export const practiceRoutines: PracticeRoutine[] = [
       "A compact rotation for days when another pentatonic-and-major-scale runway would make you put the guitar back down.",
     tabLabel: "Daily Mix",
     title: "Practice the player, not the pattern",
+  },
+  {
+    duration: "20 min",
+    eyebrow: "Metal rhythm progression",
+    id: "metal-riff-forge",
+    musicalPrompt:
+      "Turn one rhythmic cell into a two-bar riff by changing only its accents, rests, or chord punctuation.",
+    objective:
+      "Build metal rhythm control through riffs that progress from steady attack to gallops, pedal tones, modal tension, and hard stops.",
+    progressionRule:
+      "Move up a level when three loops remain relaxed, silent in the rests, and even against the click.",
+    qualityChecks: [
+      "Pick motion stays compact as the note rate increases.",
+      "Palm-muted pedals remain pitched and even.",
+      "Ringing chords do not blur into the next muted attack.",
+      "Rests and re-entries land exactly on the grid.",
+    ],
+    sourceIds: ["guitar-world-palm-muting", "music-radar-alternate"],
+    steps: [
+      {
+        coach: "Keep the wrist loose and make every downstroke the same size.",
+        duration: "2 min",
+        exampleId: "metal-tight-chugs",
+        instruction:
+          "Anchor the pulse with even, palm-muted eighth-note downstrokes.",
+        phase: "Downpicking · Level 1",
+        success: "The final loop sounds as even and relaxed as the first.",
+        title: "Tight Chugs",
+      },
+      {
+        coach: "Let the accent come from intent, not a larger tense motion.",
+        duration: "3 min",
+        exampleId: "metal-accent-shift",
+        instruction:
+          "Keep sixteenth-note chugs even while the accent moves across the beat.",
+        phase: "Downpicking · Level 2",
+        success:
+          "The accent moves without pulling the underlying grid with it.",
+        title: "Accent Shift",
+      },
+      {
+        coach:
+          "Keep the pedal short and muted; let each power chord open up before returning to the pedal.",
+        duration: "3 min",
+        exampleId: "metal-pedal-assault",
+        instruction:
+          "Alternate an E pedal with three ringing power-chord punches.",
+        phase: "Pedal riffs · Level 1",
+        success:
+          "Muted notes and ringing chords have clearly different lengths.",
+        title: "Pedal Point Assault",
+      },
+      {
+        coach:
+          "Count every sixteenth. The empty slot is what makes the gallop speak.",
+        duration: "3 min",
+        exampleId: "metal-gallop-control",
+        instruction:
+          "Shape two gallops, a full beat of space, and a power-chord re-entry.",
+        phase: "Gallops · Level 1",
+        success:
+          "The two short attacks stay even and the chord lands after complete silence.",
+        title: "Gallop Control",
+      },
+      {
+        coach:
+          "Make the low pedal automatic so the fretted notes can define the mode.",
+        duration: "3 min",
+        exampleId: "metal-phrygian-tension",
+        instruction:
+          "Cross between an E pedal and the notes that create Phrygian tension.",
+        phase: "Pedal riffs · Level 2",
+        success:
+          "The adjacent-string notes ring clearly without loosening the pedal pulse.",
+        title: "Phrygian Tension",
+      },
+      {
+        coach:
+          "Keep alternate strokes shallow and make the string change part of the same motion.",
+        duration: "2 min",
+        exampleId: "metal-tremolo-horizon",
+        instruction:
+          "Carry a dark minor melody through a tremolo-picked string and position change.",
+        phase: "Tremolo · Level 1",
+        success: "The melody remains audible inside an even stream of attacks.",
+        title: "Tremolo Horizon",
+      },
+      {
+        coach:
+          "Release pressure with both hands together; gain should expose clean silence, not hide it.",
+        duration: "2 min",
+        exampleId: "metal-syncopated-stops",
+        instruction:
+          "Combine chugs, dead notes, offbeat chord stabs, and exact stops.",
+        phase: "Rhythm accuracy · Level 2",
+        success:
+          "Every gap is silent and each offbeat attack arrives without rushing.",
+        title: "Stop-Start Chugs",
+      },
+      {
+        coach:
+          "Keep the fretting hand relaxed on scratches and make the chord stabs short.",
+        duration: "2 min",
+        exampleId: "funk-pocket-stabs",
+        instruction:
+          "Use muted scratches, rests, and syncopated chord stabs to hold a sixteenth-note pocket.",
+        phase: "Groove transfer",
+        success: "The rests feel as precise as the chord attacks.",
+        title: "Pocket Stabs",
+      },
+    ],
+    summary:
+      "An original riff-first path through downpicking, chugs, gallops, pedal tones, modal color, tremolo, and stop-start precision.",
+    tabLabel: "Metal Riff Forge",
+    title: "Build weight from timing, contrast, and silence",
   },
   {
     duration: "12 min",

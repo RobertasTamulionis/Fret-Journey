@@ -1,9 +1,21 @@
+"use client";
+
+import { useMemo, useState } from "react";
+import {
+  formatPracticeTag,
+  type PracticeDifficulty,
+  type PracticeGenre,
+  type PracticeTechnique,
+  practiceDifficulties,
+  practiceExerciseMetadata,
+  practiceGenres,
+  practiceTechniques,
+} from "@/data/practiceExerciseMetadata";
 import {
   type PracticeRoutineId,
   practiceRoutines,
   practiceSources,
 } from "@/data/practiceRoutines";
-import { practiceTabExamples } from "@/data/practiceTabExamples";
 
 type PracticeLibraryProps = {
   onSelectExercise: (routineId: PracticeRoutineId, stepIndex: number) => void;
@@ -12,6 +24,54 @@ type PracticeLibraryProps = {
 export default function PracticeLibrary({
   onSelectExercise,
 }: PracticeLibraryProps) {
+  const [search, setSearch] = useState("");
+  const [genre, setGenre] = useState<PracticeGenre | "all">("all");
+  const [technique, setTechnique] = useState<PracticeTechnique | "all">("all");
+  const [difficulty, setDifficulty] = useState<PracticeDifficulty | "all">(
+    "all",
+  );
+  const normalizedSearch = search.trim().toLowerCase();
+  const filteredRoutines = useMemo(
+    () =>
+      practiceRoutines
+        .map((routine) => ({
+          ...routine,
+          visibleSteps: routine.steps
+            .map((step, stepIndex) => ({ step, stepIndex }))
+            .filter(({ step }) => {
+              const metadata = practiceExerciseMetadata[step.exampleId];
+              const searchableText = [
+                step.title,
+                step.instruction,
+                metadata.focus,
+                ...metadata.genres,
+                ...metadata.techniques,
+              ]
+                .join(" ")
+                .toLowerCase();
+
+              return (
+                (!normalizedSearch ||
+                  searchableText.includes(normalizedSearch)) &&
+                (genre === "all" || metadata.genres.includes(genre)) &&
+                (technique === "all" ||
+                  metadata.techniques.includes(technique)) &&
+                (difficulty === "all" || metadata.difficulty === difficulty)
+              );
+            }),
+        }))
+        .filter(({ visibleSteps }) => visibleSteps.length > 0),
+    [difficulty, genre, normalizedSearch, technique],
+  );
+  const visibleExerciseCount = filteredRoutines.reduce(
+    (count, routine) => count + routine.visibleSteps.length,
+    0,
+  );
+  const totalExerciseCount = practiceRoutines.reduce(
+    (count, routine) => count + routine.steps.length,
+    0,
+  );
+
   return (
     <div className="practiceLibrary">
       <header className="practiceLibrary__header">
@@ -29,8 +89,82 @@ export default function PracticeLibrary({
         </small>
       </header>
 
+      <section
+        aria-label="Find a practice exercise"
+        className="practiceFilters"
+      >
+        <div className="practiceFilters__heading">
+          <div>
+            <span>Find an exercise</span>
+            <strong>
+              {visibleExerciseCount} of {totalExerciseCount}
+            </strong>
+          </div>
+          <p>Filter by the result you want, not an exercise number.</p>
+        </div>
+        <div className="practiceFilters__controls">
+          <label>
+            <span>Search</span>
+            <input
+              onChange={(event) => setSearch(event.target.value)}
+              placeholder="Riff, gallop, legato…"
+              type="search"
+              value={search}
+            />
+          </label>
+          <label>
+            <span>Genre</span>
+            <select
+              onChange={(event) =>
+                setGenre(event.target.value as PracticeGenre | "all")
+              }
+              value={genre}
+            >
+              <option value="all">All genres</option>
+              {practiceGenres.map((value) => (
+                <option key={value} value={value}>
+                  {formatPracticeTag(value)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Technique</span>
+            <select
+              onChange={(event) =>
+                setTechnique(event.target.value as PracticeTechnique | "all")
+              }
+              value={technique}
+            >
+              <option value="all">All techniques</option>
+              {practiceTechniques.map((value) => (
+                <option key={value} value={value}>
+                  {formatPracticeTag(value)}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            <span>Difficulty</span>
+            <select
+              onChange={(event) =>
+                setDifficulty(event.target.value as PracticeDifficulty | "all")
+              }
+              value={difficulty}
+            >
+              <option value="all">All difficulties</option>
+              {practiceDifficulties.map((value) => (
+                <option key={value} value={value}>
+                  {formatPracticeTag(value)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
+      </section>
+
       <div className="practiceLibrary__groups">
-        {practiceRoutines.map((routine) => (
+        {filteredRoutines.map((routine) => (
           <section
             aria-labelledby={`${routine.id}-library-heading`}
             className="practiceCategory"
@@ -41,12 +175,11 @@ export default function PracticeLibrary({
                 <span>{routine.eyebrow}</span>
                 <h2 id={`${routine.id}-library-heading`}>{routine.tabLabel}</h2>
               </div>
-              <p>{routine.objective}</p>
             </header>
 
             <div className="practiceCategory__grid">
-              {routine.steps.map((step, stepIndex) => {
-                const example = practiceTabExamples[step.exampleId];
+              {routine.visibleSteps.map(({ step, stepIndex }) => {
+                const metadata = practiceExerciseMetadata[step.exampleId];
 
                 return (
                   <button
@@ -56,14 +189,17 @@ export default function PracticeLibrary({
                     type="button"
                   >
                     <span className="exerciseCard__meta">
-                      Exercise {stepIndex + 1} · {step.duration}
+                      {formatPracticeTag(metadata.techniques[0])}
                     </span>
                     <strong>{step.title}</strong>
                     <span className="exerciseCard__description">
                       {step.instruction}
                     </span>
                     <span className="exerciseCard__footer">
-                      <span>{example.bpm} BPM starting point</span>
+                      <span>
+                        {formatPracticeTag(metadata.difficulty)} ·{" "}
+                        {step.duration}
+                      </span>
                       <span aria-hidden="true">Start →</span>
                     </span>
                   </button>
@@ -95,6 +231,12 @@ export default function PracticeLibrary({
             </details>
           </section>
         ))}
+        {visibleExerciseCount === 0 && (
+          <div className="practiceLibrary__empty">
+            <strong>No exercises match those filters.</strong>
+            <span>Try a broader genre, technique, or search term.</span>
+          </div>
+        )}
       </div>
     </div>
   );

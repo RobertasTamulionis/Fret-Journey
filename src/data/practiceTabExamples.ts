@@ -937,6 +937,291 @@ export const practiceTabExamples = {
     repetitions: 4,
     subdivision: "eighths",
   }),
+  "metal-tight-chugs": authoredTab({
+    accessibleDescription:
+      "Downpick a steady bar of palm-muted low E eighth notes with accents on beats one and three.",
+    bpm: 88,
+    events: tabLine(6, [0, 0, 0, 0, 0, 0, 0, 0], {
+      accentSlots: [0, 4],
+      palmMuteDepth: "medium",
+      strokePattern: "down",
+    }),
+    id: "metal-tight-chugs",
+    markers: [
+      { at: 0, label: "anchor" },
+      { at: 4, label: "anchor" },
+    ],
+    pitchScope: pitchSet("E pedal", E_PEDAL),
+    repetitions: 8,
+    subdivision: "eighths",
+  }),
+  "metal-accent-shift": authoredTab({
+    accessibleDescription:
+      "Downpick palm-muted low E sixteenth notes while the accent moves through four different subdivisions.",
+    bpm: 74,
+    events: tabLine(6, Array(16).fill(0), {
+      accentSlots: [0, 5, 10, 15],
+      palmMuteDepth: "medium",
+      strokePattern: "down",
+    }),
+    id: "metal-accent-shift",
+    markers: [
+      { at: 0, label: "1" },
+      { at: 5, label: "e" },
+      { at: 10, label: "&" },
+      { at: 15, label: "a" },
+    ],
+    pitchScope: pitchSet("E pedal", E_PEDAL),
+    repetitions: 6,
+    subdivision: "sixteenths",
+  }),
+  "metal-pedal-assault": authoredTab({
+    accessibleDescription:
+      "Alternate palm-muted low E pedal notes with ringing G5, A5, and C5 power-chord punches.",
+    bpm: 96,
+    events: [
+      ...tabLine(6, [0, 0, null, 0, 0, null, 0, null], {
+        palmMuteDepth: "deep",
+        strokePattern: "down",
+      }),
+      tabChord(
+        2,
+        [
+          { fret: 3, string: 6 },
+          { fret: 5, string: 5 },
+        ],
+        {
+          accent: true,
+          duration: 1,
+          stroke: "down",
+        },
+      ),
+      tabChord(
+        5,
+        [
+          { fret: 5, string: 6 },
+          { fret: 7, string: 5 },
+        ],
+        {
+          accent: true,
+          duration: 1,
+          stroke: "down",
+        },
+      ),
+      tabChord(
+        7,
+        [
+          { fret: 3, string: 5 },
+          { fret: 5, string: 4 },
+        ],
+        {
+          accent: true,
+          duration: 1,
+          stroke: "down",
+        },
+      ),
+    ],
+    id: "metal-pedal-assault",
+    pitchScope: pitchSet("E minor pedal riff", E_MINOR),
+    repetitions: 8,
+    subdivision: "eighths",
+  }),
+  "metal-gallop-control": authoredTab({
+    accessibleDescription:
+      "Play two palm-muted E gallops separated by explicit sixteenth-note rest slots, then answer with a G5 power chord.",
+    bpm: 82,
+    events: [
+      ...tabLine(6, [0, null, 0, 0, 0, null, 0, 0], {
+        accentSlots: [0, 4],
+        palmMuteDepth: "medium",
+        strokePattern: "alternate-down",
+      }),
+      tabRest(1),
+      tabRest(5),
+      tabRest(8, 4),
+      tabChord(
+        12,
+        [
+          { fret: 3, string: 6 },
+          { fret: 5, string: 5 },
+        ],
+        {
+          accent: true,
+          duration: 4,
+          stroke: "down",
+        },
+      ),
+    ],
+    id: "metal-gallop-control",
+    markers: [
+      { at: 0, label: "gallop" },
+      { at: 4, label: "gallop" },
+      { at: 8, label: "space" },
+      { at: 12, label: "punch" },
+    ],
+    pitchScope: pitchSet("E minor gallop", E_MINOR),
+    repetitions: 6,
+    subdivision: "sixteenths",
+  }),
+  "metal-phrygian-tension": authoredTab({
+    accessibleDescription:
+      "Alternate a low E pedal with F, G sharp, and D notes on adjacent strings to create an original Phrygian Dominant pedal riff.",
+    bpm: 92,
+    events: [
+      ...tabLine(6, [0, null, 0, null, 0, null, 0, null], {
+        palmMuteDepth: "light",
+        strokePattern: "alternate-down",
+      }),
+      ...tabLine(5, [null, 8, null, 11, null, 8, null, 5], {
+        accentSlots: [1, 3, 5, 7],
+        strokePattern: "alternate-down",
+      }),
+    ],
+    id: "metal-phrygian-tension",
+    pitchScope: pitchSet("E Phrygian Dominant colors", [4, 5, 8, 2]),
+    repetitions: 8,
+    subdivision: "eighths",
+  }),
+  "metal-tremolo-horizon": authoredTab({
+    accessibleDescription:
+      "Tremolo pick an E natural-minor melody across the B and high E strings with one position shift.",
+    bpm: 80,
+    events: [
+      ...tabLine(2, [5, 5, 8, 8, null, null, null, null], {
+        strokePattern: "alternate-down",
+      }),
+      ...tabLine(1, [null, null, null, null, 7, 7, 10, 8], {
+        strokePattern: "alternate-down",
+      }),
+    ],
+    id: "metal-tremolo-horizon",
+    markers: [
+      { at: 0, label: "lower string" },
+      { at: 4, label: "shift" },
+    ],
+    pitchScope: pitchSet("E natural minor", E_MINOR),
+    repetitions: 8,
+    subdivision: "sixteenths",
+  }),
+  "metal-syncopated-stops": authoredTab({
+    accessibleDescription:
+      "Play muted low E attacks, dead-note stops, rests, and an offbeat G5 chord in a syncopated metal rhythm.",
+    bpm: 86,
+    events: [
+      ...tabLine(6, [0, 0, "x", null, 0, null, "x", null], {
+        palmMuteDepth: "medium",
+        strokePattern: "down",
+      }),
+      tabRest(3),
+      tabChord(
+        5,
+        [
+          { fret: 3, string: 6 },
+          { fret: 5, string: 5 },
+        ],
+        {
+          accent: true,
+          duration: 1,
+          stroke: "down",
+        },
+      ),
+      tabRest(7),
+    ],
+    id: "metal-syncopated-stops",
+    pitchScope: pitchSet("E minor stop-start riff", E_MINOR),
+    repetitions: 8,
+    subdivision: "eighths",
+  }),
+  "funk-pocket-stabs": authoredTab({
+    accessibleDescription:
+      "Alternate muted sixteenth-note scratches, rests, and two syncopated A-minor chord stabs.",
+    bpm: 92,
+    events: [
+      tabChord(
+        0,
+        [
+          { fret: "x", string: 4 },
+          { fret: "x", string: 3 },
+          { fret: "x", string: 2 },
+        ],
+        { duration: 1, stroke: "down" },
+      ),
+      tabRest(1),
+      tabChord(
+        2,
+        [
+          { fret: 7, string: 4 },
+          { fret: 5, string: 3 },
+          { fret: 5, string: 2 },
+        ],
+        { accent: true, duration: 1, stroke: "up" },
+      ),
+      tabRest(3),
+      tabChord(
+        4,
+        [
+          { fret: "x", string: 4 },
+          { fret: "x", string: 3 },
+          { fret: "x", string: 2 },
+        ],
+        { duration: 1, stroke: "down" },
+      ),
+      tabChord(
+        5,
+        [
+          { fret: "x", string: 4 },
+          { fret: "x", string: 3 },
+          { fret: "x", string: 2 },
+        ],
+        { duration: 1, stroke: "up" },
+      ),
+      tabRest(6, 2),
+      tabChord(
+        8,
+        [
+          { fret: 7, string: 4 },
+          { fret: 5, string: 3 },
+          { fret: 5, string: 2 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+      tabRest(9),
+      tabChord(
+        10,
+        [
+          { fret: "x", string: 4 },
+          { fret: "x", string: 3 },
+          { fret: "x", string: 2 },
+        ],
+        { duration: 1, stroke: "up" },
+      ),
+      tabRest(11),
+      tabChord(
+        12,
+        [
+          { fret: "x", string: 4 },
+          { fret: "x", string: 3 },
+          { fret: "x", string: 2 },
+        ],
+        { duration: 1, stroke: "down" },
+      ),
+      tabRest(13),
+      tabChord(
+        14,
+        [
+          { fret: 7, string: 4 },
+          { fret: 5, string: 3 },
+          { fret: 5, string: 2 },
+        ],
+        { accent: true, duration: 1, stroke: "up" },
+      ),
+      tabRest(15),
+    ],
+    id: "funk-pocket-stabs",
+    pitchScope: pitchSet("A minor pocket", A_MINOR_TRIAD),
+    repetitions: 8,
+    subdivision: "sixteenths",
+  }),
 } as const satisfies Record<string, PracticeTabExample>;
 
 export type PracticeTabExampleId = keyof typeof practiceTabExamples;

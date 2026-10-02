@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useMemo } from "react";
+import { type MouseEvent, useEffect, useMemo } from "react";
 import { progressionCatalog } from "@/data/progressionCatalog";
 import {
   buildProgressionHref,
@@ -63,6 +63,27 @@ type LibraryItem = {
   resolved: ResolvedProgression;
 };
 
+const progressionLibraryScrollKey = "fret-journey-progression-library-scroll";
+
+const rememberProgressionLibraryScroll = (
+  event: MouseEvent<HTMLAnchorElement>,
+) => {
+  if (
+    event.button !== 0 ||
+    event.altKey ||
+    event.ctrlKey ||
+    event.metaKey ||
+    event.shiftKey
+  ) {
+    return;
+  }
+
+  window.sessionStorage.setItem(
+    progressionLibraryScrollKey,
+    String(window.scrollY),
+  );
+};
+
 const matchesChordCount = (
   chordCount: number,
   filter: ProgressionChordCountFilter,
@@ -102,6 +123,7 @@ function ProgressionCard({ item }: { item: LibraryItem }) {
       <Link
         className="progressionCard__link"
         href={buildProgressionHref(progression.slug, currentKey, currentScale)}
+        onClick={rememberProgressionLibraryScroll}
       >
         <div className="progressionCard__topline">
           <span className="progressionCard__category">
@@ -144,6 +166,37 @@ export default function ProgressionLibrary() {
     (state) => state.fretboard,
   );
   const filters = useAppSelector((state) => state.progressionLab);
+
+  useEffect(() => {
+    const storedScroll = window.sessionStorage.getItem(
+      progressionLibraryScrollKey,
+    );
+
+    if (storedScroll === null) {
+      return;
+    }
+
+    const scrollTop = Number.parseFloat(storedScroll);
+
+    if (!Number.isFinite(scrollTop) || scrollTop < 0) {
+      window.sessionStorage.removeItem(progressionLibraryScrollKey);
+      return;
+    }
+
+    let settleFrame = 0;
+    const restoreFrame = window.requestAnimationFrame(() => {
+      window.scrollTo({ behavior: "instant", top: scrollTop });
+      settleFrame = window.requestAnimationFrame(() => {
+        window.scrollTo({ behavior: "instant", top: scrollTop });
+        window.sessionStorage.removeItem(progressionLibraryScrollKey);
+      });
+    });
+
+    return () => {
+      window.cancelAnimationFrame(restoreFrame);
+      window.cancelAnimationFrame(settleFrame);
+    };
+  }, []);
   const categories = useMemo(
     () =>
       [...new Set(progressionCatalog.map(({ category }) => category))].sort(
