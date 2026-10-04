@@ -5,8 +5,9 @@ import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.sha
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
 import { useContext, useEffect, useRef, useState } from "react";
+import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import {
-  type FretJourneyMotionCustom,
+  type FretJourneyRouteMotionCustom,
   routeTransitionVariants,
 } from "@/lib/motion";
 
@@ -34,13 +35,22 @@ export default function RouteTransition({ children }: RouteTransitionProps) {
   const pathname = usePathname();
   const [isHydrated, setIsHydrated] = useState(false);
   const reducedMotion = Boolean(useReducedMotion());
-  const motionCustom: FretJourneyMotionCustom = {
+  const { direction, finishTransition, pendingPathname } = useRouteTransition();
+  const isNavigationPending = pendingPathname === pathname;
+  const motionCustom: FretJourneyRouteMotionCustom = {
+    direction,
     reducedMotion,
   };
 
   useEffect(() => {
     setIsHydrated(true);
   }, []);
+
+  useEffect(() => {
+    if (pendingPathname && pendingPathname !== pathname) {
+      finishTransition();
+    }
+  }, [finishTransition, pathname, pendingPathname]);
 
   if (!isHydrated) {
     return (
@@ -51,9 +61,9 @@ export default function RouteTransition({ children }: RouteTransitionProps) {
   }
 
   return (
-    <AnimatePresence initial={false} mode="wait">
+    <AnimatePresence custom={motionCustom} initial={false} mode="sync">
       <motion.div
-        animate="animate"
+        animate={isNavigationPending ? "pending" : "animate"}
         className="appShell__route"
         custom={motionCustom}
         exit="exit"

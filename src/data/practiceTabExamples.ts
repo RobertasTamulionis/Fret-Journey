@@ -389,15 +389,34 @@ export const practiceTabExamples = {
   }),
   "skipping-arpeggio": authoredTab({
     accessibleDescription:
-      "Outline an A minor triad across non-adjacent strings using low E fret 5, D fret 10, B fret 5, then D fret 10.",
+      "Outline an A minor triad across non-adjacent strings, repeat the shape from its fifth, then leave space before landing on A.",
     bpm: 58,
     events: [
-      ...tabLine(6, [5, null, null, null, 5]),
-      ...tabLine(4, [null, 10, null, 10, null, 10]),
-      ...tabLine(2, [null, null, 5, null, null, null, 5]),
-      ...tabLine(1, [null, null, null, null, null, null, null, 5]),
-    ].map((event) => ({ ...event, stroke: "down" as const })),
+      ...tabLine(6, [5, null, null, null, null, 5], {
+        strokePattern: "alternate-down",
+      }),
+      ...tabLine(4, [null, 10, null, 10], {
+        strokePattern: "alternate-down",
+      }),
+      ...tabLine(2, [null, null, 5, null, 5], {
+        strokePattern: "alternate-down",
+      }),
+      ...tabLine(
+        1,
+        [null, null, null, null, null, null, null, { fret: 5, duration: 1 }],
+        {
+          accentSlots: [7],
+          strokePattern: "alternate-down",
+        },
+      ),
+      tabRest(6),
+    ],
     id: "skipping-arpeggio",
+    markers: [
+      { at: 0, label: "rise" },
+      { at: 3, label: "variation" },
+      { at: 7, label: "home" },
+    ],
     pitchScope: pitchSet("A minor triad", A_MINOR_TRIAD),
     repetitions: 6,
     subdivision: "eighths",
@@ -577,7 +596,6 @@ export const practiceTabExamples = {
       ...tabLine(1, [5, null, 7, null, 8, null, 10, null, 12, 10, 8, 7], {
         strokePattern: "alternate-down",
       }),
-      tabRest(12, 4),
     ],
     id: "alternate-burst",
     markers: [
@@ -591,29 +609,55 @@ export const practiceTabExamples = {
   }),
   "alternate-phrase": authoredTab({
     accessibleDescription:
-      "Strict alternate pick A, C, G, E, rest, D, E, and hold A as a short A minor pentatonic phrase.",
+      "Strict alternate pick a syncopated A minor pentatonic motif, repeat it one string higher, then descend to a final A.",
     bpm: 74,
     events: [
+      ...tabLine(3, [5, 7, 5, null, null, null, null, null, null, null, 7], {
+        accentSlots: [0],
+        strokePattern: "alternate-down",
+      }),
+      ...tabLine(2, [null, null, null, null, 5, 8, 5, null, null, 5], {
+        accentSlots: [4],
+        strokePattern: "alternate-down",
+      }),
       ...tabLine(
         1,
-        [5, 8, null, null, null, null, null, { fret: 5, duration: 1 }],
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          5,
+          null,
+          null,
+          8,
+          5,
+          null,
+          null,
+          { fret: 5, duration: 1 },
+        ],
         {
-          accentSlots: [1],
+          accentSlots: [15],
           strokePattern: "alternate-down",
         },
       ),
-      ...tabLine(2, [null, null, 8, 5, null, null, 5], {
-        strokePattern: "alternate-down",
-      }),
-      ...tabLine(3, [null, null, null, null, null, 7], {
-        strokePattern: "alternate-down",
-      }),
-      tabRest(4),
+      tabRest(3),
+      tabRest(7),
+      tabRest(13, 2),
     ],
     id: "alternate-phrase",
+    markers: [
+      { at: 0, label: "motif" },
+      { at: 4, label: "answer" },
+      { at: 8, label: "resolve" },
+    ],
     pitchScope: pitchSet("A minor pentatonic phrase", A_MINOR_PENTATONIC),
     repetitions: 6,
-    subdivision: "eighths",
+    subdivision: "sixteenths",
   }),
 
   "legato-pairs": authoredTab({
@@ -696,34 +740,41 @@ export const practiceTabExamples = {
   }),
   "legato-phrase": authoredTab({
     accessibleDescription:
-      "Play E hammering to G, cross to A and hammer to C, rest, then pull C to A and finish with E to A.",
+      "Play a rising A minor pentatonic legato motif, breathe, repeat it higher with a pull-off, and slide into a final A.",
     bpm: 62,
     events: [
       ...tabLine(2, [
         { fret: 5, stroke: "down" },
         { articulation: "hammer", fret: 8 },
-        null,
-        null,
-        null,
-        null,
-        5,
+        { articulation: "pull", fret: 5 },
       ]),
       ...tabLine(1, [
         null,
         null,
+        null,
+        null,
         { fret: 5, stroke: "down" },
         { articulation: "hammer", fret: 8 },
-        null,
         { articulation: "pull", fret: 5 },
         null,
-        { articulation: "vibrato", fret: 5 },
+        { fret: 8, stroke: "up" },
+        { articulation: "pull", fret: 5 },
+        { articulation: "slide-up", fret: 20 },
+        { articulation: "vibrato", duration: 4, fret: 20 },
       ]),
-      tabRest(4),
+      tabRest(3),
+      tabRest(7),
+      tabRest(12, 4),
     ],
     id: "legato-phrase",
+    markers: [
+      { at: 0, label: "motif" },
+      { at: 4, label: "answer" },
+      { at: 10, label: "home" },
+    ],
     pitchScope: pitchSet("A minor pentatonic phrase", A_MINOR_PENTATONIC),
     repetitions: 4,
-    subdivision: "eighths",
+    subdivision: "sixteenths",
   }),
 
   "sweep-rake": authoredTab({
@@ -772,10 +823,10 @@ export const practiceTabExamples = {
   }),
   "sweep-turn": authoredTab({
     accessibleDescription:
-      "Sweep G fret 14, B fret 13, high E fret 12, hammer to 17 and pull to 12, then return through B 13 and G 14.",
+      "Sweep an A minor triad upward, turn through the octave with hammer-on and pull-off, descend, then rest before a final A.",
     bpm: 52,
     events: [
-      ...tabLine(3, [14, null, null, null, null, null, 14]),
+      ...tabLine(3, [14, null, null, null, null, null, 14, null, null, 14]),
       ...tabLine(2, [null, 13, null, null, null, 13]),
       ...tabLine(1, [
         null,
@@ -785,6 +836,7 @@ export const practiceTabExamples = {
         { articulation: "pull", fret: 12 },
       ]),
       tabRest(7),
+      tabRest(8),
     ].map((event) => {
       if (event.kind === "rest" || event.at === 3 || event.at === 4) {
         return event;
@@ -796,9 +848,14 @@ export const practiceTabExamples = {
       };
     }),
     id: "sweep-turn",
+    markers: [
+      { at: 0, label: "sweep" },
+      { at: 3, label: "turn" },
+      { at: 9, label: "land" },
+    ],
     pitchScope: pitchSet("A minor triad turnaround", A_MINOR_TRIAD),
     repetitions: 8,
-    subdivision: "eighths",
+    subdivision: "sixteenths",
   }),
   "sweep-progression": authoredTab({
     accessibleDescription:
@@ -977,10 +1034,10 @@ export const practiceTabExamples = {
   }),
   "metal-pedal-assault": authoredTab({
     accessibleDescription:
-      "Alternate palm-muted low E pedal notes with ringing G5, A5, and C5 power-chord punches.",
+      "Drive a palm-muted low E pedal around G5 and A5 punches, leave a syncopated gap, then land on C5.",
     bpm: 96,
     events: [
-      ...tabLine(6, [0, 0, null, 0, 0, null, 0, null], {
+      ...tabLine(6, [0, null, null, 0, null, 0, 0, null], {
         palmMuteDepth: "deep",
         strokePattern: "down",
       }),
@@ -997,7 +1054,7 @@ export const practiceTabExamples = {
         },
       ),
       tabChord(
-        5,
+        4,
         [
           { fret: 5, string: 6 },
           { fret: 7, string: 5 },
@@ -1020,25 +1077,47 @@ export const practiceTabExamples = {
           stroke: "down",
         },
       ),
+      tabRest(1),
     ],
     id: "metal-pedal-assault",
+    markers: [
+      { at: 0, label: "pedal" },
+      { at: 2, label: "punch" },
+      { at: 4, label: "variation" },
+      { at: 7, label: "land" },
+    ],
     pitchScope: pitchSet("E minor pedal riff", E_MINOR),
     repetitions: 8,
     subdivision: "eighths",
   }),
   "metal-gallop-control": authoredTab({
     accessibleDescription:
-      "Play two palm-muted E gallops separated by explicit sixteenth-note rest slots, then answer with a G5 power chord.",
+      "Play a long-short-short E gallop, repeat it with a displaced start, leave silence, then answer with a G5 power chord.",
     bpm: 82,
     events: [
-      ...tabLine(6, [0, null, 0, 0, 0, null, 0, 0], {
-        accentSlots: [0, 4],
-        palmMuteDepth: "medium",
-        strokePattern: "alternate-down",
-      }),
-      tabRest(1),
+      ...tabLine(
+        6,
+        [
+          { duration: 2, fret: 0 },
+          null,
+          0,
+          0,
+          null,
+          null,
+          { duration: 2, fret: 0 },
+          null,
+          0,
+          0,
+        ],
+        {
+          accentSlots: [0, 6],
+          palmMuteDepth: "medium",
+          strokePattern: "alternate-down",
+        },
+      ),
+      tabRest(4),
       tabRest(5),
-      tabRest(8, 4),
+      tabRest(10, 2),
       tabChord(
         12,
         [
@@ -1055,8 +1134,9 @@ export const practiceTabExamples = {
     id: "metal-gallop-control",
     markers: [
       { at: 0, label: "gallop" },
-      { at: 4, label: "gallop" },
-      { at: 8, label: "space" },
+      { at: 4, label: "space" },
+      { at: 6, label: "variation" },
+      { at: 10, label: "space" },
       { at: 12, label: "punch" },
     ],
     pitchScope: pitchSet("E minor gallop", E_MINOR),
@@ -1065,39 +1145,101 @@ export const practiceTabExamples = {
   }),
   "metal-phrygian-tension": authoredTab({
     accessibleDescription:
-      "Alternate a low E pedal with F, G sharp, and D notes on adjacent strings to create an original Phrygian Dominant pedal riff.",
+      "Repeat an E-to-F Phrygian Dominant pedal motif, vary it with G sharp, then break the pulse and resolve to E.",
     bpm: 92,
     events: [
-      ...tabLine(6, [0, null, 0, null, 0, null, 0, null], {
-        palmMuteDepth: "light",
-        strokePattern: "alternate-down",
-      }),
-      ...tabLine(5, [null, 8, null, 11, null, 8, null, 5], {
-        accentSlots: [1, 3, 5, 7],
-        strokePattern: "alternate-down",
-      }),
+      ...tabLine(
+        6,
+        [
+          0,
+          null,
+          0,
+          0,
+          null,
+          0,
+          null,
+          0,
+          0,
+          null,
+          null,
+          0,
+          null,
+          null,
+          null,
+          { fret: 0, duration: 1 },
+        ],
+        {
+          palmMuteDepth: "light",
+          strokePattern: "alternate-down",
+        },
+      ),
+      ...tabLine(
+        5,
+        [null, 8, null, null, 8, null, 11, null, null, 8, null, null, 5],
+        {
+          accentSlots: [1, 4, 6, 9, 12],
+          strokePattern: "alternate-down",
+        },
+      ),
+      tabRest(10),
+      tabRest(13, 2),
     ],
     id: "metal-phrygian-tension",
+    markers: [
+      { at: 0, label: "motif" },
+      { at: 4, label: "repeat" },
+      { at: 8, label: "variation" },
+      { at: 12, label: "resolve" },
+    ],
     pitchScope: pitchSet("E Phrygian Dominant colors", [4, 5, 8, 2]),
     repetitions: 8,
-    subdivision: "eighths",
+    subdivision: "sixteenths",
   }),
   "metal-tremolo-horizon": authoredTab({
     accessibleDescription:
-      "Tremolo pick an E natural-minor melody across the B and high E strings with one position shift.",
+      "Tremolo pick a four-note E minor motif, repeat its contour higher, then descend through a rest to E.",
     bpm: 80,
     events: [
-      ...tabLine(2, [5, 5, 8, 8, null, null, null, null], {
-        strokePattern: "alternate-down",
-      }),
-      ...tabLine(1, [null, null, null, null, 7, 7, 10, 8], {
-        strokePattern: "alternate-down",
-      }),
+      ...tabLine(
+        2,
+        [5, 5, 8, 8, 5, 5, null, null, null, null, null, null, 8, 8],
+        {
+          strokePattern: "alternate-down",
+        },
+      ),
+      ...tabLine(
+        1,
+        [
+          null,
+          null,
+          null,
+          null,
+          null,
+          null,
+          7,
+          7,
+          10,
+          10,
+          8,
+          8,
+          null,
+          null,
+          null,
+          { fret: 12, duration: 1 },
+        ],
+        {
+          accentSlots: [6, 15],
+          strokePattern: "alternate-down",
+        },
+      ),
+      tabRest(14),
     ],
     id: "metal-tremolo-horizon",
     markers: [
       { at: 0, label: "lower string" },
-      { at: 4, label: "shift" },
+      { at: 6, label: "variation" },
+      { at: 12, label: "descent" },
+      { at: 15, label: "home" },
     ],
     pitchScope: pitchSet("E natural minor", E_MINOR),
     repetitions: 8,

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type MouseEvent, useEffect, useMemo } from "react";
+import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import { progressionCatalog } from "@/data/progressionCatalog";
 import {
   buildProgressionHref,
@@ -109,6 +110,8 @@ const getCompatibleScaleLabel = (progression: ProgressionTemplate): string =>
     .join(" / ");
 
 function ProgressionCard({ item }: { item: LibraryItem }) {
+  const router = useRouter();
+  const { beginTransition } = useRouteTransition();
   const { currentKey, currentScale } = useAppSelector(
     (state) => state.fretboard,
   );
@@ -117,13 +120,22 @@ function ProgressionCard({ item }: { item: LibraryItem }) {
   const coloredScopes = progression.harmonicDevices.filter(
     (scope) => scope !== "diatonic",
   );
+  const href = buildProgressionHref(progression.slug, currentKey, currentScale);
+  const prefetchProgression = () => router.prefetch(href);
 
   return (
     <article className="progressionCard">
       <Link
         className="progressionCard__link"
-        href={buildProgressionHref(progression.slug, currentKey, currentScale)}
-        onClick={rememberProgressionLibraryScroll}
+        href={href}
+        onClick={(event) => {
+          beginTransition("forward");
+          rememberProgressionLibraryScroll(event);
+        }}
+        onFocus={prefetchProgression}
+        onPointerDown={() => beginTransition("forward")}
+        onPointerEnter={prefetchProgression}
+        prefetch
       >
         <div className="progressionCard__topline">
           <span className="progressionCard__category">
@@ -162,6 +174,7 @@ function ProgressionCard({ item }: { item: LibraryItem }) {
 export default function ProgressionLibrary() {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { beginTransition } = useRouteTransition();
   const { currentKey, currentScale } = useAppSelector(
     (state) => state.fretboard,
   );
@@ -312,6 +325,7 @@ export default function ProgressionLibrary() {
 
     const selection =
       verifiedItems[Math.floor(Math.random() * verifiedItems.length)];
+    beginTransition("forward");
     router.push(
       buildProgressionHref(
         selection.progression.slug,

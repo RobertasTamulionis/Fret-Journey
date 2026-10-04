@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
+import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import ChordDiagram from "@/components/ChordDiagram/ChordDiagram";
 import FretboardNeck, {
   type ChordVisualization,
@@ -103,6 +104,7 @@ export default function ProgressionWorkspace({
 }: ProgressionWorkspaceProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const { beginTransition } = useRouteTransition();
   const isUrlContextReady = useProgressionUrlContext();
   const {
     currentKey,
@@ -193,6 +195,7 @@ export default function ProgressionWorkspace({
         stepId: activeStep.id,
       }),
     );
+    beginTransition("backward");
     router.push("/");
   };
 
@@ -200,7 +203,11 @@ export default function ProgressionWorkspace({
     <section className="progressionWorkspace">
       <header className="progressionWorkspace__hero">
         <div className="progressionWorkspace__identity">
-          <Link className="progressionWorkspace__backLink" href="/progressions">
+          <Link
+            className="progressionWorkspace__backLink"
+            href="/progressions"
+            onClick={() => beginTransition("backward")}
+          >
             <span aria-hidden="true">←</span> Progressions
           </Link>
           <span className="progressionWorkspace__eyebrow">

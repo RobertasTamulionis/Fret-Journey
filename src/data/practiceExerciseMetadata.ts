@@ -43,6 +43,38 @@ export const practiceDifficulties = [
 export type PracticeGenre = (typeof practiceGenres)[number];
 export type PracticeTechnique = (typeof practiceTechniques)[number];
 export type PracticeDifficulty = (typeof practiceDifficulties)[number];
+export type PracticeContentType = "drill" | "musical-exercise";
+
+const practiceDrillExampleIds = new Set<PracticeTabExampleId>([
+  "daily-reset",
+  "daily-foundation",
+  "daily-mechanics",
+  "scales-center",
+  "scales-sequence",
+  "scales-connect",
+  "skipping-landing",
+  "chugs-mute-depth",
+  "chugs-grid",
+  "chugs-gallop",
+  "alternate-balance",
+  "alternate-cross",
+  "alternate-burst",
+  "legato-pairs",
+  "legato-flow",
+  "legato-connect",
+  "sweep-rake",
+  "sweep-triad",
+  "bends-reference",
+  "bends-control",
+  "vibrato-pulse",
+  "metal-tight-chugs",
+  "metal-accent-shift",
+]);
+
+export const getPracticeContentType = (
+  exampleId: PracticeTabExampleId,
+): PracticeContentType =>
+  practiceDrillExampleIds.has(exampleId) ? "drill" : "musical-exercise";
 
 export type PracticeExerciseMetadata = {
   difficulty: PracticeDifficulty;

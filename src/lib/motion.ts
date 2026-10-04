@@ -11,6 +11,12 @@ export type FretJourneyMotionCustom = {
   reducedMotion: boolean;
 };
 
+export type RouteTransitionDirection = "backward" | "forward";
+
+export type FretJourneyRouteMotionCustom = FretJourneyMotionCustom & {
+  direction: RouteTransitionDirection;
+};
+
 export const getMotionTransition = (
   reducedMotion: boolean,
   duration: number = motionDurations.normal,
@@ -35,19 +41,24 @@ export const practiceScreenVariants: Variants = {
 };
 
 export const routeTransitionVariants: Variants = {
-  animate: ({ reducedMotion }: FretJourneyMotionCustom) => ({
+  animate: ({ reducedMotion }: FretJourneyRouteMotionCustom) => ({
     opacity: 1,
-    transition: getMotionTransition(reducedMotion, 0.12),
-    y: 0,
+    transition: getMotionTransition(reducedMotion, 0.25),
+    x: "0%",
   }),
-  exit: ({ reducedMotion }: FretJourneyMotionCustom) => ({
-    opacity: reducedMotion ? 1 : 0,
-    transition: getMotionTransition(reducedMotion, 0.12),
-    y: reducedMotion ? 0 : -6,
+  exit: ({ direction, reducedMotion }: FretJourneyRouteMotionCustom) => ({
+    opacity: 1,
+    transition: getMotionTransition(reducedMotion, 0.25),
+    x: reducedMotion ? "0%" : direction === "forward" ? "-100%" : "100%",
   }),
-  initial: ({ reducedMotion }: FretJourneyMotionCustom) => ({
-    opacity: reducedMotion ? 1 : 0,
-    y: reducedMotion ? 0 : 6,
+  initial: ({ direction, reducedMotion }: FretJourneyRouteMotionCustom) => ({
+    opacity: 1,
+    x: reducedMotion ? "0%" : direction === "forward" ? "100%" : "-100%",
+  }),
+  pending: ({ direction, reducedMotion }: FretJourneyRouteMotionCustom) => ({
+    opacity: 1,
+    transition: getMotionTransition(reducedMotion, 0.25),
+    x: reducedMotion ? "0%" : direction === "forward" ? "-100%" : "100%",
   }),
 };
 
