@@ -25,6 +25,10 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   third, fifth, seventh, and ninth roles across the neck.
 - Read theory-derived note spellings, formulas, chord names, and active-chord
   summaries.
+- Derive reusable musical-context facts for scale degrees, active-chord roles,
+  scale-color degrees, shared chord tones, nearest pitch-class targets,
+  chord transitions, and resolved progression steps without storing derived
+  analysis in Redux.
 - Navigate with real routes between the Fretboard (`/`), progression library
   (`/progressions`), progression workspaces (`/progressions/[slug]`), and
   Practice Lab (`/practice`).

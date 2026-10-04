@@ -71,6 +71,9 @@ The application currently supports:
 - registered default pitches for 6-, 7-, and 8-string guitars
 - formula-independent dynamic diagrams containing every authored tone for all
   current scale and progression chords on 6-, 7-, and 8-string guitars
+- pure musical-context analysis for scale degrees, resolved chord-tone roles,
+  scale-color degrees, common tones, nearest pitch-class targets, chord
+  transitions, and resolved progression steps
 - a progression-detail voicing navigator preserving every returned compact
   grip by physical neck region, showing one primary grip at a time, with
   session-local selections remembered per chord step and reflected in the
@@ -117,6 +120,8 @@ markers remain visual output rather than selectable practice targets.
   sort, active step, selected voicing, and visualization choice.
 - `src/features/progressions` owns relative chord formulas, resolution, URL
   validation, presentation, and catalog validation.
+- `src/features/musical-context` composes scale and resolved-progression theory
+  into pure note, chord-transition, and progression-context analysis.
 - `src/features/voicings` owns formula-independent dynamic chord generation,
   request adapters, ranking, signatures, physical-location grouping, and
   accessible chart descriptions.

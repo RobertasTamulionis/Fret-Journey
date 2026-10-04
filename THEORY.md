@@ -36,6 +36,53 @@ derived from the selected tonic and scale.
 The I–IV–V display is labeled and implemented as common blues harmony; it is not
 described as harmony obtained by stacking only notes of the minor-blues scale.
 
+## Musical context analysis
+
+Musical context is derived from the selected tonic and scale plus an optional
+resolved chord. It is not stored as a second scale or chord model. For any pitch
+class, the domain layer can independently report its scale membership, spelled
+scale tone, degree label, and tonic-relative interval; its membership and
+authored role in the active chord; and whether it is the scale tonic or chord
+root. A note may therefore be outside the selected scale while remaining a
+valid tone of a borrowed, applied, or chromatic chord.
+
+Chord-role analysis uses each resolved formula tone's authored role, semitone
+distance, diatonic movement, and behavior. Suspended seconds and fourths remain
+`second` and `fourth` roles rather than being mislabeled as thirds. Added tones,
+sixths, sevenths, ninths, alterations, and slash-bass chords retain the same
+resolved formula data used by Progression Lab.
+
+Scale-color degrees identify especially useful distinguishing color relative to
+a nearby/common reference scale. They are not a list of every interval that
+defines the scale or its basic chord quality, and they do not rank all other
+degrees as unimportant. The current metadata is deliberately limited to the
+five shipped scales:
+
+- Major has no separately marked characteristic degree because it is the
+  reference collection.
+- Natural Minor marks ♭6, which distinguishes Aeolian color from the otherwise
+  close Dorian minor collection. The defining ♭3 minor-quality interval is not
+  duplicated as color metadata.
+- Minor Blues marks ♭5, the chromatic blue note that distinguishes the
+  six-tone collection from minor pentatonic. Its ♭3 and ♭7 remain available
+  through ordinary scale-degree analysis.
+- Harmonic Minor marks the raised 7 that distinguishes it from Natural Minor.
+- Phrygian Dominant marks ♭2 and 3, the defining contrast around its tonic.
+
+Chord transitions are pitch-class relationships, not guitar-position voice
+leading. Common tones are exact shared pitch classes with their roles in both
+chords. Leaving and entering tones are set differences. For each leaving tone,
+nearest destination chord tones by pitch class are derived from clockwise and
+counterclockwise 12-TET distance; tied nearest targets are retained. This is
+only pitch-class proximity. It does not claim a preferred melodic resolution,
+harmonic destination, voice-leading choice, string, fret, octave, fingering, or
+voicing path.
+
+Progression-context analysis composes the existing resolved progression with
+the selected scale. Each step exposes its chord-tone note contexts and its
+derived transition from the previous chord and to the next chord. Catalog
+templates remain immutable, and derived context is not stored in Redux.
+
 ## Chord construction
 
 For seven-note scales, chords are constructed by stacking thirds from each scale
