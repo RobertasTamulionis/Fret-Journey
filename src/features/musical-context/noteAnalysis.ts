@@ -13,7 +13,6 @@ import type {
   ChordToneAnalysis,
   NoteContextAnalysis,
   ScaleColorDegree,
-  ScaleColorDegrees,
   ScaleDegreeAnalysis,
 } from "./types";
 
@@ -53,13 +52,13 @@ export const analyzeNoteInContext = (
   scale: analyzeScaleDegree(context, pitchClass),
 });
 
-export const scaleColorDegreeLabels = {
+const scaleColorDegreeLabels = {
   major: [],
   minor: ["b6"],
   blues: ["b5"],
   "harmonic-minor": ["7"],
   "phrygian-dominant": ["b2", "3"],
-} as const satisfies ScaleColorDegrees;
+} as const satisfies Readonly<Record<ScaleName, readonly ScaleDegreeLabel[]>>;
 
 export const getScaleColorDegrees = (
   scale: ScaleName,

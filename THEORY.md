@@ -83,6 +83,15 @@ the selected scale. Each step exposes its chord-tone note contexts and its
 derived transition from the previous chord and to the next chord. Catalog
 templates remain immutable, and derived context is not stored in Redux.
 
+Progression Detail derives one semantic entry for each of the twelve pitch
+classes from its selected step. Its Harmonic Context neck shows every selected-
+scale tone plus every active-chord tone, including chord tones outside the
+scale. Chord tones use chord-relative interval labels; remaining scale tones
+use scale-degree labels. The active chord root is visually strongest, while
+scale tonic and scale-color status remain independent, quieter facts. This is
+still a pitch-class map: it does not choose a bass, inversion, fingering,
+voice-leading path, or melodic resolution.
+
 ## Chord construction
 
 For seven-note scales, chords are constructed by stacking thirds from each scale

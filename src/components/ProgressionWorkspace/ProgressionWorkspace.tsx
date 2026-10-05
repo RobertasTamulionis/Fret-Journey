@@ -10,6 +10,7 @@ import FretboardNeck, {
 } from "@/components/Fretboard/FretboardNeck";
 import FretCountSelector from "@/components/FretCountSelector/FretCountSelector";
 import ProgressionContext from "@/components/ProgressionContext/ProgressionContext";
+import { buildPitchClassContextMap } from "@/features/musical-context";
 import {
   getResolvedChordToneIntervalLabel,
   type ProgressionTemplate,
@@ -99,6 +100,9 @@ const getCompatibleScaleLabel = (progression: ProgressionTemplate): string =>
     .map((scale) => scaleDefinitions[scale].label)
     .join(" or ");
 
+const getSpokenDegree = (degreeLabel: string): string =>
+  degreeLabel.startsWith("b") ? `flat ${degreeLabel.slice(1)}` : degreeLabel;
+
 export default function ProgressionWorkspace({
   progression,
 }: ProgressionWorkspaceProps) {
@@ -168,6 +172,30 @@ export default function ProgressionWorkspace({
   const chordVisualization = useMemo(
     () => getChordVisualization(activeStep.chord),
     [activeStep.chord],
+  );
+  const pitchClassContexts = useMemo(
+    () =>
+      buildPitchClassContextMap({ currentKey, currentScale }, activeStep.chord),
+    [activeStep.chord, currentKey, currentScale],
+  );
+  const harmonicContextSummary = useMemo(
+    () =>
+      activeStep.chord.tones
+        .map((tone) => {
+          const context = pitchClassContexts.get(tone.pitchClass);
+          const scaleRelationship = context?.scale.tone
+            ? `scale degree ${getSpokenDegree(context.scale.tone.degreeLabel)}`
+            : "outside the selected scale";
+          const chordInterval = getResolvedChordToneIntervalLabel(tone);
+          const chordRelationship =
+            tone.role === "root"
+              ? `the root of ${activeStep.chord.name}`
+              : `chord interval ${chordInterval} in ${activeStep.chord.name}`;
+
+          return `${formatNoteName(tone.name)} is ${scaleRelationship} and ${chordRelationship}.`;
+        })
+        .join(" "),
+    [activeStep.chord, pitchClassContexts],
   );
   const tuningLabel = getTuningLabel(stringCount, registeredTuning);
 
@@ -287,6 +315,32 @@ export default function ProgressionWorkspace({
                   .map(({ name }) => formatNoteName(name))
                   .join(" · ")}
               </p>
+              <div
+                aria-hidden="true"
+                className="progressionWorkspace__harmonicSummary"
+              >
+                {activeStep.chord.tones.map((tone) => {
+                  const context = pitchClassContexts.get(tone.pitchClass);
+                  const chordInterval = getResolvedChordToneIntervalLabel(tone);
+
+                  return (
+                    <span
+                      className="progressionWorkspace__harmonicSummaryItem"
+                      key={`${tone.pitchClass}-${tone.role}`}
+                    >
+                      <strong>{formatNoteName(tone.name)}</strong>
+                      <span className="progressionWorkspace__harmonicSummaryRoles">
+                        <span>
+                          {context?.scale.tone
+                            ? `scale ${context.scale.tone.degreeLabel}`
+                            : "outside scale"}
+                        </span>
+                        <span>chord {chordInterval}</span>
+                      </span>
+                    </span>
+                  );
+                })}
+              </div>
             </div>
             <div className="progressionWorkspace__neckActions">
               <fieldset>
@@ -309,7 +363,7 @@ export default function ProgressionWorkspace({
                   }
                   type="button"
                 >
-                  All chord tones
+                  Harmonic Context
                 </button>
               </fieldset>
               <FretCountSelector />
@@ -319,13 +373,23 @@ export default function ProgressionWorkspace({
             </div>
           </div>
           <FretboardNeck
-            accessibleLabel={`${activeStep.chord.name} progression fretboard`}
+            accessibleLabel={
+              visualizationMode === "all-chord-tones"
+                ? `${activeStep.chord.name} harmonic-context fretboard`
+                : `${activeStep.chord.name} progression fretboard`
+            }
+            accessibleSummary={
+              visualizationMode === "all-chord-tones"
+                ? harmonicContextSummary
+                : undefined
+            }
             chord={chordVisualization}
             currentKey={currentKey}
             currentScale={currentScale}
             displayMode="chord-tones"
             exactPositions={exactPositions}
             fretCount={fretCount}
+            pitchClassContexts={pitchClassContexts}
             tuning={tuning}
             visualizationMode={visualizationMode}
           />

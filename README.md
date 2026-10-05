@@ -54,6 +54,9 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   suspensions, added tones, and slash basses.
 - Step through a progression while the active chord name, note list, fretboard,
   large chart, and compact chart overview update together.
+- Compare the selected physical grip with a Harmonic Context neck that keeps
+  the selected scale stable while emphasizing the focused chord root and chord
+  tones, including chromatic tones outside the scale.
 - Navigate every returned compact voicing one at a time, grouped by Open,
   frets 1–4, frets 5–8, and frets 9–12. Each progression step remembers its
   selected grip for the current workspace session, and the compact progression

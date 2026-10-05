@@ -1,6 +1,7 @@
 "use client";
 
 import { type CSSProperties, useId } from "react";
+import type { PitchClassContextMap } from "@/features/musical-context";
 import {
   buildFretPositions,
   formatNoteName,
@@ -43,6 +44,7 @@ export type FretboardNeckProps = {
   displayMode: FretboardDisplayMode;
   exactPositions?: ReadonlySet<string>;
   fretCount: number;
+  pitchClassContexts?: PitchClassContextMap;
   shapeIndex?: number;
   shapePositions?: ReadonlySet<string>;
   tuning: PitchClass[];
@@ -97,6 +99,7 @@ export default function FretboardNeck({
   displayMode,
   exactPositions,
   fretCount,
+  pitchClassContexts,
   shapeIndex = 0,
   shapePositions,
   tuning,
@@ -114,6 +117,8 @@ export default function FretboardNeck({
     (visualizationMode === "standard" && displayMode === "chord-tones"
       ? "Every matching selected-chord pitch class is shown across the neck, with other scale tones subdued. This is a pitch-class map, not a playable chord grip."
       : defaultSummaries[visualizationMode]);
+  const showsHarmonicContext =
+    visualizationMode === "all-chord-tones" && Boolean(pitchClassContexts);
 
   const getChordTone = (pitchClass: PitchClass) =>
     chord?.tones.find((tone) => tone.pitchClass === pitchClass);
@@ -126,6 +131,14 @@ export default function FretboardNeck({
     intervalName?: string,
   ): string | undefined => {
     const chordTone = getChordTone(pitchClass);
+
+    if (showsHarmonicContext) {
+      if (chordTone) {
+        return chordTone.intervalName;
+      }
+
+      return pitchClassContexts?.get(pitchClass)?.scale.tone?.degreeLabel;
+    }
 
     if (visualizationMode !== "standard") {
       return chordTone?.intervalName ?? formatPitchClass(pitchClass);
@@ -152,6 +165,33 @@ export default function FretboardNeck({
     }
 
     return noteName ? formatNoteName(noteName) : undefined;
+  };
+
+  const getHarmonicContextClassName = (pitchClass: PitchClass): string => {
+    if (!showsHarmonicContext) {
+      return "";
+    }
+
+    const context = pitchClassContexts?.get(pitchClass);
+
+    if (!context) {
+      return "";
+    }
+
+    return [
+      "fretboard__fret-piece--harmonic-context",
+      context.scale.inScale ? "fretboard__fret-piece--harmonic-scale-tone" : "",
+      context.chord.isChordTone
+        ? "fretboard__fret-piece--harmonic-chord-tone"
+        : "",
+      context.isScaleTonic ? "fretboard__fret-piece--harmonic-scale-tonic" : "",
+      context.isChordRoot ? "fretboard__fret-piece--harmonic-chord-root" : "",
+      context.isScaleColorDegree
+        ? "fretboard__fret-piece--harmonic-scale-color"
+        : "",
+    ]
+      .filter(Boolean)
+      .join(" ");
   };
 
   const getChordToneClassName = (
@@ -206,8 +246,13 @@ export default function FretboardNeck({
                 scaleDegree,
               }) => {
                 const positionKey = `${stringIndex}-${fret}`;
-                const isScaleNote = Boolean(scaleDegree);
-                const isChordTone = Boolean(getChordTone(pitchClass));
+                const pitchClassContext = pitchClassContexts?.get(pitchClass);
+                const isScaleNote = showsHarmonicContext
+                  ? Boolean(pitchClassContext?.scale.inScale)
+                  : Boolean(scaleDegree);
+                const isChordTone = showsHarmonicContext
+                  ? Boolean(pitchClassContext?.chord.isChordTone)
+                  : Boolean(getChordTone(pitchClass));
                 const isExactPosition = Boolean(
                   exactPositions?.has(positionKey),
                 );
@@ -215,7 +260,9 @@ export default function FretboardNeck({
                   visualizationMode === "selected-voicing"
                     ? isExactPosition
                     : visualizationMode === "all-chord-tones"
-                      ? isChordTone
+                      ? showsHarmonicContext
+                        ? isScaleNote || isChordTone
+                        : isChordTone
                       : isScaleNote ||
                         (displayMode === "chord-tones" && isChordTone);
                 const isCagedAnchor =
@@ -236,7 +283,12 @@ export default function FretboardNeck({
                     ? `fretboard__fret-piece--S${shapeIndex + 1}`
                     : "";
                 const chordToneClassName = isVisibleNote
-                  ? getChordToneClassName(pitchClass, isScaleNote)
+                  ? showsHarmonicContext
+                    ? ""
+                    : getChordToneClassName(pitchClass, isScaleNote)
+                  : "";
+                const harmonicContextClassName = isVisibleNote
+                  ? getHarmonicContextClassName(pitchClass)
                   : "";
                 const noteClassName = `
                   fretboard__fret-piece
@@ -245,6 +297,7 @@ export default function FretboardNeck({
                   ${getLabelSizeClassName(fretLabel)}
                   ${shapeClassName}
                   ${chordToneClassName}
+                  ${harmonicContextClassName}
                 `;
 
                 return (

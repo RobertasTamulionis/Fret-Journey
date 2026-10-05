@@ -4,75 +4,73 @@ import type {
   ResolvedProgressionStep,
 } from "@/features/progressions";
 import type { ScaleTone } from "@/helpers/musicTheory";
-import type {
-  PitchClass,
-  ScaleDegreeLabel,
-  ScaleName,
-} from "@/helpers/typesHelpers";
+import type { PitchClass, ScaleDegreeLabel } from "@/helpers/typesHelpers";
 
 export type ScaleDegreeAnalysis = {
-  inScale: boolean;
-  tone?: ScaleTone;
+  readonly inScale: boolean;
+  readonly tone?: ScaleTone;
 };
 
 export type ChordToneAnalysis = {
-  isChordTone: boolean;
-  tone?: ResolvedChordTone;
+  readonly isChordTone: boolean;
+  readonly tone?: ResolvedChordTone;
 };
 
 export type NoteContextAnalysis = {
-  chord: ChordToneAnalysis;
-  isChordRoot: boolean;
-  isScaleTonic: boolean;
-  pitchClass: PitchClass;
-  scale: ScaleDegreeAnalysis;
+  readonly chord: ChordToneAnalysis;
+  readonly isChordRoot: boolean;
+  readonly isScaleTonic: boolean;
+  readonly pitchClass: PitchClass;
+  readonly scale: ScaleDegreeAnalysis;
 };
 
+export type PitchClassContext = NoteContextAnalysis & {
+  readonly isScaleColorDegree: boolean;
+};
+
+export type PitchClassContextMap = ReadonlyMap<PitchClass, PitchClassContext>;
+
 export type ScaleColorDegree = {
-  degreeLabel: ScaleDegreeLabel;
-  intervalName: ScaleTone["intervalName"];
-  semitones: number;
+  readonly degreeLabel: ScaleDegreeLabel;
+  readonly intervalName: ScaleTone["intervalName"];
+  readonly semitones: number;
 };
 
 export type ChordToneRelationship = {
-  pitchClass: PitchClass;
-  toneInFromChord: ResolvedChordTone;
-  toneInToChord: ResolvedChordTone;
+  readonly pitchClass: PitchClass;
+  readonly toneInFromChord: ResolvedChordTone;
+  readonly toneInToChord: ResolvedChordTone;
 };
 
 export type PitchClassTarget = {
-  ascendingDistanceSemitones: number;
-  descendingDistanceSemitones: number;
-  minimumDistanceSemitones: number;
-  sourcePitchClass: PitchClass;
-  targetTone: ResolvedChordTone;
+  readonly ascendingDistanceSemitones: number;
+  readonly descendingDistanceSemitones: number;
+  readonly minimumDistanceSemitones: number;
+  readonly sourcePitchClass: PitchClass;
+  readonly targetTone: ResolvedChordTone;
 };
 
 export type ChordTransitionAnalysis = {
-  commonTones: readonly ChordToneRelationship[];
-  enteringTones: readonly ResolvedChordTone[];
-  fromChord: ResolvedChord;
-  leavingTones: readonly ResolvedChordTone[];
-  nearestPitchClassTargets: ReadonlyArray<{
-    sourceTone: ResolvedChordTone;
-    targets: readonly PitchClassTarget[];
+  readonly commonTones: readonly ChordToneRelationship[];
+  readonly enteringTones: readonly ResolvedChordTone[];
+  readonly fromChord: ResolvedChord;
+  readonly leavingTones: readonly ResolvedChordTone[];
+  readonly nearestPitchClassTargets: ReadonlyArray<{
+    readonly sourceTone: ResolvedChordTone;
+    readonly targets: readonly PitchClassTarget[];
   }>;
-  toChord: ResolvedChord;
+  readonly toChord: ResolvedChord;
 };
 
 export type ProgressionStepContextAnalysis = {
-  chordToneContexts: readonly NoteContextAnalysis[];
-  nextTransition?: ChordTransitionAnalysis;
-  previousTransition?: ChordTransitionAnalysis;
-  step: ResolvedProgressionStep;
-  stepIndex: number;
+  readonly chordToneContexts: readonly NoteContextAnalysis[];
+  readonly nextTransition?: ChordTransitionAnalysis;
+  readonly previousTransition?: ChordTransitionAnalysis;
+  readonly step: ResolvedProgressionStep;
+  readonly stepIndex: number;
 };
 
 export type ProgressionContextAnalysis = {
-  scaleTones: readonly ScaleTone[];
-  steps: readonly ProgressionStepContextAnalysis[];
+  readonly scaleTones: readonly ScaleTone[];
+  readonly steps: readonly ProgressionStepContextAnalysis[];
 };
-
-export type ScaleColorDegrees = Readonly<
-  Record<ScaleName, readonly ScaleDegreeLabel[]>
->;

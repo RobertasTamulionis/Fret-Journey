@@ -133,6 +133,44 @@
     p { margin: 4px 0 0; color: $cyan; font-family: var(--font-geist-mono), monospace; font-size: 11px; }
   }
 
+  &__harmonicSummary {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 8px 0 0;
+
+    &Item {
+      display: inline-flex;
+      align-items: baseline;
+      gap: 6px;
+      padding: 4px 7px;
+      border: 1px solid var(--color-border);
+      border-radius: 7px;
+      background: var(--panel-background-soft);
+    }
+
+    &Item > strong {
+      color: var(--color-text-strong);
+      font-family: var(--font-geist-mono), monospace;
+      font-size: 10px;
+      font-weight: 720;
+    }
+
+    &Roles {
+      display: inline-flex;
+      gap: 5px;
+      margin: 0;
+      color: $muted;
+      font-size: 8px;
+
+      span + span::before {
+        content: "·";
+        margin-right: 5px;
+        color: color-mix(in srgb, $cyan 58%, transparent);
+      }
+    }
+  }
+
   &__neckActions {
     display: flex;
     align-items: end;

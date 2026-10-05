@@ -6,6 +6,7 @@ import {
   analyzeNoteInContext,
   analyzeProgressionContext,
   analyzeScaleDegree,
+  buildPitchClassContextMap,
   findNearestChordToneTargetsByPitchClass,
   getScaleColorDegrees,
 } from "../src/features/musical-context";
@@ -67,6 +68,7 @@ assert.deepEqual(aMinorProgression.chordNames, ["Am", "F", "C", "G"]);
 
 const [aMinor, fMajor] = aMinorProgression.steps.map(({ chord }) => chord);
 assert.ok(aMinor && fMajor);
+const aMinorContext = { currentKey: "A", currentScale: "minor" } as const;
 
 const expectedAMinorRoles = [
   ["A", "1", "root"],
@@ -136,6 +138,60 @@ assert.deepEqual(
   [pitchClass("A"), pitchClass("C")],
 );
 
+const aMinorPitchClassContexts = buildPitchClassContextMap(
+  aMinorContext,
+  aMinor,
+);
+const fMajorPitchClassContexts = buildPitchClassContextMap(
+  aMinorContext,
+  fMajor,
+);
+assert.equal(aMinorPitchClassContexts.size, 12);
+assert.deepEqual(
+  ["A", "C", "E"].map((note) => {
+    const context = aMinorPitchClassContexts.get(pitchClass(note));
+    return [
+      context?.scale.tone?.degreeLabel,
+      context?.chord.tone?.role,
+      context?.isScaleTonic,
+      context?.isChordRoot,
+    ];
+  }),
+  [
+    ["1", "root", true, true],
+    ["b3", "third", false, false],
+    ["5", "fifth", false, false],
+  ],
+);
+assert.deepEqual(
+  ["F", "A", "C"].map((note) => {
+    const context = fMajorPitchClassContexts.get(pitchClass(note));
+    return [
+      context?.scale.tone?.degreeLabel,
+      context?.chord.tone?.role,
+      context?.isScaleTonic,
+      context?.isChordRoot,
+    ];
+  }),
+  [
+    ["b6", "root", false, true],
+    ["1", "third", true, false],
+    ["b3", "fifth", false, false],
+  ],
+);
+assert.equal(
+  aMinorPitchClassContexts.get(pitchClass("A"))?.scale.tone?.degreeLabel,
+  fMajorPitchClassContexts.get(pitchClass("A"))?.scale.tone?.degreeLabel,
+);
+assert.notEqual(
+  aMinorPitchClassContexts.get(pitchClass("A"))?.chord.tone?.role,
+  fMajorPitchClassContexts.get(pitchClass("A"))?.chord.tone?.role,
+);
+assert.equal(
+  fMajorPitchClassContexts.get(pitchClass("F"))?.isScaleColorDegree,
+  true,
+);
+
 assert.deepEqual(
   getScaleTones("E", "phrygian-dominant").map(({ name, degreeLabel }) => [
     name,
@@ -197,6 +253,13 @@ for (const formulaId of ["sus2", "sus4"] as const) {
     false,
   );
   assert.equal(analyzeChordTone(suspended, pitchClass("E")).isChordTone, false);
+  assert.equal(
+    buildPitchClassContextMap(
+      { currentKey: "C", currentScale: "major" },
+      suspended,
+    ).get(pitchClass(formulaId === "sus2" ? "D" : "F"))?.chord.tone?.role,
+    formulaId === "sus2" ? "second" : "fourth",
+  );
 }
 
 for (const [formulaId, seventh] of [
@@ -218,11 +281,25 @@ const chromaticContext = analyzeNoteInContext(
 );
 assert.equal(chromaticContext.scale.inScale, false);
 assert.equal(chromaticContext.chord.tone?.role, "root");
+assert.equal(
+  buildPitchClassContextMap(
+    { currentKey: "C", currentScale: "major" },
+    borrowedBFlat,
+  ).get(pitchClass("Bb"))?.chord.isChordTone,
+  true,
+);
 
 assert.deepEqual(
   getScaleTones("Db", "major").map(({ name }) => name),
   ["Db", "Eb", "F", "Gb", "Ab", "Bb", "C"],
   "Scale context must preserve diatonic flat-key spelling",
 );
+assert.equal(
+  buildPitchClassContextMap(
+    { currentKey: "Db", currentScale: "major" },
+    chord("Db", "major", 1),
+  ).get(pitchClass("Gb"))?.scale.tone?.name,
+  "Gb",
+);
 
-export const verifiedMusicalContextAssertions = 16;
+export const verifiedMusicalContextAssertions = 23;

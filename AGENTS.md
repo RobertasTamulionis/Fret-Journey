@@ -74,6 +74,9 @@ The application currently supports:
 - pure musical-context analysis for scale degrees, resolved chord-tone roles,
   scale-color degrees, common tones, nearest pitch-class targets, chord
   transitions, and resolved progression steps
+- a Progression Detail Harmonic Context view that keeps the selected scale
+  visible while the manually focused step changes chord-root and chord-tone
+  emphasis; selected physical voicings remain a separate view
 - a progression-detail voicing navigator preserving every returned compact
   grip by physical neck region, showing one primary grip at a time, with
   session-local selections remembered per chord step and reflected in the
@@ -103,7 +106,8 @@ markers remain visual output rather than selectable practice targets.
 - `src/components/Fretboard/Fretboard.tsx` composes the dashboard and renders
   the neck.
 - `src/components/Fretboard/FretboardNeck.tsx` renders prop-driven all-tone or
-  exact selected-voicing neck states.
+  exact selected-voicing neck states, plus optional semantic pitch-class
+  context supplied by Progression Detail.
 - `src/components/ProgressionLibrary` and `src/components/ProgressionWorkspace`
   own the two progression experiences.
 - `src/components/PracticeLab` owns the grouped exercise library, focused
