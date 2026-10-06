@@ -56,9 +56,11 @@ export const routeTransitionVariants: Variants = {
     x: reducedMotion ? "0%" : direction === "forward" ? "100%" : "-100%",
   }),
   pending: ({ direction, reducedMotion }: FretJourneyRouteMotionCustom) => ({
-    opacity: 1,
+    opacity: reducedMotion ? 1 : 0.82,
     transition: getMotionTransition(reducedMotion, 0.25),
-    x: reducedMotion ? "0%" : direction === "forward" ? "-100%" : "100%",
+    // Navigation can wait on an uncached App Router payload. Keep the current
+    // route visible while that work completes instead of leaving an empty shell.
+    x: reducedMotion ? "0%" : direction === "forward" ? "-2%" : "2%",
   }),
 };
 

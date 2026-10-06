@@ -88,6 +88,8 @@ export type PracticeTabExample = {
   events: readonly PracticeTabEvent[];
   id: string;
   markers?: readonly PracticeTabMarker[];
+  /** Number of authored 4/4 measures. Omitted examples contain one measure. */
+  measureCount?: number;
   pitchScope: PracticeTabPitchScope;
   repetitions: number;
   subdivision: PracticeTabSubdivision;
@@ -106,6 +108,16 @@ export const practiceTabSlotCount: Record<PracticeTabSubdivision, number> = {
   triplets: 12,
   sixteenths: 16,
 };
+
+export const getPracticeScoreMeasureCount = (
+  example: Pick<PracticeTabExample, "measureCount">,
+): number => example.measureCount ?? 1;
+
+export const getPracticeScoreSlotCount = (
+  example: Pick<PracticeTabExample, "measureCount" | "subdivision">,
+): number =>
+  practiceTabSlotCount[example.subdivision] *
+  getPracticeScoreMeasureCount(example);
 
 const countCycles: Record<PracticeTabSubdivision, readonly string[]> = {
   quarters: ["1", "2", "3", "4"],
@@ -175,7 +187,7 @@ export const getPracticeExampleTuning = (
 ): PracticeTabTuning => example.tuning ?? practiceTabTunings[example.tuningId];
 
 export const getPracticeSequenceEvents = (
-  example: PracticeTabExample,
+  example: Pick<PracticeTabExample, "events">,
 ): readonly PracticeTabEvent[] =>
   [...example.events].sort((first, second) => first.at - second.at);
 

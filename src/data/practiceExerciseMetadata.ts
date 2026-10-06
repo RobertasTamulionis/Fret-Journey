@@ -497,6 +497,17 @@ export const practiceExerciseMetadata = {
     140,
     { root: "E", scale: "minor" },
   ),
+  "metal-three-three-two-engine": meta(
+    ["metal"],
+    ["rhythm-accuracy", "downpicking", "palm-muting", "power-chords"],
+    "intermediate",
+    "rhythm-accuracy",
+    2,
+    "Feel three plus three plus two as one even eighth-note groove while chord destinations define the grouping.",
+    90,
+    120,
+    { root: "E", scale: "minor" },
+  ),
   "metal-gallop-control": meta(
     ["metal"],
     ["gallops", "palm-muting", "power-chords", "rhythm-accuracy"],

@@ -57,11 +57,13 @@ export const getPracticeRemainingSeconds = (
 
 export const getPracticePositionSnapshot = (
   example: PracticeTabExample,
-  activeEventIndex: number,
+  activeEventIndex: number | null,
+  authoredSlot = 0,
 ): PracticePositionSnapshot => {
   const sequenceEvents = getPracticeSequenceEvents(example);
-  const activeEvent = sequenceEvents[activeEventIndex % sequenceEvents.length];
-  const activeSlot = activeEvent?.at ?? 0;
+  const activeEvent =
+    activeEventIndex === null ? undefined : sequenceEvents[activeEventIndex];
+  const activeSlot = activeEvent?.at ?? authoredSlot;
   let marker: PracticeTabMarker | undefined;
 
   for (const candidate of example.markers ?? []) {

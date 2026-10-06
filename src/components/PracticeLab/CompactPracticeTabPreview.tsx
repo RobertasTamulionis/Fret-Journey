@@ -2,11 +2,11 @@ import type { CSSProperties } from "react";
 import {
   formatPracticeTabNote,
   getPracticeExampleTuning,
+  getPracticeScoreSlotCount,
   getPracticeSequenceEvents,
   getPracticeTabCountLabels,
   type PracticeTabExample,
   type PracticeTabNoteEvent,
-  practiceTabSlotCount,
 } from "@/features/practice/tablature";
 
 type CompactPracticeTabPreviewProps = {
@@ -20,7 +20,7 @@ export default function CompactPracticeTabPreview({
 }: CompactPracticeTabPreviewProps) {
   const tuning = getPracticeExampleTuning(example);
   const events = getPracticeSequenceEvents(example);
-  const slotCount = practiceTabSlotCount[example.subdivision];
+  const slotCount = getPracticeScoreSlotCount(example);
   const slots = Array.from({ length: slotCount }, (_, index) => index);
   const occupiedStrings = [
     ...new Set(
@@ -108,7 +108,7 @@ export default function CompactPracticeTabPreview({
             className={slot % (slotCount / 4) === 0 ? "isBeat" : undefined}
             key={slot}
           >
-            {countLabels[slot]}
+            {countLabels[slot % countLabels.length]}
           </span>
         ))}
       </div>

@@ -266,6 +266,18 @@ export const practiceRoutines: PracticeRoutine[] = [
       },
       {
         coach:
+          "Keep all eighth notes perfectly even. Let the unmuted chord accents reveal three plus three plus two; 140 BPM is an optional mastery challenge only after 120 stays relaxed and clean.",
+        duration: "3 min",
+        exampleId: "metal-three-three-two-engine",
+        instruction:
+          "Downpick two bars of even eighth notes while muted E pedals and accented power chords create a three-plus-three-plus-two groove.",
+        phase: "Rhythm accuracy · Level 2",
+        success:
+          "The grouping is unmistakable without bending the pulse, every chord stops cleanly before the next pedal, and the two-bar loop has no seam.",
+        title: "Three-Three-Two Engine",
+      },
+      {
+        coach:
           "Count every sixteenth. The empty slot is what makes the gallop speak.",
         duration: "3 min",
         exampleId: "metal-gallop-control",

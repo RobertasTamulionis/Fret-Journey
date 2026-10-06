@@ -22,8 +22,8 @@ import { practiceExerciseRecipes } from "../src/features/practice/recipes";
 import { resolvePracticeTab } from "../src/features/practice/resolvePracticeTab";
 import {
   getPracticeExampleTuning,
+  getPracticeScoreSlotCount,
   getPracticeTabPitchClass,
-  practiceTabSlotCount,
   practiceTabTunings,
 } from "../src/features/practice/tablature";
 import {
@@ -613,7 +613,7 @@ for (const exampleId of practiceTabExampleIds) {
 let verifiedPracticeExampleCount = 0;
 for (const exampleId of practiceTabExampleIds) {
   const example = practiceTabExamples[exampleId];
-  const slotCount = practiceTabSlotCount[example.subdivision];
+  const slotCount = getPracticeScoreSlotCount(example);
   const eventStarts = new Set<number>();
   const noteEventStarts = new Set<number>();
   const restSlots = new Set<number>();
@@ -630,6 +630,11 @@ for (const exampleId of practiceTabExampleIds) {
     `${exampleId} repetitions`,
   );
   assert.ok(example.events.length > 0, `${exampleId} must contain events`);
+  assert.ok(
+    example.measureCount === undefined ||
+      (Number.isInteger(example.measureCount) && example.measureCount > 0),
+    `${exampleId} measure count`,
+  );
   assert.ok(example.pitchScope.label.trim().length > 0);
 
   example.markers?.forEach((marker) => {
@@ -823,6 +828,112 @@ for (const exampleId of practiceTabExampleIds) {
 
   verifiedPracticeExampleCount += 1;
 }
+
+const threeThreeTwoId = "metal-three-three-two-engine";
+const threeThreeTwo = practiceTabExamples[threeThreeTwoId];
+const threeThreeTwoEvents = [...threeThreeTwo.events].sort(
+  (first, second) => first.at - second.at,
+);
+assert.equal(threeThreeTwo.measureCount, 2);
+assert.equal(threeThreeTwo.subdivision, "eighths");
+assert.equal(threeThreeTwoEvents.length, 16);
+assert.deepEqual(
+  threeThreeTwoEvents.map(({ at }) => at),
+  Array.from({ length: 16 }, (_, index) => index),
+);
+assert.ok(
+  threeThreeTwoEvents.every(
+    (event) => event.kind === "notes" && event.stroke === "down",
+  ),
+  `${threeThreeTwoId} must use continuous downstrokes`,
+);
+
+const expectedThreeThreeTwoChords = new Map<
+  number,
+  readonly (readonly [number, number])[]
+>([
+  [
+    2,
+    [
+      [6, 8],
+      [5, 10],
+    ],
+  ],
+  [
+    5,
+    [
+      [6, 10],
+      [5, 12],
+    ],
+  ],
+  [
+    7,
+    [
+      [6, 8],
+      [5, 10],
+    ],
+  ],
+  [
+    10,
+    [
+      [6, 3],
+      [5, 5],
+    ],
+  ],
+  [
+    13,
+    [
+      [6, 10],
+      [5, 12],
+    ],
+  ],
+  [
+    14,
+    [
+      [6, 8],
+      [5, 10],
+    ],
+  ],
+  [
+    15,
+    [
+      [6, 10],
+      [5, 12],
+    ],
+  ],
+]);
+
+for (const event of threeThreeTwoEvents) {
+  assert.equal(event.kind, "notes");
+  if (event.kind !== "notes") continue;
+
+  const expectedChord = expectedThreeThreeTwoChords.get(event.at);
+  if (expectedChord) {
+    assert.equal(event.accent, true, `Chord at ${event.at} must be accented`);
+    assert.equal(event.palmMuteDepth, undefined);
+    assert.deepEqual(
+      event.notes.map(({ fret, string }) => [string, fret]),
+      expectedChord,
+    );
+  } else {
+    assert.equal(event.accent, false);
+    assert.equal(event.palmMuteDepth, "medium");
+    assert.deepEqual(
+      event.notes.map(({ fret, string }) => [string, fret]),
+      [[6, 0]],
+    );
+  }
+}
+
+assert.deepEqual(practiceExerciseMetadata[threeThreeTwoId].tempo, {
+  min: 70,
+  recommended: 90,
+  target: 120,
+});
+assert.deepEqual(practiceExerciseMetadata[threeThreeTwoId].musicalContext, {
+  root: "E",
+  scale: "minor",
+});
 
 assert.deepEqual(
   Object.keys(practiceExerciseRecipes).sort(),

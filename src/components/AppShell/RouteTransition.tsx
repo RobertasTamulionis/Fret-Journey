@@ -1,10 +1,9 @@
 "use client";
 
-import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { LayoutRouterContext } from "next/dist/shared/lib/app-router-context.shared-runtime";
+import { motion, useReducedMotion } from "motion/react";
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
-import { useContext, useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import {
   type FretJourneyRouteMotionCustom,
@@ -14,22 +13,6 @@ import {
 type RouteTransitionProps = {
   children: ReactNode;
 };
-
-function FrozenRouter({ children }: RouteTransitionProps) {
-  const routerContext = useContext(LayoutRouterContext);
-  const pathname = usePathname();
-  const frozenRouterContext = useRef(routerContext).current;
-  const frozenPathname = useRef(pathname).current;
-  // Same-route query changes must stay live; only freeze a tree that is exiting.
-  const activeRouterContext =
-    pathname === frozenPathname ? routerContext : frozenRouterContext;
-
-  return (
-    <LayoutRouterContext.Provider value={activeRouterContext}>
-      {children}
-    </LayoutRouterContext.Provider>
-  );
-}
 
 export default function RouteTransition({ children }: RouteTransitionProps) {
   const pathname = usePathname();
@@ -61,20 +44,15 @@ export default function RouteTransition({ children }: RouteTransitionProps) {
   }
 
   return (
-    <AnimatePresence custom={motionCustom} initial={false} mode="sync">
-      <motion.div
-        animate={isNavigationPending ? "pending" : "animate"}
-        className="appShell__route"
-        custom={motionCustom}
-        exit="exit"
-        initial="initial"
-        key={pathname}
-        variants={routeTransitionVariants}
-      >
-        <div className="appShell__routeContent">
-          <FrozenRouter>{children}</FrozenRouter>
-        </div>
-      </motion.div>
-    </AnimatePresence>
+    <motion.div
+      animate={isNavigationPending ? "pending" : "animate"}
+      className="appShell__route"
+      custom={motionCustom}
+      initial="initial"
+      key={pathname}
+      variants={routeTransitionVariants}
+    >
+      <div className="appShell__routeContent">{children}</div>
+    </motion.div>
   );
 }

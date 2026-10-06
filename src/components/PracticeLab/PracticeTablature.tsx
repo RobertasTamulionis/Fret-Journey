@@ -1,26 +1,35 @@
-import { type CSSProperties, type ReactNode, useMemo } from "react";
+import {
+  type CSSProperties,
+  type ReactNode,
+  useEffect,
+  useMemo,
+  useRef,
+} from "react";
 import type { PracticeTabExample } from "@/features/practice/tablature";
 import {
   formatPracticeTabNote,
   getPracticeExampleTuning,
+  getPracticeScoreSlotCount,
   getPracticeSequenceEvents,
   getPracticeTabBeatSize,
   getPracticeTabCountLabels,
   getPracticeTabLegend,
-  practiceTabSlotCount,
 } from "@/features/practice/tablature";
 
 type PracticeTablatureProps = {
-  activeEventIndex?: number;
+  activeEventIndex?: number | null;
+  authoredSlot?: number;
   example: PracticeTabExample;
   showFollowAlong?: boolean;
 };
 
 type GridRowProps = {
-  activeEventIndex?: number;
+  activeEventIndex?: number | null;
+  authoredSlot?: number;
   children: (slot: number) => ReactNode;
   className?: string;
   eventIndexBySlot?: ReadonlyMap<number, number>;
+  eventStartSlotByIndex?: ReadonlyMap<number, number>;
   label: string;
   slots: number;
   style: CSSProperties;
@@ -29,9 +38,11 @@ type GridRowProps = {
 
 function GridRow({
   activeEventIndex,
+  authoredSlot,
   children,
   className = "",
   eventIndexBySlot,
+  eventStartSlotByIndex,
   label,
   slots,
   style,
@@ -44,18 +55,25 @@ function GridRow({
       <span className="practiceTab__rowLabel">{label}</span>
       {Array.from({ length: slots }, (_, slot) => {
         const eventIndex = eventIndexBySlot?.get(slot);
+        const eventStartSlot =
+          eventIndex === undefined
+            ? undefined
+            : eventStartSlotByIndex?.get(eventIndex);
         const eventState =
           eventIndex === undefined || activeEventIndex === undefined
             ? ""
             : eventIndex === activeEventIndex
               ? "isCurrent"
-              : eventIndex < activeEventIndex
+              : eventStartSlot !== undefined &&
+                  authoredSlot !== undefined &&
+                  eventStartSlot < authoredSlot
                 ? "isPlayed"
                 : "isUpcoming";
 
         return (
           <span
             className={`practiceTab__cell ${slot % beatSize === 0 ? "isBeat" : ""} ${eventState}`.trim()}
+            data-practice-slot={slot}
             // biome-ignore lint/suspicious/noArrayIndexKey: The slot number is the stable identity of a fixed musical grid position.
             key={`${label}-${slot}`}
           >
@@ -69,11 +87,15 @@ function GridRow({
 
 export default function PracticeTablature({
   activeEventIndex,
+  authoredSlot,
   example,
   showFollowAlong = false,
 }: PracticeTablatureProps) {
+  const viewportRef = useRef<HTMLElement>(null);
+  const previousActiveEventIndexRef = useRef<number | null>(null);
+  const previousExampleIdRef = useRef(example.id);
   const tuning = getPracticeExampleTuning(example);
-  const slots = practiceTabSlotCount[example.subdivision];
+  const slots = getPracticeScoreSlotCount(example);
   const countLabels = getPracticeTabCountLabels(example.subdivision);
   const legend = useMemo(() => getPracticeTabLegend(example), [example]);
   const gridStyle = useMemo(
@@ -85,6 +107,7 @@ export default function PracticeTablature({
   );
   const {
     eventBySlot,
+    eventStartSlotByIndex,
     hasPalmMute,
     markerBySlot,
     restEventIndexBySlot,
@@ -110,6 +133,9 @@ export default function PracticeTablature({
 
     return {
       eventBySlot: new Map(noteEvents.map((event) => [event.at, event])),
+      eventStartSlotByIndex: new Map(
+        sequenceEvents.map((event, index) => [index, event.at]),
+      ),
       hasPalmMute: noteEvents.some(
         (event) => event.palmMuteDepth !== undefined,
       ),
@@ -129,6 +155,66 @@ export default function PracticeTablature({
   const presentedActiveEventIndex = showFollowAlong
     ? activeEventIndex
     : undefined;
+  const presentedAuthoredSlot = showFollowAlong ? authoredSlot : undefined;
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    const exerciseChanged = previousExampleIdRef.current !== example.id;
+    previousExampleIdRef.current = example.id;
+
+    if (exerciseChanged) {
+      previousActiveEventIndexRef.current = null;
+      viewport?.scrollTo({ left: 0 });
+    }
+
+    if (!viewport || !showFollowAlong || activeEventIndex == null) {
+      previousActiveEventIndexRef.current = activeEventIndex ?? null;
+      return;
+    }
+
+    const loopRestarted =
+      previousActiveEventIndexRef.current !== null &&
+      activeEventIndex < previousActiveEventIndexRef.current;
+    previousActiveEventIndexRef.current = activeEventIndex;
+
+    if (loopRestarted) {
+      viewport.scrollTo({ left: 0 });
+      return;
+    }
+
+    const lookAheadEventIndex = Math.min(
+      activeEventIndex + 2,
+      sequenceEventCount - 1,
+    );
+    const lookAheadSlot = eventStartSlotByIndex.get(lookAheadEventIndex);
+
+    if (lookAheadSlot === undefined) {
+      return;
+    }
+
+    const lookAheadCell = viewport.querySelector<HTMLElement>(
+      `.practiceTab__picking [data-practice-slot="${lookAheadSlot}"]`,
+    );
+
+    if (!lookAheadCell) {
+      return;
+    }
+
+    const rightSafeEdge = viewport.scrollLeft + viewport.clientWidth - 48;
+    const lookAheadRight = lookAheadCell.offsetLeft + lookAheadCell.offsetWidth;
+
+    if (lookAheadRight > rightSafeEdge) {
+      viewport.scrollTo({
+        left: Math.max(0, lookAheadRight - viewport.clientWidth + 48),
+      });
+    }
+  }, [
+    activeEventIndex,
+    eventStartSlotByIndex,
+    example.id,
+    sequenceEventCount,
+    showFollowAlong,
+  ]);
 
   return (
     <figure className="practiceTab">
@@ -155,7 +241,9 @@ export default function PracticeTablature({
           <span>{showFollowAlong ? "Current event" : "Ready"}</span>
           <strong>
             {showFollowAlong && activeEventIndex !== undefined
-              ? `${activeEventIndex + 1} / ${sequenceEventCount}`
+              ? activeEventIndex === null
+                ? "Silence"
+                : `${activeEventIndex + 1} / ${sequenceEventCount}`
               : `${sequenceEventCount} events`}
           </strong>
         </output>
@@ -164,6 +252,7 @@ export default function PracticeTablature({
       <section
         aria-label={`Scrollable guitar tablature. ${example.accessibleDescription}`}
         className="practiceTab__viewport"
+        ref={viewportRef}
         // biome-ignore lint/a11y/noNoninteractiveTabindex: Keyboard users need to reach and horizontally scroll this score on narrow screens.
         tabIndex={0}
       >
@@ -182,8 +271,10 @@ export default function PracticeTablature({
 
           <GridRow
             activeEventIndex={presentedActiveEventIndex}
+            authoredSlot={presentedAuthoredSlot}
             className="practiceTab__annotations practiceTab__picking"
             eventIndexBySlot={sequenceIndexByOccupiedSlot}
+            eventStartSlotByIndex={eventStartSlotByIndex}
             label="Pick"
             slots={slots}
             style={gridStyle}
@@ -216,8 +307,10 @@ export default function PracticeTablature({
           {hasPalmMute && (
             <GridRow
               activeEventIndex={presentedActiveEventIndex}
+              authoredSlot={presentedAuthoredSlot}
               className="practiceTab__annotations practiceTab__palmMute"
               eventIndexBySlot={sequenceIndexByStartSlot}
+              eventStartSlotByIndex={eventStartSlotByIndex}
               label="Mute"
               slots={slots}
               style={gridStyle}
@@ -235,8 +328,10 @@ export default function PracticeTablature({
             {tuning.stringLabelsHighToLow.map((label, stringIndex) => (
               <GridRow
                 activeEventIndex={presentedActiveEventIndex}
+                authoredSlot={presentedAuthoredSlot}
                 className="practiceTab__string"
                 eventIndexBySlot={sequenceIndexByStartSlot}
+                eventStartSlotByIndex={eventStartSlotByIndex}
                 key={`${example.id}-${label}-${stringIndex}`}
                 label={label}
                 slots={slots}
@@ -272,7 +367,7 @@ export default function PracticeTablature({
             style={gridStyle}
             subdivision={example.subdivision}
           >
-            {(slot) => countLabels[slot]}
+            {(slot) => countLabels[slot % countLabels.length]}
           </GridRow>
         </div>
       </section>

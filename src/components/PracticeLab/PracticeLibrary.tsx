@@ -33,6 +33,7 @@ type ExerciseCardProps = {
 };
 
 const featuredExerciseIds = [
+  "metal-three-three-two-engine",
   "metal-pedal-assault",
   "funk-pocket-stabs",
   "sweep-progression",

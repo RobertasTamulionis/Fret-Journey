@@ -1,9 +1,9 @@
-import type { PracticeTabSubdivision } from "../tablature";
+import type { PracticeTabExample, PracticeTabSubdivision } from "../tablature";
 import {
   clampPracticeTempo,
   getPracticeActiveEventIndexAtBeat,
   getPracticeAudioTimeAtExerciseBeat,
-  getPracticeEventStartBeat,
+  getPracticeAuthoredSlotAtBeat,
   getPracticeExerciseBeatAtAudioTime,
   getPracticeSecondsPerBeat,
   type PracticeTimelineAnchor,
@@ -17,16 +17,20 @@ export type PracticeAudioTransportPhase =
   | "paused";
 
 export type PracticeMetronomeConfig = {
+  authoredScore: Pick<
+    PracticeTabExample,
+    "events" | "measureCount" | "subdivision"
+  >;
+  clickSubdivision: PracticeTabSubdivision;
   countInEnabled: boolean;
-  eventCount: number;
   metronomeEnabled: boolean;
-  subdivision: PracticeTabSubdivision;
   tempo: number;
   volume: number;
 };
 
 export type PracticeTransportSnapshot = {
-  activeEventIndex: number;
+  activeEventIndex: number | null;
+  authoredSlot: number;
   countInBeatsRemaining: number;
   elapsedExerciseSeconds: number;
   exerciseBeat: number;
@@ -87,6 +91,7 @@ const defaultEnvironment: PracticeMetronomeEnvironment = {
 
 const defaultSnapshot: PracticeTransportSnapshot = {
   activeEventIndex: 0,
+  authoredSlot: 0,
   countInBeatsRemaining: 0,
   elapsedExerciseSeconds: 0,
   exerciseBeat: 0,
@@ -102,7 +107,6 @@ const normalizeConfig = (
   config: PracticeMetronomeConfig,
 ): PracticeMetronomeConfig => ({
   ...config,
-  eventCount: Math.max(1, Math.floor(config.eventCount)),
   tempo: clampPracticeTempo(config.tempo),
   volume: clampVolume(config.volume),
 });
@@ -146,7 +150,7 @@ export class PracticeMetronomeEngine {
     const previousConfig = this.config;
     const tempoChanged = previousConfig.tempo !== nextConfig.tempo;
     const pulsePlanChanged =
-      previousConfig.subdivision !== nextConfig.subdivision ||
+      previousConfig.clickSubdivision !== nextConfig.clickSubdivision ||
       previousConfig.metronomeEnabled !== nextConfig.metronomeEnabled;
     const cancelActiveCountIn =
       previousConfig.countInEnabled &&
@@ -211,10 +215,7 @@ export class PracticeMetronomeEngine {
     }
 
     const snapshot = this.getSnapshot();
-    this.pausedExerciseBeat = getPracticeEventStartBeat(
-      snapshot.exerciseBeat,
-      this.config.subdivision,
-    );
+    this.pausedExerciseBeat = snapshot.exerciseBeat;
     this.pausedExerciseSeconds = snapshot.elapsedExerciseSeconds;
     this.mode = "paused";
     this.run = null;
@@ -252,8 +253,11 @@ export class PracticeMetronomeEngine {
       return {
         activeEventIndex: getPracticeActiveEventIndexAtBeat(
           this.pausedExerciseBeat,
-          this.config.subdivision,
-          this.config.eventCount,
+          this.config.authoredScore,
+        ),
+        authoredSlot: getPracticeAuthoredSlotAtBeat(
+          this.pausedExerciseBeat,
+          this.config.authoredScore,
         ),
         countInBeatsRemaining: 0,
         elapsedExerciseSeconds: this.pausedExerciseSeconds,
@@ -271,8 +275,11 @@ export class PracticeMetronomeEngine {
       return {
         activeEventIndex: getPracticeActiveEventIndexAtBeat(
           this.run.playbackStartBeat,
-          this.config.subdivision,
-          this.config.eventCount,
+          this.config.authoredScore,
+        ),
+        authoredSlot: getPracticeAuthoredSlotAtBeat(
+          this.run.playbackStartBeat,
+          this.config.authoredScore,
         ),
         countInBeatsRemaining: Math.max(
           1,
@@ -298,8 +305,11 @@ export class PracticeMetronomeEngine {
     return {
       activeEventIndex: getPracticeActiveEventIndexAtBeat(
         exerciseBeat,
-        this.config.subdivision,
-        this.config.eventCount,
+        this.config.authoredScore,
+      ),
+      authoredSlot: getPracticeAuthoredSlotAtBeat(
+        exerciseBeat,
+        this.config.authoredScore,
       ),
       countInBeatsRemaining: 0,
       elapsedExerciseSeconds:
@@ -521,7 +531,7 @@ export class PracticeMetronomeEngine {
 
     for (const pulse of planPracticeMetronomePulses({
       fromBeat,
-      subdivision: this.config.subdivision,
+      subdivision: this.config.clickSubdivision,
       toBeat,
     })) {
       this.scheduleClick(
@@ -556,7 +566,7 @@ export class PracticeMetronomeEngine {
 
     for (const pulse of planPracticeMetronomePulses({
       fromBeat,
-      subdivision: this.config.subdivision,
+      subdivision: this.config.clickSubdivision,
       toBeat,
     })) {
       this.scheduleClick(

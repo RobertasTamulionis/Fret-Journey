@@ -1090,6 +1090,82 @@ export const practiceTabExamples = {
     repetitions: 8,
     subdivision: "eighths",
   }),
+  "metal-three-three-two-engine": authoredTab({
+    accessibleDescription:
+      "Play two bars of even downpicked eighth notes grouped three plus three plus two. Palm mute each low E pedal and accent each unmuted C5, D5, or G5 power chord.",
+    bpm: 90,
+    events: [
+      ...tabLine(6, [0, 0, null, 0, 0, null, 0, null, 0, 0, null, 0, 0], {
+        palmMuteDepth: "medium",
+        strokePattern: "down",
+      }),
+      tabChord(
+        2,
+        [
+          { fret: 8, string: 6 },
+          { fret: 10, string: 5 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+      tabChord(
+        5,
+        [
+          { fret: 10, string: 6 },
+          { fret: 12, string: 5 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+      tabChord(
+        7,
+        [
+          { fret: 8, string: 6 },
+          { fret: 10, string: 5 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+      tabChord(
+        10,
+        [
+          { fret: 3, string: 6 },
+          { fret: 5, string: 5 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+      tabChord(
+        13,
+        [
+          { fret: 10, string: 6 },
+          { fret: 12, string: 5 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+      tabChord(
+        14,
+        [
+          { fret: 8, string: 6 },
+          { fret: 10, string: 5 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+      tabChord(
+        15,
+        [
+          { fret: 10, string: 6 },
+          { fret: 12, string: 5 },
+        ],
+        { accent: true, duration: 1, stroke: "down" },
+      ),
+    ],
+    id: "metal-three-three-two-engine",
+    markers: [
+      { at: 0, label: "bar 1 · 3 + 3 + 2" },
+      { at: 8, label: "bar 2 · 3 + 3 + 2" },
+    ],
+    measureCount: 2,
+    pitchScope: pitchSet("E natural minor", E_MINOR),
+    repetitions: 6,
+    subdivision: "eighths",
+  }),
   "metal-gallop-control": authoredTab({
     accessibleDescription:
       "Play a long-short-short E gallop, repeat it with a displaced start, leave silence, then answer with a G5 power chord.",

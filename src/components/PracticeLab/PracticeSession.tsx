@@ -37,7 +37,8 @@ import PracticeDisclosure from "./PracticeDisclosure";
 import PracticeTablature from "./PracticeTablature";
 
 type PracticeSessionProps = {
-  activeEventIndex: number;
+  activeEventIndex: number | null;
+  authoredSlot: number;
   audioError: string | null;
   countInBeatsRemaining: number;
   countInEnabled: boolean;
@@ -295,6 +296,7 @@ function PracticeTempoControl({
 
 export default function PracticeSession({
   activeEventIndex,
+  authoredSlot,
   audioError,
   countInBeatsRemaining,
   countInEnabled,
@@ -325,7 +327,11 @@ export default function PracticeSession({
   transportStatus,
   volume,
 }: PracticeSessionProps) {
-  const position = getPracticePositionSnapshot(example, activeEventIndex);
+  const position = getPracticePositionSnapshot(
+    example,
+    activeEventIndex,
+    authoredSlot,
+  );
   const metadata = practiceExerciseMetadata[step.exampleId];
   const timerExpired = remainingSeconds === 0;
   const primaryActionLabel = getPrimaryActionLabel(
@@ -384,7 +390,7 @@ export default function PracticeSession({
                 <span>{formatPracticeTag(metadata.techniques[0])}</span>
                 <span>{formatPracticeTag(metadata.difficulty)}</span>
                 <span>{metadata.tempo.recommended} BPM recommended</span>
-                <span>{formatPracticeTag(subdivision)} note rate</span>
+                <span>{formatPracticeTag(example.subdivision)} score grid</span>
               </div>
               <small className="practiceSession__focus">{metadata.focus}</small>
             </div>
@@ -472,6 +478,7 @@ export default function PracticeSession({
           <motion.div custom={motionCustom} variants={practiceRevealVariants}>
             <PracticeTablature
               activeEventIndex={activeEventIndex}
+              authoredSlot={authoredSlot}
               example={example}
               showFollowAlong={transportStatus !== "idle"}
             />
@@ -569,7 +576,7 @@ export default function PracticeSession({
           </section>
 
           <section className="sessionControlGroup">
-            <label htmlFor="practice-subdivision">Subdivision</label>
+            <label htmlFor="practice-subdivision">Metronome subdivision</label>
             <select
               id="practice-subdivision"
               onChange={(event) =>

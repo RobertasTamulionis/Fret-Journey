@@ -244,10 +244,10 @@ export default function usePracticeExperience(exerciseId?: string) {
   );
   const nextExercise = exerciseOrder[orderIndex + 1];
   const transportConfig = {
+    authoredScore: activeExample,
+    clickSubdivision: state.selectedSubdivision,
     countInEnabled: state.countInEnabled,
-    eventCount: activeExample.events.length,
     metronomeEnabled: state.metronomeEnabled,
-    subdivision: state.selectedSubdivision,
     tempo: state.tempo,
     volume: state.metronomeVolume,
   };
@@ -339,7 +339,7 @@ export default function usePracticeExperience(exerciseId?: string) {
   };
 
   const setSubdivision = (subdivision: PracticeTabSubdivision) => {
-    configureTransport({ subdivision });
+    configureTransport({ clickSubdivision: subdivision });
     dispatch({ subdivision, type: "set-subdivision" });
   };
 

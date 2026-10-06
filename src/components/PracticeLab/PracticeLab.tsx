@@ -87,6 +87,7 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
             {state.screen === "session" && (
               <PracticeSession
                 activeEventIndex={transport.snapshot.activeEventIndex}
+                authoredSlot={transport.snapshot.authoredSlot}
                 audioError={transport.audioError}
                 countInBeatsRemaining={transport.snapshot.countInBeatsRemaining}
                 countInEnabled={state.countInEnabled}

@@ -1,5 +1,8 @@
 import {
+  getPracticeScoreSlotCount,
+  getPracticeSequenceEvents,
   getPracticeTabBeatSize,
+  type PracticeTabExample,
   type PracticeTabSubdivision,
 } from "./tablature";
 
@@ -64,29 +67,44 @@ export const getPracticeAudioTimeAtExerciseBeat = (
   (exerciseBeat - anchor.exerciseBeat) *
     getPracticeSecondsPerBeat(anchor.tempo);
 
-export const getPracticeActiveEventIndexAtBeat = (
+export const getPracticeScoreLengthBeats = (
+  example: Pick<PracticeTabExample, "measureCount" | "subdivision">,
+): number =>
+  getPracticeScoreSlotCount(example) /
+  getPracticeSubdivisionUnitsPerBeat(example.subdivision);
+
+export const getPracticeAuthoredSlotAtBeat = (
   exerciseBeat: number,
-  subdivision: PracticeTabSubdivision,
-  eventCount: number,
+  example: Pick<PracticeTabExample, "measureCount" | "subdivision">,
 ): number => {
-  const eventsPerBeat = getPracticeSubdivisionUnitsPerBeat(subdivision);
-  const boundedEventCount = Math.max(1, Math.floor(eventCount));
+  const eventsPerBeat = getPracticeSubdivisionUnitsPerBeat(example.subdivision);
+  const scoreSlotCount = getPracticeScoreSlotCount(example);
 
   return positiveModulo(
     Math.floor(exerciseBeat * eventsPerBeat + schedulingEpsilon),
-    boundedEventCount,
+    scoreSlotCount,
   );
 };
 
-export const getPracticeEventStartBeat = (
+/**
+ * Resolve Follow Along from the authored score grid. `at` is the zero-based
+ * start slot and `duration` is the number of authored slots for which the
+ * event remains current. Uncovered slots are silence and return `null`;
+ * authors should use explicit rest events when that silence is instructional.
+ * A later authored start supersedes an earlier event whose duration overlaps.
+ */
+export const getPracticeActiveEventIndexAtBeat = (
   exerciseBeat: number,
-  subdivision: PracticeTabSubdivision,
-): number => {
-  const eventsPerBeat = getPracticeSubdivisionUnitsPerBeat(subdivision);
-
-  return (
-    Math.floor(exerciseBeat * eventsPerBeat + schedulingEpsilon) / eventsPerBeat
+  example: Pick<PracticeTabExample, "events" | "measureCount" | "subdivision">,
+): number | null => {
+  const authoredSlot = getPracticeAuthoredSlotAtBeat(exerciseBeat, example);
+  const sequenceEvents = getPracticeSequenceEvents(example);
+  const eventIndex = sequenceEvents.findLastIndex(
+    (event) =>
+      event.at <= authoredSlot && authoredSlot < event.at + event.duration,
   );
+
+  return eventIndex === -1 ? null : eventIndex;
 };
 
 export const planPracticeMetronomePulses = ({

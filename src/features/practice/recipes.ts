@@ -62,6 +62,7 @@ export const practiceExerciseRecipes = {
   "metal-tight-chugs": recipe("tonic-transpose", 4, "lowest-six"),
   "metal-accent-shift": recipe("tonic-transpose", 4, "lowest-six"),
   "metal-pedal-assault": recipe("scale", 4, "lowest-six"),
+  "metal-three-three-two-engine": recipe("scale", 4, "lowest-six"),
   "metal-gallop-control": recipe("scale", 4, "lowest-six"),
   "metal-phrygian-tension": recipe("scale", 4, "lowest-six"),
   "metal-tremolo-horizon": recipe("scale", 4),

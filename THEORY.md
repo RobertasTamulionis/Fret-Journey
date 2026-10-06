@@ -422,9 +422,11 @@ pitch classes, but expose no MIDI register and explicitly label octave register
 as unverified. Resolved Practice output must not infer an octave, bass, or
 inversion from a pitch-class-only custom tuning.
 
-Each score is one 4/4 measure divided into quarters, eighths, triplets, or
-sixteenths. Notes and rests occupy explicit grid slots. A simultaneous event
-groups its strings in one record; separate events cannot share a start slot.
+Each score contains one or more 4/4 measures divided into quarters, eighths,
+triplets, or sixteenths. `measureCount` defaults to one so existing scores keep
+their original length. Notes and rests occupy explicit grid slots. A
+simultaneous event groups its strings in one record; separate events cannot
+share a start slot.
 Practice frets may use open fret `0` through fret `24`, even though the main
 fretboard grid begins at fret 1. `x` is a dead note, `PM` is a pitched
 palm-muted attack, and `REST` is silence; those meanings are not
@@ -448,11 +450,19 @@ score, and is announced to assistive technology.
 ### Practice timing and metronome contract
 
 Authored Practice events retain their notes, frets, rests, durations, and static
-TAB positions. The selected subdivision does not rebuild that TAB grid. It
-defines both the Follow Along event rate and the metronome pulse density:
-quarters advance one event per beat, eighths two, triplets three, and
-sixteenths four. Grouped simultaneous notes remain one event, and a rest remains
-one event regardless of its authored visual span.
+TAB positions. A score event's zero-based `at` value is its start slot, and its
+positive `duration` is the number of authored score slots for which it remains
+current. If a later event starts before an earlier event's duration ends, the
+later authored start takes precedence; this preserves explicit re-attacks and
+rests. Uncovered slots are deterministic silence with no current event; authors
+should use explicit rest events whenever that silence is part of the exercise.
+Grouped simultaneous notes remain one event.
+
+The score subdivision is authored musical resolution and determines how slots
+map to `exerciseBeat`. The user-selected metronome subdivision controls only
+audible click density. Changing it never requantizes the score or changes note,
+rest, hold, gallop, burst, or Follow Along timing. The authored timeline loops
+at `measureCount * 4` beats, including any rest at the end of the score.
 
 Pure helpers in `src/features/practice/timing.ts` define beat/audio-time
 conversion, active-event selection, and metronome pulse planning. Beat one is a
@@ -463,9 +473,8 @@ from this same beat model.
 
 Count-in duration is a transport input, not an authored-score property or a
 fixed engine invariant. Count-in enablement and exercise metronome enablement
-are independent. Pausing preserves the current selected-subdivision event
-boundary; Resume may run a fresh configured count-in before continuing from
-that boundary.
+are independent. Pausing preserves the exact authoritative exercise beat;
+Resume may run a fresh configured count-in before continuing from that point.
 
 ## Verification
 

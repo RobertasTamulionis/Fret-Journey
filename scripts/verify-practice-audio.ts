@@ -11,12 +11,16 @@ import {
   getPracticeDurationSeconds,
   getPracticeRemainingSeconds,
 } from "../src/features/practice/session";
-import { getPracticeSequenceEvents } from "../src/features/practice/tablature";
+import {
+  getPracticeSequenceEvents,
+  type PracticeTabExample,
+} from "../src/features/practice/tablature";
 import {
   getPracticeActiveEventIndexAtBeat,
   getPracticeAudioTimeAtExerciseBeat,
-  getPracticeEventStartBeat,
+  getPracticeAuthoredSlotAtBeat,
   getPracticeExerciseBeatAtAudioTime,
+  getPracticeScoreLengthBeats,
   getPracticeSecondsPerBeat,
   getPracticeSecondsPerEvent,
   planPracticeMetronomePulses,
@@ -41,14 +45,6 @@ const anchor = { audioTime: 10, exerciseBeat: 2, tempo: 120 };
 assert.equal(getPracticeExerciseBeatAtAudioTime(anchor, 11), 4);
 assert.equal(getPracticeAudioTimeAtExerciseBeat(anchor, 4), 11);
 
-assert.equal(getPracticeActiveEventIndexAtBeat(0, "eighths", 8), 0);
-assert.equal(getPracticeActiveEventIndexAtBeat(0.5, "eighths", 8), 1);
-assert.equal(getPracticeActiveEventIndexAtBeat(3.999, "sixteenths", 8), 7);
-assert.equal(getPracticeActiveEventIndexAtBeat(4, "sixteenths", 8), 0);
-assert.equal(getPracticeActiveEventIndexAtBeat(8.5, "eighths", 8), 1);
-assert.equal(getPracticeEventStartBeat(2.74, "eighths"), 2.5);
-assert.equal(getPracticeEventStartBeat(2.74, "sixteenths"), 2.5);
-
 const dailyResetSequence = getPracticeSequenceEvents(
   practiceTabExamples["daily-reset"],
 );
@@ -56,6 +52,36 @@ assert.deepEqual(
   dailyResetSequence.map(({ at }) => at),
   [0, 1, 2, 3, 4, 5, 6, 7],
   "Follow Along must use musical slot order rather than source-array order",
+);
+assert.deepEqual(
+  Array.from({ length: 8 }, (_, index) =>
+    getPracticeActiveEventIndexAtBeat(
+      index / 2,
+      practiceTabExamples["daily-reset"],
+    ),
+  ),
+  [0, 1, 2, 3, 4, 5, 6, 7],
+  "Even eighths must advance evenly from authored slots",
+);
+
+const threeThreeTwoEngine = practiceTabExamples["metal-three-three-two-engine"];
+assert.equal(getPracticeScoreLengthBeats(threeThreeTwoEngine), 8);
+assert.deepEqual(
+  Array.from({ length: 16 }, (_, index) =>
+    getPracticeActiveEventIndexAtBeat(index / 2, threeThreeTwoEngine),
+  ),
+  Array.from({ length: 16 }, (_, index) => index),
+  "Three-Three-Two Engine must advance through all 16 even eighth-note attacks",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(7.999, threeThreeTwoEngine),
+  15,
+  "Three-Three-Two Engine must retain its final D5 until the score ends",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(8, threeThreeTwoEngine),
+  0,
+  "Three-Three-Two Engine must loop only after both bars",
 );
 
 const chugsRiffSequence = getPracticeSequenceEvents(
@@ -90,11 +116,94 @@ assert.deepEqual(
   ],
   "Gallops must preserve attack, silence, and chord-punch order",
 );
-assert.equal(
-  getPracticeActiveEventIndexAtBeat(2.5, "sixteenths", gallopSequence.length),
-  0,
-  "The gallop sequence must loop from its final event to its first event",
+assert.deepEqual(
+  [0, 0.25, 0.5, 0.75, 1].map((beat) =>
+    getPracticeActiveEventIndexAtBeat(
+      beat,
+      practiceTabExamples["metal-gallop-control"],
+    ),
+  ),
+  [0, 0, 1, 2, 3],
+  "Gallop attacks and rests must follow authored slots",
 );
+
+assert.deepEqual(
+  [3, 3.25, 3.5, 3.75].map((beat) =>
+    getPracticeActiveEventIndexAtBeat(
+      beat,
+      practiceTabExamples["chugs-gallop"],
+    ),
+  ),
+  [7, null, 8, 9],
+  "Reverse-gallop spacing must remain uneven",
+);
+
+assert.deepEqual(
+  [0, 0.25, 0.5, 1, 1.5, 2, 2.25, 2.5, 2.75].map((beat) =>
+    getPracticeActiveEventIndexAtBeat(
+      beat,
+      practiceTabExamples["alternate-burst"],
+    ),
+  ),
+  [0, null, 1, 2, 3, 4, 5, 6, 7],
+  "A speed burst must retain its slow attacks, gaps, and fast attacks",
+);
+
+assert.deepEqual(
+  [2, 2.25, 2.5, 2.75].map((beat) =>
+    getPracticeActiveEventIndexAtBeat(
+      beat,
+      practiceTabExamples["chugs-gallop"],
+    ),
+  ),
+  [6, 6, 6, 6],
+  "A four-slot rest must remain current for all four slots",
+);
+
+assert.deepEqual(
+  [0, 1, 2, 2.99].map((beat) =>
+    getPracticeActiveEventIndexAtBeat(
+      beat,
+      practiceTabExamples["bends-control"],
+    ),
+  ),
+  [0, 0, 0, 0],
+  "A held note must remain current for its authored duration",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(3, practiceTabExamples["legato-phrase"]),
+  12,
+  "A later explicit rest must supersede an earlier sustain at its authored start",
+);
+
+assert.deepEqual(
+  [1, 1.5, 2, 2.5].map((beat) =>
+    getPracticeActiveEventIndexAtBeat(
+      beat,
+      practiceTabExamples["metal-syncopated-stops"],
+    ),
+  ),
+  [2, 3, 4, 5],
+  "Stop/start Follow Along must preserve the authored dead note, rest, and re-entry",
+);
+
+const twoMeasureScore = {
+  events: [
+    { at: 0, duration: 1, kind: "rest" },
+    { at: 8, duration: 1, kind: "rest" },
+    { at: 15, duration: 1, kind: "rest" },
+  ],
+  measureCount: 2,
+  subdivision: "eighths",
+} as const satisfies Pick<
+  PracticeTabExample,
+  "events" | "measureCount" | "subdivision"
+>;
+assert.equal(getPracticeScoreLengthBeats(twoMeasureScore), 8);
+assert.equal(getPracticeAuthoredSlotAtBeat(4, twoMeasureScore), 8);
+assert.equal(getPracticeActiveEventIndexAtBeat(4, twoMeasureScore), 1);
+assert.equal(getPracticeActiveEventIndexAtBeat(7.5, twoMeasureScore), 2);
+assert.equal(getPracticeActiveEventIndexAtBeat(8, twoMeasureScore), 0);
 
 const quarterPulses = planPracticeMetronomePulses({
   fromBeat: 0,
@@ -127,31 +236,20 @@ assert.deepEqual(
     { beat: 0.5, kind: "subdivision" },
   ],
 );
-assert.deepEqual(
-  eighthPulses.map(({ beat }) =>
-    getPracticeActiveEventIndexAtBeat(beat, "eighths", 8),
-  ),
-  [0, 1],
-  "Eighth-note clicks and Follow Along events must share one beat projection",
-);
-
 for (const tempo of [60, 120, 180]) {
-  for (const subdivision of ["eighths", "triplets", "sixteenths"] as const) {
-    const performanceAnchor = { audioTime: 0, exerciseBeat: 0, tempo };
-    const secondsPerEvent = getPracticeSecondsPerEvent(tempo, subdivision);
-
-    for (let event = 0; event < 16; event += 1) {
-      const exerciseBeat = getPracticeExerciseBeatAtAudioTime(
-        performanceAnchor,
-        event * secondsPerEvent + secondsPerEvent * 0.1,
-      );
-      assert.equal(
-        getPracticeActiveEventIndexAtBeat(exerciseBeat, subdivision, 8),
-        event % 8,
-        `${tempo} BPM ${subdivision} event ${event} must project from Web Audio time`,
-      );
-    }
-  }
+  const performanceAnchor = { audioTime: 0, exerciseBeat: 0, tempo };
+  const exerciseBeat = getPracticeExerciseBeatAtAudioTime(
+    performanceAnchor,
+    getPracticeSecondsPerBeat(tempo) * 1.6,
+  );
+  assert.equal(
+    getPracticeActiveEventIndexAtBeat(
+      exerciseBeat,
+      practiceTabExamples["daily-reset"],
+    ),
+    3,
+    `${tempo} BPM must project authored timing from Web Audio time`,
+  );
 }
 
 assert.deepEqual(
@@ -282,10 +380,10 @@ const createFakeEnvironment = () => {
 };
 
 const baseConfig: PracticeMetronomeConfig = {
+  authoredScore: practiceTabExamples["daily-reset"],
+  clickSubdivision: "quarters",
   countInEnabled: true,
-  eventCount: 8,
   metronomeEnabled: false,
-  subdivision: "quarters",
   tempo: 120,
   volume: 70,
 };
@@ -295,7 +393,10 @@ const verifyPracticeMetronomeEngine = async () => {
   const countInEngine = new PracticeMetronomeEngine(baseConfig, {
     environment: countInHarness.environment,
   });
-  countInEngine.configure({ ...baseConfig, subdivision: "sixteenths" });
+  countInEngine.configure({
+    ...baseConfig,
+    clickSubdivision: "sixteenths",
+  });
   assert.equal(countInEngine.getSnapshot().phase, "idle");
   assert.equal(countInEngine.getSnapshot().activeEventIndex, 0);
   countInEngine.configure(baseConfig);
@@ -316,7 +417,7 @@ const verifyPracticeMetronomeEngine = async () => {
   assert.equal(countInHarness.callbacks.size, 1);
 
   const quarterCountInClicks = [...countInHarness.context.oscillators];
-  countInEngine.configure({ ...baseConfig, subdivision: "eighths" });
+  countInEngine.configure({ ...baseConfig, clickSubdivision: "eighths" });
   assert.equal(countInEngine.getSnapshot().phase, "counting-in");
   assert.equal(countInEngine.getSnapshot().activeEventIndex, 0);
   assert.ok(
@@ -346,16 +447,18 @@ const verifyPracticeMetronomeEngine = async () => {
   assert.equal(countInEngine.getSnapshot().phase, "paused");
   assert.equal(countInEngine.getSnapshot().elapsedExerciseSeconds, 1.05);
   const pausedExerciseBeat = countInEngine.getSnapshot().exerciseBeat;
-  countInEngine.configure({ ...baseConfig, subdivision: "sixteenths" });
+  countInEngine.configure({
+    ...baseConfig,
+    clickSubdivision: "sixteenths",
+  });
   assert.equal(countInEngine.getSnapshot().exerciseBeat, pausedExerciseBeat);
   assert.equal(
     countInEngine.getSnapshot().activeEventIndex,
     getPracticeActiveEventIndexAtBeat(
       pausedExerciseBeat,
-      "sixteenths",
-      baseConfig.eventCount,
+      baseConfig.authoredScore,
     ),
-    "A paused subdivision change must reproject the event without moving time",
+    "A paused click-subdivision change must not alter authored timing",
   );
   assert.equal(countInHarness.callbacks.size, 0);
   assert.ok(
@@ -429,8 +532,8 @@ const verifyPracticeMetronomeEngine = async () => {
     {
       ...baseConfig,
       countInEnabled: false,
+      clickSubdivision: "quarters",
       metronomeEnabled: true,
-      subdivision: "quarters",
     },
     { environment: subdivisionHarness.environment, lookAheadSeconds: 1.2 },
   );
@@ -452,8 +555,8 @@ const verifyPracticeMetronomeEngine = async () => {
     subdivisionEngine.configure({
       ...baseConfig,
       countInEnabled: false,
+      clickSubdivision: subdivision,
       metronomeEnabled: true,
-      subdivision,
     });
 
     assert.equal(
@@ -465,10 +568,9 @@ const verifyPracticeMetronomeEngine = async () => {
       subdivisionEngine.getSnapshot().activeEventIndex,
       getPracticeActiveEventIndexAtBeat(
         exerciseBeatBeforeSubdivisionChanges,
-        subdivision,
-        baseConfig.eventCount,
+        baseConfig.authoredScore,
       ),
-      `${subdivision} must recalculate the Follow Along event from the same exercise beat`,
+      `${subdivision} click rate must leave the authored Follow Along event unchanged`,
     );
     assert.ok(
       clicksScheduledUnderPreviousSubdivision.every(
