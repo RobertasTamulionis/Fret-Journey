@@ -40,8 +40,20 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
 - Browse nine grouped Practice Library categories covering a rotating Daily
   Mix, Scales & Modes, String Skipping, Rhythm & Chugs, Alternate Picking,
   Legato, Sweep Picking, and Bends & Vibrato.
-- Open any of 42 authored exercises in a focused Practice Session with a score
-  resolved for the selected key, scale, 6-/7-/8-string guitar, and tuning, plus
+- Follow the four-step Rhythm → Riff Exercise Journey from controlled palm
+  muting through Tight Chugs and gallop silence to the complete Iron Pulse riff.
+  Journey completion is stored locally only after its configured timed session
+  finishes and the player explicitly completes the step.
+- Open any of 43 authored exercises in a focused Practice Session with a score
+  resolved for its supported key, scale, 6-/7-/8-string guitar, and tuning.
+  Composed exercises use centralized context constraints when scale mapping
+  would alter their interval identity, power-chord structure, articulation, or
+  playable route. Phrygian studies require Phrygian Dominant; selected bend
+  studies require Natural Minor or Minor Blues; Open Road Hook requires E
+  Natural Minor; and tuning-dependent compositions require registered preset
+  tunings. Unconstrained technique drills continue to follow the shared context.
+  Each
+  session includes
   concise instruction, a tempo-synchronized current-event highlight, position
   feedback, local controls, and a simple completion flow.
 - Reflow the exercise-card grid, score, guidance, and session control rail for
@@ -100,11 +112,11 @@ a visual preference and does not alter music data or Redux tonal state.
 
 Practice Lab separates browsing from playing. The Practice Library groups all
 authored exercises by technique and opens a dedicated Practice Session instead
-of expanding a dashboard in place. Its nine grouped categories contain 42
+of expanding a dashboard in place. Its nine grouped categories contain 43
 authored exercises, including a rotating Daily Mix and focused scale, string
 skipping, rhythm, picking, legato, sweep, bend, and vibrato work.
 
-The 42 immutable source examples are reviewed in verified six-string Standard E
+The 43 immutable source examples are reviewed in verified six-string Standard E
 tuning. A pure recipe resolver derives the displayed score from the selected
 key, scale type, 6-/7-/8-string guitar, and exact pitch-class tuning without
 mutating that source material. Scale navigation, alternate picking, legato,
@@ -143,7 +155,9 @@ The focused session currently provides:
   reference-instrument, and volume preferences. The reference-instrument
   controls remain structural preferences and do not currently produce audio.
 - A Session Complete view for repeating the exercise, opening the next
-  exercise, or returning to the library. Completion and scores are not saved.
+  exercise, or returning to the library. Standalone completion is not saved;
+  Rhythm → Riff stores only its completed exercise IDs in versioned browser
+  storage and makes no performance-scoring claim.
 
 Practice controls use native keyboard-operable buttons and inputs with visible
 focus states. Screen changes move focus to the new heading, the score viewport
@@ -310,8 +324,8 @@ As of 2026-09-26:
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
-  with 761,718 validated generated voicings, plus 42 authored Practice tabs and
-  all 9,450 registered key/scale/string-count Practice resolution contexts.
+  with 761,718 validated generated voicings, plus 43 authored Practice tabs and
+  all 7,248 compatible registered Practice resolution contexts.
 - `npx tsc --noEmit` passes.
 - Focused Biome checks pass for all touched Practice resolver, context-bar,
   session, tablature, and executable-theory files.

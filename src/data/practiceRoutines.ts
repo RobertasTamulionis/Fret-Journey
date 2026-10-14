@@ -29,6 +29,7 @@ export type PracticeStep = {
   duration: string;
   exampleId: PracticeTabExampleId;
   instruction: string;
+  isSharedReference?: boolean;
   pattern?: string;
   phase: string;
   success: string;
@@ -159,53 +160,56 @@ export const practiceRoutines: PracticeRoutine[] = [
       },
       {
         coach:
-          "Alternate the choice each session so a familiar scale never becomes background noise.",
+          "Use a small pick motion and listen for an unwanted accent when you move from low E to A, then from A to D.",
         duration: "7 min",
         exampleId: "daily-foundation",
         instruction:
-          "Choose scale navigation or time: connect two positions, or play one muted note as quarters, eighths, triplets, and sixteenths.",
-        pattern: "Day A: scale map · Day B: subdivision grid",
+          "Alternate pick the displayed eight-note ascent: three notes on the first string, three on the next, then two on the third, without pausing at either crossing.",
+        pattern: "3 notes · cross · 3 notes · cross · 2 notes",
         phase: "Foundation",
         success:
-          "Position changes or subdivision changes happen without a pulse wobble.",
+          "All eight notes stay even and both string changes pass without a pause or extra accent.",
         title: "Build the floor",
       },
       {
         coach:
-          "Work for about 30 seconds, release the hands, then repeat. Rest is part of the rep.",
+          "Keep the fretting fragment small and listen for an accent or delay when the pick crosses between G and B.",
         duration: "7 min",
-        exampleId: "daily-mechanics",
+        exampleId: "alternate-cross",
         instruction:
-          "Choose one mechanics tab and one failure to fix: noise, timing, note volume, pick path, or unwanted tension.",
-        pattern: "One technique · one failure · clean repeats",
+          "Alternate pick C–D on G, E–F on B, then reverse through F–E–D–C without breaking the eighth-note pulse.",
+        isSharedReference: true,
+        pattern: "G 5–7 · B 5–6–6–5 · G 7–5",
         phase: "Mechanics",
         success:
-          "The chosen failure becomes less frequent without extra effort.",
+          "Both string changes sound like the surrounding notes, with equal volume and no pulse wobble.",
         title: "Train one weak link",
       },
       {
         coach:
-          "If you cannot sing the phrase yet, make it shorter rather than hunting randomly on the neck.",
+          "Listen to the complete call before the rest, then use the answer to check what you remembered instead of reading one note at a time.",
         duration: "5 min",
         exampleId: "daily-ear",
         instruction:
-          "Sing a three-to-five-note idea, find it on the guitar, move it to a second position or octave, then answer it.",
-        pattern: "Sing → find → move → answer",
+          "Play the displayed three-note call, preserve the eighth-note rest, then reproduce its four-note answer from memory.",
+        pattern: "Three-note call · rest · four-note answer",
         phase: "Ear",
-        success: "The guitar follows an idea you heard first.",
+        success:
+          "You can repeat the complete phrase from memory without shortening the rest or changing the note order.",
         title: "Connect sound to fretboard",
       },
       {
         coach:
-          "Keep the first take. Notice one rhythm issue and one tone issue; do not turn this into another drill.",
+          "Let open strings ring only for their written durations. Prepare fretted notes while they sound, mute cleanly before each rest, and keep the hook relaxed and musical. Do not turn it into a speed exercise; 128 BPM is an optional mastery challenge only after 112 stays clean.",
         duration: "8 min",
         exampleId: "daily-play",
         instruction:
-          "Create a riff, improvise over a vamp, or play against a track using today's movement and a deliberate amount of silence.",
-        pattern: "Constraint → take → listen → one adjustment",
+          "Play E–G–A–B, preserve the first rest, and answer with A–G–E–D–B. In bar 2, repeat E–G–A, climb through D to high E, preserve the second rest, then descend D–B–A–G to a sustained E.",
+        pattern: "E–G–A–B · rest · answer → variation · rest · resolve",
         phase: "Play",
-        success: "The final minutes sound like music, not an exercise.",
-        title: "Make the work audible",
+        success:
+          "The opening motif is recognizable, rests are silent, open strings stop cleanly, bar 2 sounds like a clear variation, and the sustained final E loops smoothly.",
+        title: "Open Road Hook",
       },
     ],
     summary:
@@ -236,7 +240,7 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "2 min",
         exampleId: "metal-tight-chugs",
         instruction:
-          "Anchor the pulse with even, palm-muted eighth-note downstrokes.",
+          "Anchor the displayed pedal with even, palm-muted eighth-note downstrokes.",
         phase: "Downpicking · Level 1",
         success: "The final loop sounds as even and relaxed as the first.",
         title: "Tight Chugs",
@@ -246,7 +250,7 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "3 min",
         exampleId: "metal-accent-shift",
         instruction:
-          "Keep sixteenth-note chugs even while the accent moves across the beat.",
+          "Keep the displayed pedal's sixteenth notes even while the accent moves across the beat.",
         phase: "Downpicking · Level 2",
         success:
           "The accent moves without pulling the underlying grid with it.",
@@ -258,7 +262,7 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "3 min",
         exampleId: "metal-pedal-assault",
         instruction:
-          "Alternate an E pedal with three ringing power-chord punches.",
+          "Alternate the displayed tonal-center pedal with three ringing, scale-derived power-chord punches.",
         phase: "Pedal riffs · Level 1",
         success:
           "Muted notes and ringing chords have clearly different lengths.",
@@ -270,11 +274,35 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "3 min",
         exampleId: "metal-three-three-two-engine",
         instruction:
-          "Downpick two bars of even eighth notes while muted E pedals and accented power chords create a three-plus-three-plus-two groove.",
+          "Downpick two bars of even eighth notes while muted tonal-center pedals and accented power chords create a three-plus-three-plus-two groove.",
         phase: "Rhythm accuracy · Level 2",
         success:
           "The grouping is unmistakable without bending the pulse, every chord stops cleanly before the next pedal, and the two-bar loop has no seam.",
         title: "Three-Three-Two Engine",
+      },
+      {
+        coach:
+          "Use shallow downstrokes and a relaxed wrist. Keep the displayed pedal medium-muted, release cleanly for every chord, silence the unused lower string, and reposition for the final two chord shapes rather than sliding. Practice in short intervals, stop if pain develops, and treat 140 BPM as an optional mastery challenge only after 124 stays controlled.",
+        duration: "3 min",
+        exampleId: "metal-iron-pulse",
+        instruction:
+          "Downpick the tonal-center pedal into two contrasting chord accents, then make the exact sixteenth-note cutoff before the final two-chord turnaround loops home.",
+        phase: "Downpicking · Level 3",
+        success:
+          "Pick depth and attack remain consistent, every chord opens without unused-string noise, the short pedal and rest stay exact, and the final two-chord turnaround returns cleanly to the muted pedal.",
+        title: "Iron Pulse",
+      },
+      {
+        coach:
+          "Keep the sixteenth-note grid running through both stops. Use compact alternate strokes inside each gallop burst, downpick every power chord, and treat 125 BPM as an optional mastery challenge only after the string changes stay clean at 110.",
+        duration: "3 min",
+        exampleId: "metal-gallop-relay",
+        instruction:
+          "Relay forward and reverse gallops between the tonal center and fifth, then use the sixth-to-seventh-degree chord rise and final seventh-degree pickup to turn the two-bar riff home.",
+        phase: "Gallops · Level 3",
+        success:
+          "Both gallop shapes remain distinct, every rest is fully silent, the upper-string transitions stay in time, and the final seventh-degree chord returns to the tonal center without an extra gap.",
+        title: "Gallop Relay",
       },
       {
         coach:
@@ -290,11 +318,23 @@ export const practiceRoutines: PracticeRoutine[] = [
       },
       {
         coach:
+          "Let the upper voice stay open against the muted tonic pedal. Shift the hand freely between its displayed positions instead of forcing a fixed stretch; 116 BPM is an optional mastery challenge only after the flat-second-to-major-third color remains clear at 100.",
+        duration: "3 min",
+        exampleId: "metal-phrygian-gravity",
+        instruction:
+          "Alternate the tonic pedal with its flat-second upper voice, reveal the held major third, and sustain the final flat second so the loop resolves back toward the tonic.",
+        phase: "Pedal riffs · Level 3",
+        success:
+          "The pedal stays tight, the flat second pulls clearly against the tonic, the major third changes the modal color, and the held flat second reaches the returning tonic without an extra gap.",
+        title: "Phrygian Gravity",
+      },
+      {
+        coach:
           "Make the low pedal automatic so the fretted notes can define the mode.",
         duration: "3 min",
         exampleId: "metal-phrygian-tension",
         instruction:
-          "Cross between an E pedal and the notes that create Phrygian tension.",
+          "Cross between the tonic pedal and the flat second, then introduce the major third before resolving to the tonic.",
         phase: "Pedal riffs · Level 2",
         success:
           "The adjacent-string notes ring clearly without loosening the pedal pulse.",
@@ -306,7 +346,7 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "2 min",
         exampleId: "metal-tremolo-horizon",
         instruction:
-          "Carry a dark minor melody through a tremolo-picked string and position change.",
+          "Carry the displayed scale melody through a tremolo-picked string and position change.",
         phase: "Tremolo · Level 1",
         success: "The melody remains audible inside an even stream of attacks.",
         title: "Tremolo Horizon",
@@ -364,35 +404,37 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "2 min",
         exampleId: "scales-center",
         instruction:
-          "Play or sing tonic, third, fifth, and tonic again. If studying a mode, add its characteristic color tone over a tonic drone or vamp.",
-        pattern: "1 – 3 – 5 – 1 – color tone",
+          "Play the displayed tonic–third–fifth–tonic contour, then descend through the seventh, fifth, and third back to the tonic.",
+        pattern: "1 – 3 – 5 – 1 – 7 – 5 – 3 – 1",
         phase: "Center",
         success: "You can hear the tonal center before running the shape.",
         title: "Establish home",
       },
       {
         coach:
-          "Say the degrees when the fingering starts to take over your attention.",
+          "Hear each two-note leap as one unit and keep the fret-5-to-13 movement relaxed instead of rushing the second note of each pair.",
         duration: "3 min",
         exampleId: "scales-sequence",
         instruction:
-          "Replace straight ascent with diatonic thirds, then four-note cells. Move the accent without changing the notes.",
-        pattern: "1–3, 2–4…  /  1234, 2345…",
+          "Alternate pick four rising scale-tone pairs on one string, skipping one intervening scale tone in each pair and accenting every lower note.",
+        pattern: "Tone 1–3 · 2–4 · 3–5 · 4–6",
         phase: "Sequence",
-        success: "The pattern remains even when the accent shifts.",
+        success:
+          "Each pair has the same spacing and the accents stay on A, B, C, and D without disturbing the eighth-note pulse.",
         title: "Break the runway",
       },
       {
         coach:
-          "Change direction at the seam on the next pass so one route does not become a new autopilot pattern.",
+          "On the return, use the index finger as a guide between the three displayed positions: release pressure before each move and keep the fingertip near the string without dragging a fretted note. In the destination area, prepare the upper finger before the final two-note resolution. Treat 112 BPM as an optional mastery challenge.",
         duration: "4 min",
         exampleId: "scales-connect",
         instruction:
-          "Ascend through one position, cross into its neighbor, and descend there. Reverse the route on the next loop.",
-        pattern: "Position A ↗ seam ↘ Position B",
+          "Play the displayed four-note motif in the starting position. Sustain its return note, shift into the higher neighboring position, and develop the motif there. Descend through three guide notes before resolving scale degree two to the tonic in the starting area.",
+        pattern: "Starting motif → higher position → guided return → 2–1",
         phase: "Connect",
-        success: "The position change is rhythmically invisible.",
-        title: "Join two shapes",
+        success:
+          "The motif stays recognizable, both shifts land on time without scraping, the destination phrase feels secure, and the final E loops cleanly to the opening.",
+        title: "Carry the Motif",
       },
       {
         coach:
@@ -400,7 +442,7 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "3 min",
         exampleId: "scales-phrase",
         instruction:
-          "Improvise short call-and-response phrases using the same route instead of running it end to end.",
+          "Play the authored call, preserve its rest, then answer with the displayed descending phrase and final vibrato instead of turning the notes into a continuous scale run.",
         phase: "Transfer",
         success: "A listener would hear phrases, not scale practice.",
         title: "Turn the map into language",
@@ -448,9 +490,11 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "4 min",
         exampleId: "skipping-pentatonic",
         instruction:
-          "Apply the same skip pairs to a familiar two-note-per-string pentatonic fragment, then reverse without pausing.",
+          "Alternate pick two notes on the first displayed string, skip one string for the next pair, then repeat that relationship one string set higher.",
+        pattern: "String 6 → 4 · string 5 → 3",
         phase: "Coordinate",
-        success: "Fretting and picking arrive together on every change.",
+        success:
+          "Every skipped-string landing arrives on time, with equal note volume and no sound from the intervening string.",
         title: "Move a known vocabulary",
       },
       {
@@ -459,7 +503,7 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "3 min",
         exampleId: "skipping-arpeggio",
         instruction:
-          "Map a familiar three-note major or minor arpeggio across non-adjacent strings and sequence it through one key.",
+          "Play the displayed tonic-triad arpeggio across non-adjacent strings, keeping every note separate and the unused middle string silent.",
         pattern: "Root → third → fifth → third",
         phase: "Apply",
         success:
@@ -468,15 +512,16 @@ export const practiceRoutines: PracticeRoutine[] = [
       },
       {
         coach:
-          "Keep one imperfect take and fix only the noisiest transition on the second pass.",
+          "Clean landings and silent skipped strings come first. Practice each string pair separately with whichever starting stroke feels most controlled, then work toward the authored alternate picking. Treat 108 BPM as an optional mastery challenge.",
         duration: "3 min",
         exampleId: "skipping-phrase",
         instruction:
-          "Create a two-bar phrase with one large skip, one repeated note, and one deliberate rest.",
+          "Accent the opening note and alternate between the D and B strings without sounding G. Use the rest to separate question and answer. Repeat the motif in bar 2, cross between high E and G, then finish with the sustained fifth–third–tonic cadence.",
+        pattern: "D ↔ B motif · high E ↔ G · 5–b3–1",
         phase: "Transfer",
         success:
-          "The skip serves the melody instead of announcing the exercise.",
-        title: "Make the interval matter",
+          "The motif is recognizable, skipped strings and the rest stay silent, durations remain exact, the final vibrato is controlled, and the loop stays smooth; use consistent alternate picking in the complete version.",
+        title: "Across the Wire",
       },
     ],
     summary:
@@ -517,14 +562,16 @@ export const practiceRoutines: PracticeRoutine[] = [
       },
       {
         coach:
-          "Use enough gain to hear noise, but not so much that compression hides uneven attack.",
+          "Use shallow downstrokes and enough gain to expose uneven attacks without letting compression hide them.",
         duration: "4 min",
-        exampleId: "chugs-grid",
+        exampleId: "metal-tight-chugs",
         instruction:
-          "Play downpicked eighths, then alternate-picked sixteenths. Move the accent through the bar without changing tempo.",
-        pattern: "8ths → 16ths → displaced accent",
+          "Downpick eight medium-muted attacks on the displayed pedal, keeping the accents on beats one and three without changing the pulse.",
+        isSharedReference: true,
+        pattern: "Eight downstrokes · accents on 1 and 3",
         phase: "Grid",
-        success: "The accent moves while every unaccented stroke stays even.",
+        success:
+          "The two accents speak clearly while every unaccented stroke keeps the same length and useful volume.",
         title: "Lock the picking hand",
       },
       {
@@ -541,14 +588,15 @@ export const practiceRoutines: PracticeRoutine[] = [
       },
       {
         coach:
-          "Keep the fretting-hand part simple enough that the picking-hand articulation remains the focus.",
+          "Keep the displayed pedal medium-muted, release cleanly for each chord, and reposition rather than sliding between the final two chord shapes.",
         duration: "3 min",
-        exampleId: "chugs-riff",
+        exampleId: "metal-iron-pulse",
         instruction:
-          "Combine muted pedal tones, unmuted power-chord punches, and one syncopated rest into a compact riff.",
+          "Downpick the tonal-center pedal into two contrasting chord accents, then make the short pedal cutoff before the final two-chord turnaround.",
+        isSharedReference: true,
         phase: "Transfer",
         success:
-          "The riff grooves at a clean tempo before it sounds aggressive.",
+          "Muted pedals stay even, chords open without string noise, and the final two-chord turnaround returns cleanly to the tonal center.",
         title: "Build a chug with a point of view",
       },
     ],
@@ -622,6 +670,18 @@ export const practiceRoutines: PracticeRoutine[] = [
         success: "Picking serves the phrase and stays mechanically consistent.",
         title: "Hide the exercise inside music",
       },
+      {
+        coach:
+          "Keep the pick motion compact as the rhythm accelerates, release tension in both rests, and treat 126 BPM as an optional mastery challenge only after both destination notes land cleanly at 108.",
+        duration: "3 min",
+        exampleId: "metal-burst-and-resolve",
+        instruction:
+          "Shape the displayed lead phrase through a descending burst to its first target, then vary the contour and resolve the second burst to the tonal center before the final pickup turns the loop home.",
+        phase: "Alternate picking · Level 5",
+        success:
+          "Both bursts enter in time, every string crossing stays synchronized, both target notes sound like deliberate arrivals, and the rests release tension without resetting the stroke cycle.",
+        title: "Burst and Resolve",
+      },
     ],
     summary:
       "A short routine for the part that usually breaks first: the moment synchronized hands cross a string.",
@@ -648,14 +708,15 @@ export const practiceRoutines: PracticeRoutine[] = [
     steps: [
       {
         coach:
-          "Use only a comfortable fret span. Independence grows from control, not pain.",
+          "Keep the index finger at fret 5 and use a relaxed hammer and pull for frets 6, 7, and 8. Stop if the movement causes pain.",
         duration: "3 min",
         exampleId: "legato-pairs",
         instruction:
-          "On one string, alternate hammer-ons and pull-offs with finger pairs 1–2, 1–3, 1–4, 2–3, 2–4, and 3–4.",
-        pattern: "12 · 13 · 14 · 23 · 24 · 34",
+          "Pick high-E fret 5 once, then play 5h6p5, 5h7p5, and 5h8p5 before the final rest.",
+        pattern: "5h6p5 · 5h7p5 · 5h8p5 · rest",
         phase: "Balance",
-        success: "Every pair produces two clear, rhythmically equal notes.",
+        success:
+          "Each hammer and pull matches the picked A closely enough in timing and useful volume to keep the eighth notes even.",
         title: "Equalize the finger pairs",
       },
       {
@@ -684,14 +745,16 @@ export const practiceRoutines: PracticeRoutine[] = [
       },
       {
         coach:
-          "Repeat one phrase with a different rhythm before adding more notes.",
+          "Prepare the lower fingers before the displayed B-string descent; shift the hand instead of forcing one static position. Treat 112 BPM as an optional mastery challenge only after the phrase stays controlled at 96.",
         duration: "3 min",
         exampleId: "legato-phrase",
         instruction:
-          "Create a compact legato phrase with one held note and one rest so the smooth articulation has contrast.",
+          "Pick the opening B-string note and shape its five-note neighbor motif with legato. Answer on high E, slide down, and use the full-beat rest to reset. Repeat the motif, prepare the descending pull-offs, and resolve to the tonic with controlled vibrato.",
+        pattern: "Five-note motif · answer · rest · develop · tonic",
         phase: "Transfer",
-        success: "Legato changes the expression, not only the note count.",
-        title: "Shape a line that breathes",
+        success:
+          "The motif is clear in both bars, legato volume and rhythm stay even, string changes and the slide are clean, the rest is silent, and the final E sustains into a natural loop.",
+        title: "Answer the Climb",
       },
     ],
     summary:
@@ -759,7 +822,7 @@ export const practiceRoutines: PracticeRoutine[] = [
         duration: "3 min",
         exampleId: "sweep-progression",
         instruction:
-          "Move the triad arpeggio through three chords you already know and vary the note where each sweep exits.",
+          "Move through the three displayed triad arpeggios and make each top note sound like a melodic destination.",
         phase: "Transfer",
         success:
           "The harmony is audible and the sweep has a musical destination.",
@@ -803,38 +866,42 @@ export const practiceRoutines: PracticeRoutine[] = [
         title: "Calibrate the destination",
       },
       {
-        coach: "Do not let the release become an uncontrolled extra lick.",
+        coach:
+          "Keep the bend at its target pitch through the hold, then control the return to the starting pitch instead of letting the string drop suddenly.",
         duration: "3 min",
         exampleId: "bends-control",
         instruction:
-          "Arrive at the target, hold it for two beats, then release in time. Repeat on more than one string.",
+          "Bend the displayed B-string note up a whole step, sustain the target through beat three, then release to the starting pitch on beat four.",
         pattern: "Arrive · hold · release",
         phase: "Control",
-        success: "Pitch remains centered through the hold and release.",
+        success:
+          "The bend stays in tune during the hold and the release returns smoothly to its starting pitch exactly on beat four.",
         title: "Own the whole bend",
       },
       {
         coach:
-          "Start on a normal fretted note. Keep the oscillation around a pitch center rather than only pushing sharp.",
+          "The TAB shows two equal holds of the same displayed pitch; you choose the width. Keep each oscillation centered instead of only pushing sharp.",
         duration: "3 min",
         exampleId: "vibrato-pulse",
         instruction:
-          "Practice narrow and wide vibrato at slow pulses, then repeat with eighth-note and triplet pulses.",
-        pattern: "Narrow ↔ wide · slow ↔ faster",
+          "Hold the displayed pitch with vibrato for two beats, then attack and hold it again for two beats. Make the first hold narrow and the second wider as a practice variation.",
+        pattern: "Two-beat hold · two-beat hold",
         phase: "Vibrato",
-        success: "The pulse stays rhythmic while width remains consistent.",
+        success:
+          "Both holds remain centered on the displayed pitch, and the width you choose stays consistent for the full two beats.",
         title: "Separate width from speed",
       },
       {
         coach:
-          "Leave space after the expressive note so its pitch and shape are exposed.",
+          "Make the flat-seven-to-tonic bend the phrase peak, preserve the eighth-note rest, then let the final tonic settle with controlled vibrato.",
         duration: "3 min",
         exampleId: "bends-phrase",
         instruction:
-          "Play the same four-note phrase three ways: straight, with a bend, and with vibrato. Choose the version that says the most.",
+          "Play scale degrees flat three, four, and five; bend flat seven up to the tonic, leave one eighth-note rest, then hold the tonic with vibrato for the final three eighth notes.",
+        pattern: "b3–4–5 · b7 bend to 1 · rest · tonic vibrato",
         phase: "Transfer",
         success:
-          "Expression changes the meaning without changing the vocabulary.",
+          "The bend reaches the tonic, the rest is fully silent, and the final vibrato stays centered as the note decays.",
         title: "Make one note carry the phrase",
       },
     ],

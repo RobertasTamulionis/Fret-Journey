@@ -41,6 +41,88 @@ export type PracticeResolutionContext = {
   tuning: readonly PitchClass[];
 };
 
+export type PracticeContextCompatibility = {
+  authoredContextLabel?: string;
+  compatible: boolean;
+  reason?: string;
+  requiredKey?: TonicName;
+  requiredScale?: ScaleName;
+  resolution?: "restore-preset-tuning" | "use-authored-context";
+};
+
+const constrainedExerciseNames: Partial<Record<PracticeTabExampleId, string>> =
+  {
+    "daily-play": "Open Road Hook",
+    "daily-foundation": "Build the Floor",
+    "bends-control": "Own the Whole Bend",
+    "bends-phrase": "Make One Note Carry the Phrase",
+    "bends-reference": "Calibrate the Destination",
+    "legato-phrase": "Answer the Climb",
+    "metal-gallop-control": "Gallop Control",
+    "metal-gallop-relay": "Gallop Relay",
+    "metal-iron-pulse": "Iron Pulse",
+    "metal-pedal-assault": "Pedal Point Assault",
+    "metal-phrygian-gravity": "Phrygian Gravity",
+    "metal-phrygian-tension": "Phrygian Tension",
+    "metal-syncopated-stops": "Stop-Start Chugs",
+    "metal-three-three-two-engine": "Three-Three-Two Engine",
+    "scales-connect": "Carry the Motif",
+    "skipping-phrase": "Across the Wire",
+  };
+
+export const getPracticeContextCompatibility = (
+  exampleId: PracticeTabExampleId,
+  context: PracticeResolutionContext,
+): PracticeContextCompatibility => {
+  const constraint: PracticeExerciseRecipe["contextConstraint"] =
+    practiceExerciseRecipes[exampleId].contextConstraint;
+
+  if (!constraint) {
+    return { compatible: true };
+  }
+
+  const exerciseName = constrainedExerciseNames[exampleId] ?? "This exercise";
+  const compatibleScales = constraint.compatibleScales ?? [constraint.scale];
+  const scaleLabel = scaleDefinitions[constraint.scale].label;
+  const authoredContextLabel = constraint.key
+    ? `${constraint.key} ${scaleLabel}`
+    : scaleLabel;
+
+  if (
+    !compatibleScales.includes(context.currentScale) ||
+    (constraint.key !== undefined && context.currentKey !== constraint.key)
+  ) {
+    return {
+      authoredContextLabel,
+      compatible: false,
+      reason:
+        compatibleScales.length === 1
+          ? `${exerciseName} is authored for ${authoredContextLabel}.`
+          : `${exerciseName} requires ${compatibleScales
+              .map((scale) => scaleDefinitions[scale].label)
+              .join(" or ")}.`,
+      requiredKey: constraint.key,
+      requiredScale: constraint.scale,
+      resolution: "use-authored-context",
+    };
+  }
+
+  if (
+    constraint.tuning === "preset-default" &&
+    (context.registeredTuning.status !== "verified" ||
+      context.registeredTuning.source !== "preset-default")
+  ) {
+    return {
+      authoredContextLabel,
+      compatible: false,
+      reason: `${exerciseName} requires a preset tuning.`,
+      resolution: "restore-preset-tuning",
+    };
+  }
+
+  return { compatible: true };
+};
+
 const nearestFret = (
   openPitchClass: PitchClass,
   targetPitchClass: PitchClass,
@@ -335,6 +417,12 @@ export const resolvePracticeTab = (
   exampleId: PracticeTabExampleId,
   context: PracticeResolutionContext,
 ): PracticeTabExample => {
+  const compatibility = getPracticeContextCompatibility(exampleId, context);
+
+  if (!compatibility.compatible) {
+    throw new Error(compatibility.reason);
+  }
+
   const source = practiceTabExamples[exampleId];
   const recipe = practiceExerciseRecipes[exampleId];
   const targetPitchClasses = getTargetPitchClasses(source, recipe, context);

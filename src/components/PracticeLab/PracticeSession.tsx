@@ -5,6 +5,7 @@ import {
   practiceExerciseMetadata,
 } from "@/data/practiceExerciseMetadata";
 import type { PracticeRoutine, PracticeStep } from "@/data/practiceRoutines";
+import type { PracticeContextCompatibility } from "@/features/practice/resolvePracticeTab";
 import {
   clampPracticeDurationMinutes,
   formatPracticeTime,
@@ -42,10 +43,18 @@ type PracticeSessionProps = {
   audioError: string | null;
   countInBeatsRemaining: number;
   countInEnabled: boolean;
+  contextCompatibility: PracticeContextCompatibility;
   durationMinutes: number;
   example: PracticeTabExample;
   instrument: PracticeInstrument;
   instrumentPlaybackEnabled: boolean;
+  journey: {
+    objective: string;
+    stepIndex: number;
+    title: string;
+    totalSteps: number;
+  } | null;
+  journeyCompletionEnabled: boolean;
   metronomeEnabled: boolean;
   metronomeVolume: number;
   onBack: () => void;
@@ -54,6 +63,7 @@ type PracticeSessionProps = {
   onInstrumentChange: (instrument: PracticeInstrument) => void;
   onMetronomeVolumeChange: (volume: number) => void;
   onPrimaryAction: () => void | Promise<void>;
+  onResolveContext: () => void;
   onSubdivisionChange: (subdivision: PracticeTabSubdivision) => void;
   onTempoChange: (tempo: number) => void;
   onToggleCountIn: () => void;
@@ -300,10 +310,13 @@ export default function PracticeSession({
   audioError,
   countInBeatsRemaining,
   countInEnabled,
+  contextCompatibility,
   durationMinutes,
   example,
   instrument,
   instrumentPlaybackEnabled,
+  journey,
+  journeyCompletionEnabled,
   metronomeEnabled,
   metronomeVolume,
   onBack,
@@ -312,6 +325,7 @@ export default function PracticeSession({
   onInstrumentChange,
   onMetronomeVolumeChange,
   onPrimaryAction,
+  onResolveContext,
   onSubdivisionChange,
   onTempoChange,
   onToggleCountIn,
@@ -365,11 +379,12 @@ export default function PracticeSession({
     >
       <header className="practiceSession__topbar">
         <button className="practiceTextButton" onClick={onBack} type="button">
-          ← Practice Library
+          ← {journey ? journey.title : "Practice Library"}
         </button>
         <span>
-          {routine.tabLabel} · Exercise {stepIndex + 1} of{" "}
-          {routine.steps.length}
+          {journey
+            ? `${journey.title} · Step ${journey.stepIndex + 1} of ${journey.totalSteps}`
+            : `${routine.tabLabel} · Exercise ${stepIndex + 1} of ${routine.steps.length}`}
         </span>
       </header>
 
@@ -386,11 +401,22 @@ export default function PracticeSession({
                 {step.title}
               </h1>
               <p>{step.instruction}</p>
+              {journey && (
+                <p className="practiceSession__journeyObjective">
+                  <span>Journey objective</span>
+                  {journey.objective}
+                </p>
+              )}
               <div className="practiceSession__metadata">
                 <span>{formatPracticeTag(metadata.techniques[0])}</span>
                 <span>{formatPracticeTag(metadata.difficulty)}</span>
                 <span>{metadata.tempo.recommended} BPM recommended</span>
                 <span>{formatPracticeTag(example.subdivision)} score grid</span>
+                {!contextCompatibility.compatible && (
+                  <span>
+                    Authored · {contextCompatibility.authoredContextLabel}
+                  </span>
+                )}
               </div>
               <small className="practiceSession__focus">{metadata.focus}</small>
             </div>
@@ -399,6 +425,7 @@ export default function PracticeSession({
                 aria-label={primaryActionLabel}
                 className="practicePrimaryAction"
                 data-status={transportStatus}
+                disabled={!contextCompatibility.compatible}
                 onClick={onPrimaryAction}
                 type="button"
               >
@@ -423,6 +450,16 @@ export default function PracticeSession({
                   </motion.span>
                 </AnimatePresence>
               </button>
+              {!contextCompatibility.compatible && (
+                <div aria-live="polite" className="practiceContextUnavailable">
+                  <p>{contextCompatibility.reason}</p>
+                  <button onClick={onResolveContext} type="button">
+                    {contextCompatibility.resolution === "restore-preset-tuning"
+                      ? "Restore preset tuning"
+                      : `Use ${contextCompatibility.authoredContextLabel}`}
+                  </button>
+                </div>
+              )}
               <AnimatePresence initial={false}>
                 {transportStatus === "counting-in" && (
                   <motion.output
@@ -681,11 +718,17 @@ export default function PracticeSession({
 
           <button
             className="practiceCompleteAction"
+            disabled={Boolean(journey && !journeyCompletionEnabled)}
             onClick={onComplete}
             type="button"
           >
-            Complete exercise
+            {journey ? "Finish Journey step" : "Complete exercise"}
           </button>
+          {journey && !journeyCompletionEnabled && (
+            <small className="sessionControls__completionNote">
+              Finish the configured practice time to complete this Journey step.
+            </small>
+          )}
         </motion.aside>
       </div>
     </motion.div>

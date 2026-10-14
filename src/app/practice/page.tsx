@@ -8,17 +8,21 @@ export const metadata: Metadata = {
 };
 
 type PracticePageProps = {
-  searchParams: Promise<{ exercise?: string | string[] }>;
+  searchParams: Promise<{
+    exercise?: string | string[];
+    journey?: string | string[];
+  }>;
 };
 
 export default async function PracticePage({
   searchParams,
 }: PracticePageProps) {
-  const { exercise } = await searchParams;
+  const { exercise, journey } = await searchParams;
 
   return (
     <PracticeLab
       exerciseId={typeof exercise === "string" ? exercise : undefined}
+      journeyId={typeof journey === "string" ? journey : undefined}
     />
   );
 }

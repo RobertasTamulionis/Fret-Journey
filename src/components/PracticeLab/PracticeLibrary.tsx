@@ -9,23 +9,38 @@ import {
   practiceExerciseMetadata,
 } from "@/data/practiceExerciseMetadata";
 import {
+  getJourneyRecommendedExerciseId,
+  type PracticeJourneyId,
+  practiceJourneys,
+} from "@/data/practiceJourneys";
+import {
   type PracticeRoutine,
   type PracticeRoutineId,
   type PracticeStep,
   practiceRoutines,
   practiceSources,
 } from "@/data/practiceRoutines";
-import type { PracticeTabExampleId } from "@/data/practiceTabExamples";
-import { resolvePracticeTab } from "@/features/practice/resolvePracticeTab";
+import {
+  type PracticeTabExampleId,
+  practiceTabExampleIds,
+  practiceTabExamples,
+} from "@/data/practiceTabExamples";
+import {
+  getPracticeContextCompatibility,
+  resolvePracticeTab,
+} from "@/features/practice/resolvePracticeTab";
 import type { PracticeTabExample } from "@/features/practice/tablature";
 import { useAppSelector } from "@/lib/redux/store";
 import CompactPracticeTabPreview from "./CompactPracticeTabPreview";
 
 type PracticeLibraryProps = {
+  completedJourneyExerciseIds: readonly PracticeTabExampleId[];
+  onOpenJourney: (journeyId: PracticeJourneyId) => void;
   onSelectExercise: (routineId: PracticeRoutineId, stepIndex: number) => void;
 };
 
 type ExerciseCardProps = {
+  authoredContext: string | null;
   example: PracticeTabExample;
   onSelect: () => void;
   routine: PracticeRoutine;
@@ -54,7 +69,13 @@ const familyMarks: Record<string, string> = {
   "sweep-picking": "⤢",
 };
 
-function ExerciseCard({ example, onSelect, routine, step }: ExerciseCardProps) {
+function ExerciseCard({
+  authoredContext,
+  example,
+  onSelect,
+  routine,
+  step,
+}: ExerciseCardProps) {
   const metadata = practiceExerciseMetadata[step.exampleId];
   const contentType = getPracticeContentType(step.exampleId);
 
@@ -91,6 +112,7 @@ function ExerciseCard({ example, onSelect, routine, step }: ExerciseCardProps) {
         <span>{metadata.tempo.recommended} BPM</span>
         <span>{formatPracticeTag(example.subdivision)}</span>
         <span>{step.duration}</span>
+        {authoredContext && <span>Authored · {authoredContext}</span>}
       </span>
       <span className="exerciseCard__focus">{metadata.focus}</span>
 
@@ -103,6 +125,8 @@ function ExerciseCard({ example, onSelect, routine, step }: ExerciseCardProps) {
 }
 
 export default function PracticeLibrary({
+  completedJourneyExerciseIds,
+  onOpenJourney,
   onSelectExercise,
 }: PracticeLibraryProps) {
   const [search, setSearch] = useState("");
@@ -120,12 +144,37 @@ export default function PracticeLibrary({
     () =>
       Object.fromEntries(
         practiceRoutines.flatMap((routine) =>
-          routine.steps.map((step) => [
-            step.exampleId,
-            resolvePracticeTab(step.exampleId, resolutionContext),
-          ]),
+          routine.steps.map((step) => {
+            const compatibility = getPracticeContextCompatibility(
+              step.exampleId,
+              resolutionContext,
+            );
+
+            return [
+              step.exampleId,
+              compatibility.compatible
+                ? resolvePracticeTab(step.exampleId, resolutionContext)
+                : practiceTabExamples[step.exampleId],
+            ];
+          }),
         ),
       ) as Record<PracticeTabExampleId, PracticeTabExample>,
+    [resolutionContext],
+  );
+  const incompatibleContexts = useMemo(
+    () =>
+      Object.fromEntries(
+        practiceTabExampleIds.flatMap((exampleId) => {
+          const compatibility = getPracticeContextCompatibility(
+            exampleId,
+            resolutionContext,
+          );
+
+          return compatibility.compatible
+            ? []
+            : [[exampleId, compatibility.authoredContextLabel ?? "Authored"]];
+        }),
+      ) as Partial<Record<PracticeTabExampleId, string>>,
     [resolutionContext],
   );
   const normalizedSearch = search.trim().toLowerCase();
@@ -138,6 +187,10 @@ export default function PracticeLibrary({
           visibleSteps: routine.steps
             .map((step, stepIndex) => ({ step, stepIndex }))
             .filter(({ step }) => {
+              if (category === "all" && step.isSharedReference) {
+                return false;
+              }
+
               const metadata = practiceExerciseMetadata[step.exampleId];
               const searchableText = [
                 step.title,
@@ -164,10 +217,7 @@ export default function PracticeLibrary({
     (count, routine) => count + routine.visibleSteps.length,
     0,
   );
-  const totalExerciseCount = practiceRoutines.reduce(
-    (count, routine) => count + routine.steps.length,
-    0,
-  );
+  const totalExerciseCount = practiceTabExampleIds.length;
   const featuredExercises = practiceRoutines.flatMap((routine) =>
     routine.steps.flatMap((step, stepIndex) =>
       featuredExerciseIds.includes(
@@ -177,6 +227,17 @@ export default function PracticeLibrary({
         : [],
     ),
   );
+  const journey = practiceJourneys[0];
+  const recommendedJourneyExerciseId = getJourneyRecommendedExerciseId(
+    journey,
+    completedJourneyExerciseIds,
+  );
+  const recommendedJourneyStep = practiceRoutines
+    .flatMap((routine) => routine.steps)
+    .find(
+      ({ exampleId, isSharedReference }) =>
+        exampleId === recommendedJourneyExerciseId && !isSharedReference,
+    );
 
   return (
     <div className="practiceLibrary">
@@ -195,6 +256,31 @@ export default function PracticeLibrary({
         </small>
       </header>
 
+      <section aria-label="Exercise Journeys" className="practiceJourneys">
+        <header>
+          <span>Exercise Journeys</span>
+          <h2>Build toward a musical destination</h2>
+        </header>
+        <button
+          className="practiceJourneyCard"
+          onClick={() => onOpenJourney(journey.id)}
+          type="button"
+        >
+          <span className="practiceJourneyCard__eyebrow">
+            {completedJourneyExerciseIds.length} / {journey.steps.length}{" "}
+            sessions
+          </span>
+          <strong>{journey.title}</strong>
+          <p>{journey.finalOutcome}</p>
+          <span>
+            {recommendedJourneyStep
+              ? `Recommended next · ${recommendedJourneyStep.title}`
+              : "Journey complete · revisit any step"}
+          </span>
+          <em>View Journey →</em>
+        </button>
+      </section>
+
       <section
         aria-label="Featured musical exercises"
         className="practiceFeatured"
@@ -210,6 +296,7 @@ export default function PracticeLibrary({
         <div className="practiceCategory__grid">
           {featuredExercises.map(({ routine, step, stepIndex }) => (
             <ExerciseCard
+              authoredContext={incompatibleContexts[step.exampleId] ?? null}
               example={resolvedExamples[step.exampleId]}
               key={step.exampleId}
               onSelect={() => onSelectExercise(routine.id, stepIndex)}
@@ -299,6 +386,7 @@ export default function PracticeLibrary({
             <div className="practiceCategory__grid">
               {routine.visibleSteps.map(({ step, stepIndex }) => (
                 <ExerciseCard
+                  authoredContext={incompatibleContexts[step.exampleId] ?? null}
                   example={resolvedExamples[step.exampleId]}
                   key={step.exampleId}
                   onSelect={() => onSelectExercise(routine.id, stepIndex)}

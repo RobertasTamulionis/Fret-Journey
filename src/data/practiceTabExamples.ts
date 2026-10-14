@@ -122,6 +122,7 @@ const A_MINOR_PENTATONIC = [9, 0, 2, 4, 7] as readonly PitchClass[];
 const A_NATURAL_MINOR = [9, 11, 0, 2, 4, 5, 7] as readonly PitchClass[];
 const C_MAJOR = [0, 2, 4, 5, 7, 9, 11] as readonly PitchClass[];
 const E_MINOR = [4, 6, 7, 9, 11, 0, 2] as readonly PitchClass[];
+const E_PHRYGIAN_DOMINANT = [4, 5, 8, 9, 11, 0, 2] as readonly PitchClass[];
 const A_MINOR_TRIAD = [9, 0, 4] as readonly PitchClass[];
 const C_MAJOR_TRIAD = [0, 4, 7] as readonly PitchClass[];
 const E_PEDAL = [4] as readonly PitchClass[];
@@ -172,21 +173,6 @@ export const practiceTabExamples = {
     repetitions: 6,
     subdivision: "eighths",
   }),
-  "daily-mechanics": authoredTab({
-    accessibleDescription:
-      "Alternate pick C, D, E on the G string, cross to E, F, G on the B string, then reverse the B-string fragment.",
-    bpm: 72,
-    events: [
-      ...tabLine(3, [5, 7, 9], { strokePattern: "alternate-down" }),
-      ...tabLine(2, [null, null, null, 5, 6, 8, 6, 5], {
-        strokePattern: "alternate-down",
-      }),
-    ],
-    id: "daily-mechanics",
-    pitchScope: pitchSet("A natural minor · hand sync", A_NATURAL_MINOR),
-    repetitions: 8,
-    subdivision: "eighths",
-  }),
   "daily-ear": authoredTab({
     accessibleDescription:
       "Play E, G, A as a call, rest, then answer with C, A, G, E in A minor pentatonic.",
@@ -207,22 +193,98 @@ export const practiceTabExamples = {
   }),
   "daily-play": authoredTab({
     accessibleDescription:
-      "Play an E minor riff using low E open notes, low E fret 3, A string fret 2, D string fret 2, and a rest on beat two.",
-    bpm: 76,
+      "Play Open Road Hook, a two-bar E natural minor melody with two exact rests, an open-string climb in bar two, and a descending resolution to sustained E.",
+    bpm: 80,
     events: [
-      ...tabLine(6, [0, 0, 3, null, null, null, 3, 0], {
-        accentSlots: [2, 6],
-        palmMuteDepth: "light",
-        strokePattern: "down",
+      tabChord(0, [{ fret: 2, string: 4 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
       }),
-      ...tabLine(5, [null, null, null, null, 2]),
-      ...tabLine(4, [null, null, null, null, null, 2]),
-      tabRest(3),
+      tabChord(2, [{ fret: 0, string: 3 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(3, [{ fret: 2, string: 3 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(4, [{ fret: 0, string: 2 }], {
+        duration: 2,
+        stroke: "up",
+      }),
+      tabRest(6, 2),
+      tabChord(8, [{ fret: 2, string: 3 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(10, [{ fret: 0, string: 3 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(11, [{ fret: 2, string: 4 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(12, [{ fret: 3, string: 2 }], {
+        duration: 2,
+        stroke: "up",
+      }),
+      tabChord(14, [{ fret: 0, string: 2 }], {
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(16, [{ fret: 2, string: 4 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(18, [{ fret: 0, string: 3 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(19, [{ fret: 2, string: 3 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(20, [{ fret: 3, string: 2 }], {
+        accent: true,
+        duration: 2,
+        stroke: "up",
+      }),
+      tabChord(22, [{ fret: 0, string: 1 }], {
+        duration: 2,
+        stroke: "down",
+      }),
+      tabRest(24, 2),
+      tabChord(26, [{ fret: 3, string: 2 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(27, [{ fret: 0, string: 2 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(28, [{ fret: 2, string: 3 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(29, [{ fret: 0, string: 3 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(30, [{ fret: 2, string: 4 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
     ],
     id: "daily-play",
-    pitchScope: pitchSet("E minor riff", E_MINOR),
+    measureCount: 2,
+    pitchScope: pitchSet("E natural minor · Open Road Hook", E_MINOR),
     repetitions: 8,
-    subdivision: "eighths",
+    subdivision: "sixteenths",
   }),
 
   "scales-center": authoredTab({
@@ -260,58 +322,166 @@ export const practiceTabExamples = {
   }),
   "scales-connect": authoredTab({
     accessibleDescription:
-      "Ascend from B-string fret 5 across the high E string to fret 12, then descend to G-string fret 7 in A natural minor.",
+      "Play Carry the Motif, a two-bar E natural minor phrase that moves an E-G-A-B idea from frets 7-10 into frets 12-15, develops it there, and returns through A, G, F-sharp, and E.",
     bpm: 72,
     events: [
-      ...tabLine(2, [
-        5,
-        6,
-        8,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        8,
-        6,
-        5,
-      ]),
-      ...tabLine(1, [null, null, null, 5, 7, 8, 10, 12, 10, 8, 7, 5]),
-      ...tabLine(3, [
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        7,
-      ]),
-    ].map((event, index) => ({
-      ...event,
-      stroke: index % 2 === 0 ? "down" : "up",
-    })),
+      {
+        accent: true,
+        at: 0,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 9, string: 3 }],
+        stroke: "down",
+      },
+      {
+        at: 2,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 8, string: 2 }],
+        stroke: "up",
+      },
+      {
+        at: 3,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 2 }],
+        stroke: "down",
+      },
+      {
+        at: 4,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 7, string: 1 }],
+        stroke: "up",
+      },
+      {
+        at: 6,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 2 }],
+        stroke: "down",
+      },
+      {
+        at: 7,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 8, string: 2 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 8,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 9, string: 3 }],
+        stroke: "down",
+      },
+      {
+        at: 10,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 10, string: 2 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 12,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 12, string: 2 }],
+        stroke: "down",
+      },
+      {
+        at: 14,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 12, string: 1 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 16,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 12, string: 1 }],
+        stroke: "down",
+      },
+      {
+        at: 17,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 15, string: 1 }],
+        stroke: "up",
+      },
+      {
+        at: 18,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 14, string: 1 }],
+        stroke: "down",
+      },
+      {
+        at: 20,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 15, string: 2 }],
+        stroke: "up",
+      },
+      {
+        at: 22,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 13, string: 2 }],
+        stroke: "down",
+      },
+      {
+        at: 23,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 12, string: 2 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 24,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 10, string: 2 }],
+        stroke: "down",
+      },
+      {
+        at: 26,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 8, string: 2 }],
+        stroke: "up",
+      },
+      {
+        at: 28,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 11, string: 3 }],
+        stroke: "down",
+      },
+      {
+        accent: true,
+        at: 30,
+        duration: 2,
+        kind: "notes",
+        notes: [{ articulation: "vibrato", fret: 9, string: 3 }],
+        stroke: "up",
+      },
+    ],
     id: "scales-connect",
     markers: [
-      { at: 0, label: "position 5" },
-      { at: 6, label: "shift" },
+      { at: 0, label: "motif" },
+      { at: 12, label: "shift out" },
+      { at: 16, label: "develop" },
+      { at: 24, label: "shift back" },
+      { at: 30, label: "resolve" },
     ],
-    pitchScope: pitchSet(
-      "A natural minor · connected positions",
-      A_NATURAL_MINOR,
-    ),
+    measureCount: 2,
+    pitchScope: pitchSet("E natural minor · Carry the Motif", E_MINOR),
     repetitions: 4,
     subdivision: "sixteenths",
   }),
@@ -423,25 +593,175 @@ export const practiceTabExamples = {
   }),
   "skipping-phrase": authoredTab({
     accessibleDescription:
-      "Play A on low E, A on D, G on B, rest, then C on G, A on high E, E on B, and rest.",
-    bpm: 64,
+      "Play Across the Wire, a two-bar E natural minor phrase that alternates across the D and B strings, breathes after the opening motif, crosses the high E and G strings, and resolves through B, G, and E.",
+    bpm: 72,
     events: [
-      ...tabLine(6, [5]),
-      ...tabLine(4, [null, 7]),
-      ...tabLine(2, [null, null, 8, null, null, null, 5]),
-      ...tabLine(3, [null, null, null, null, 5]),
-      ...tabLine(1, [null, null, null, null, null, 5]),
-      tabRest(3),
-      tabRest(7),
+      {
+        accent: true,
+        at: 0,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 9, string: 4 }],
+        stroke: "down",
+      },
+      {
+        at: 2,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 8, string: 2 }],
+        stroke: "up",
+      },
+      {
+        at: 3,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 4 }],
+        stroke: "down",
+      },
+      {
+        accent: true,
+        at: 4,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 10, string: 2 }],
+        stroke: "up",
+      },
+      {
+        at: 6,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 12, string: 4 }],
+        stroke: "down",
+      },
+      {
+        at: 7,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 12, string: 2 }],
+        stroke: "up",
+      },
+      tabRest(8, 2),
+      {
+        at: 10,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 4 }],
+        stroke: "down",
+      },
+      {
+        at: 11,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 2 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 12,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 10, string: 1 }],
+        stroke: "down",
+      },
+      {
+        at: 14,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 9, string: 3 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 16,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 9, string: 4 }],
+        stroke: "down",
+      },
+      {
+        at: 17,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 8, string: 2 }],
+        stroke: "up",
+      },
+      {
+        at: 18,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 4 }],
+        stroke: "down",
+      },
+      {
+        at: 19,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 2 }],
+        stroke: "up",
+      },
+      {
+        at: 20,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 12, string: 4 }],
+        stroke: "down",
+      },
+      {
+        at: 22,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 12, string: 2 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 24,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 10, string: 1 }],
+        stroke: "down",
+      },
+      {
+        at: 25,
+        duration: 1,
+        kind: "notes",
+        notes: [{ fret: 9, string: 3 }],
+        stroke: "up",
+      },
+      {
+        at: 26,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 7, string: 1 }],
+        stroke: "down",
+      },
+      {
+        at: 28,
+        duration: 2,
+        kind: "notes",
+        notes: [{ fret: 8, string: 2 }],
+        stroke: "up",
+      },
+      {
+        accent: true,
+        at: 30,
+        duration: 2,
+        kind: "notes",
+        notes: [{ articulation: "vibrato", fret: 9, string: 3 }],
+        stroke: "down",
+      },
     ],
     id: "skipping-phrase",
     markers: [
-      { at: 0, label: "question" },
-      { at: 4, label: "answer" },
+      { at: 0, label: "motif" },
+      { at: 8, label: "breathe" },
+      { at: 16, label: "develop" },
+      { at: 26, label: "resolve" },
     ],
-    pitchScope: pitchSet("A minor pentatonic phrase", A_MINOR_PENTATONIC),
+    measureCount: 2,
+    pitchScope: pitchSet("E natural minor · Across the Wire", E_MINOR),
     repetitions: 4,
-    subdivision: "eighths",
+    subdivision: "sixteenths",
   }),
 
   "chugs-mute-depth": authoredTab({
@@ -466,22 +786,6 @@ export const practiceTabExamples = {
     pitchScope: pitchSet("Low E pedal", E_PEDAL),
     repetitions: 8,
     subdivision: "quarters",
-  }),
-  "chugs-grid": authoredTab({
-    accessibleDescription:
-      "Downpick eight palm-muted low E notes and accent beats one and three without changing the pulse.",
-    bpm: 82,
-    events: [
-      ...tabLine(6, [0, 0, 0, 0, 0, 0, 0, 0], {
-        accentSlots: [0, 4],
-        palmMuteDepth: "medium",
-        strokePattern: "down",
-      }),
-    ],
-    id: "chugs-grid",
-    pitchScope: pitchSet("Low E pedal · accents", E_PEDAL),
-    repetitions: 8,
-    subdivision: "eighths",
   }),
   "chugs-gallop": authoredTab({
     accessibleDescription:
@@ -508,49 +812,6 @@ export const practiceTabExamples = {
     pitchScope: pitchSet("Low E gallops", E_PEDAL),
     repetitions: 8,
     subdivision: "sixteenths",
-  }),
-  "chugs-riff": authoredTab({
-    accessibleDescription:
-      "Chug three low E pedal notes, rest, strike a G5 power chord, return to low E, strike A5, then rest.",
-    bpm: 86,
-    events: [
-      ...tabLine(6, [0, 0, 0], {
-        palmMuteDepth: "medium",
-        strokePattern: "down",
-      }),
-      tabRest(3),
-      tabChord(
-        4,
-        [
-          { fret: 3, string: 6 },
-          { fret: 5, string: 5 },
-        ],
-        { accent: true, duration: 1, stroke: "down" },
-      ),
-      tabChord(5, [{ fret: 0, string: 6 }], {
-        duration: 1,
-        palmMuteDepth: "medium",
-        stroke: "down",
-      }),
-      tabChord(
-        6,
-        [
-          { fret: 5, string: 6 },
-          { fret: 7, string: 5 },
-        ],
-        { accent: true, duration: 1, stroke: "down" },
-      ),
-      tabRest(7),
-    ],
-    id: "chugs-riff",
-    markers: [
-      { at: 0, label: "pedal" },
-      { at: 4, label: "G5" },
-      { at: 6, label: "A5" },
-    ],
-    pitchScope: pitchSet("E minor chug riff", E_MINOR),
-    repetitions: 8,
-    subdivision: "eighths",
   }),
 
   "alternate-balance": authoredTab({
@@ -740,39 +1001,63 @@ export const practiceTabExamples = {
   }),
   "legato-phrase": authoredTab({
     accessibleDescription:
-      "Play a rising A minor pentatonic legato motif, breathe, repeat it higher with a pull-off, and slide into a final A.",
-    bpm: 62,
+      "Play Answer the Climb, a two-bar E natural minor phrase: shape B-C-D-C-B with legato, answer on high E, slide down to D, breathe for one beat, develop the motif, and resolve to E with vibrato.",
+    bpm: 72,
     events: [
-      ...tabLine(2, [
-        { fret: 5, stroke: "down" },
-        { articulation: "hammer", fret: 8 },
-        { articulation: "pull", fret: 5 },
-      ]),
-      ...tabLine(1, [
-        null,
-        null,
-        null,
-        null,
-        { fret: 5, stroke: "down" },
-        { articulation: "hammer", fret: 8 },
-        { articulation: "pull", fret: 5 },
-        null,
-        { fret: 8, stroke: "up" },
-        { articulation: "pull", fret: 5 },
-        { articulation: "slide-up", fret: 20 },
-        { articulation: "vibrato", duration: 4, fret: 20 },
-      ]),
-      tabRest(3),
-      tabRest(7),
+      tabChord(0, [{ fret: 12, string: 2 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(2, [{ articulation: "hammer", fret: 13, string: 2 }]),
+      tabChord(3, [{ articulation: "hammer", fret: 15, string: 2 }]),
+      tabChord(4, [{ articulation: "pull", fret: 13, string: 2 }]),
+      tabChord(5, [{ articulation: "pull", fret: 12, string: 2 }]),
+      tabChord(6, [{ fret: 15, string: 1 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(8, [{ articulation: "pull", fret: 12, string: 1 }], {
+        duration: 2,
+      }),
+      tabChord(10, [{ articulation: "slide-down", fret: 10, string: 1 }], {
+        duration: 2,
+      }),
       tabRest(12, 4),
+      tabChord(16, [{ fret: 12, string: 2 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(18, [{ articulation: "hammer", fret: 13, string: 2 }]),
+      tabChord(19, [{ articulation: "hammer", fret: 15, string: 2 }]),
+      tabChord(20, [{ articulation: "pull", fret: 13, string: 2 }]),
+      tabChord(21, [{ articulation: "pull", fret: 12, string: 2 }]),
+      tabChord(22, [{ articulation: "hammer", fret: 15, string: 2 }], {
+        duration: 2,
+      }),
+      tabChord(24, [{ articulation: "pull", fret: 13, string: 2 }]),
+      tabChord(25, [{ articulation: "pull", fret: 12, string: 2 }]),
+      tabChord(26, [{ articulation: "pull", fret: 10, string: 2 }], {
+        duration: 2,
+      }),
+      tabChord(28, [{ articulation: "vibrato", fret: 12, string: 1 }], {
+        accent: true,
+        duration: 4,
+        stroke: "down",
+      }),
     ],
     id: "legato-phrase",
     markers: [
       { at: 0, label: "motif" },
-      { at: 4, label: "answer" },
-      { at: 10, label: "home" },
+      { at: 6, label: "answer" },
+      { at: 12, label: "breathe" },
+      { at: 16, label: "develop" },
+      { at: 28, label: "resolve" },
     ],
-    pitchScope: pitchSet("A minor pentatonic phrase", A_MINOR_PENTATONIC),
+    measureCount: 2,
+    pitchScope: pitchSet("E natural minor", E_MINOR),
     repetitions: 4,
     subdivision: "sixteenths",
   }),
@@ -924,7 +1209,7 @@ export const practiceTabExamples = {
   }),
   "bends-control": authoredTab({
     accessibleDescription:
-      "Bend B-string fret 8 to the pitch of fret 10, hold for two beats, release to fret 8, then rest.",
+      "Bend B-string fret 8 to the pitch of fret 10, sustain the target through beat three, then release to fret 8 on beat four.",
     bpm: 52,
     events: [
       ...tabLine(2, [
@@ -949,7 +1234,7 @@ export const practiceTabExamples = {
   }),
   "vibrato-pulse": authoredTab({
     accessibleDescription:
-      "Hold A at B-string fret 10 with narrow vibrato for two beats, then repeat with wider vibrato for two beats.",
+      "Hold A at B-string fret 10 with vibrato for two beats, then attack and hold the same note with vibrato for two more beats; the player chooses each hold's width.",
     bpm: 60,
     events: [
       ...tabLine(2, [
@@ -960,8 +1245,8 @@ export const practiceTabExamples = {
     ],
     id: "vibrato-pulse",
     markers: [
-      { at: 0, label: "narrow" },
-      { at: 2, label: "wide" },
+      { at: 0, label: "first hold" },
+      { at: 2, label: "second hold" },
     ],
     pitchScope: pitchSet("A note · controlled vibrato", [9]),
     repetitions: 8,
@@ -1166,6 +1451,125 @@ export const practiceTabExamples = {
     repetitions: 6,
     subdivision: "eighths",
   }),
+  "metal-gallop-relay": authoredTab({
+    accessibleDescription:
+      "Play forward gallops on low E and B, stop for beat four, re-enter with reverse gallops on B and E, then finish with accented C5 and D5 power chords before looping to E.",
+    bpm: 80,
+    events: [
+      tabChord(0, [{ fret: 0, string: 6 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(2, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(3, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "up",
+      }),
+      tabChord(
+        4,
+        [
+          { fret: 3, string: 6 },
+          { fret: 5, string: 5 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+      tabChord(6, [{ fret: 0, string: 6 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(8, [{ fret: 2, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(10, [{ fret: 2, string: 5 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(11, [{ fret: 2, string: 5 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "up",
+      }),
+      tabRest(12, 4),
+      tabChord(16, [{ fret: 2, string: 5 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(17, [{ fret: 2, string: 5 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "up",
+      }),
+      tabChord(18, [{ fret: 2, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(20, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(21, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "up",
+      }),
+      tabChord(22, [{ fret: 0, string: 6 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(
+        24,
+        [
+          { fret: 8, string: 6 },
+          { fret: 10, string: 5 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+      tabChord(
+        26,
+        [
+          { fret: 10, string: 6 },
+          { fret: 12, string: 5 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+      tabRest(28, 2),
+      tabChord(
+        30,
+        [
+          { fret: 10, string: 6 },
+          { fret: 12, string: 5 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+    ],
+    id: "metal-gallop-relay",
+    markers: [
+      { at: 0, label: "forward" },
+      { at: 8, label: "string move" },
+      { at: 12, label: "stop" },
+      { at: 16, label: "reverse" },
+      { at: 24, label: "turnaround" },
+      { at: 30, label: "pickup" },
+    ],
+    measureCount: 2,
+    pitchScope: pitchSet("E natural minor", E_MINOR),
+    repetitions: 6,
+    subdivision: "sixteenths",
+  }),
   "metal-gallop-control": authoredTab({
     accessibleDescription:
       "Play a long-short-short E gallop, repeat it with a displaced start, leave silence, then answer with a G5 power chord.",
@@ -1216,6 +1620,343 @@ export const practiceTabExamples = {
       { at: 12, label: "punch" },
     ],
     pitchScope: pitchSet("E minor gallop", E_MINOR),
+    repetitions: 6,
+    subdivision: "sixteenths",
+  }),
+  "metal-burst-and-resolve": authoredTab({
+    accessibleDescription:
+      "Alternate pick an E minor lead phrase with a descending six-note burst landing on G, rest, then a varied seven-note burst landing on E before D turns the loop back to E.",
+    bpm: 80,
+    events: [
+      tabChord(0, [{ fret: 12, string: 1 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(2, [{ fret: 12, string: 2 }], {
+        duration: 2,
+        stroke: "up",
+      }),
+      tabChord(4, [{ fret: 12, string: 1 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(5, [{ fret: 10, string: 1 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(6, [{ fret: 8, string: 1 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(7, [{ fret: 7, string: 1 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(8, [{ fret: 10, string: 2 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(9, [{ fret: 8, string: 2 }], {
+        accent: true,
+        duration: 3,
+        stroke: "up",
+      }),
+      tabRest(12, 4),
+      tabChord(16, [{ fret: 8, string: 2 }], {
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(18, [{ fret: 12, string: 2 }], {
+        duration: 2,
+        stroke: "up",
+      }),
+      tabChord(20, [{ fret: 11, string: 3 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(21, [{ fret: 10, string: 2 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(22, [{ fret: 8, string: 2 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(23, [{ fret: 12, string: 2 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(24, [{ fret: 8, string: 1 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(25, [{ fret: 10, string: 1 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(26, [{ fret: 12, string: 1 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabRest(28, 2),
+      tabChord(30, [{ fret: 10, string: 1 }], {
+        duration: 2,
+        stroke: "up",
+      }),
+    ],
+    id: "metal-burst-and-resolve",
+    markers: [
+      { at: 0, label: "E → B" },
+      { at: 4, label: "burst → b3" },
+      { at: 12, label: "release" },
+      { at: 16, label: "G → B" },
+      { at: 20, label: "burst → 1" },
+      { at: 30, label: "b7 pickup" },
+    ],
+    measureCount: 2,
+    pitchScope: pitchSet("E natural minor", E_MINOR),
+    repetitions: 6,
+    subdivision: "sixteenths",
+  }),
+  "metal-iron-pulse": authoredTab({
+    accessibleDescription:
+      "Downpick two bars of medium-muted open A pedal notes and unmuted C5, G5, and D5 power-chord accents, using a sixteenth-note cutoff before the D5-to-G5 turnaround.",
+    bpm: 96,
+    events: [
+      tabChord(0, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(2, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(4, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(
+        6,
+        [
+          { fret: 3, string: 5 },
+          { fret: 5, string: 4 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+      tabChord(8, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(10, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(12, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(
+        14,
+        [
+          { fret: 3, string: 6 },
+          { fret: 5, string: 5 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+      tabChord(16, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(18, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(20, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(
+        22,
+        [
+          { fret: 3, string: 5 },
+          { fret: 5, string: 4 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+      tabChord(24, [{ fret: 0, string: 5 }], {
+        duration: 2,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(26, [{ fret: 0, string: 5 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabRest(27, 1),
+      tabChord(
+        28,
+        [
+          { fret: 5, string: 5 },
+          { fret: 7, string: 4 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+      tabChord(
+        30,
+        [
+          { fret: 3, string: 6 },
+          { fret: 5, string: 5 },
+        ],
+        { accent: true, duration: 2, stroke: "down" },
+      ),
+    ],
+    id: "metal-iron-pulse",
+    markers: [
+      { at: 0, label: "A pedal" },
+      { at: 6, label: "C5" },
+      { at: 14, label: "G5" },
+      { at: 16, label: "develop" },
+      { at: 26, label: "cutoff" },
+      { at: 28, label: "D5 → G5" },
+    ],
+    measureCount: 2,
+    pitchScope: pitchSet("A natural minor", A_NATURAL_MINOR),
+    repetitions: 6,
+    subdivision: "sixteenths",
+  }),
+  "metal-phrygian-gravity": authoredTab({
+    accessibleDescription:
+      "Alternate a palm-muted low E pedal with an unmuted upper voice that emphasizes F and G sharp, holds the major third, then sustains F into the loop back to E.",
+    bpm: 72,
+    events: [
+      tabChord(0, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(1, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "up",
+      }),
+      tabChord(2, [{ fret: 8, string: 5 }], {
+        accent: true,
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(3, [{ fret: 8, string: 5 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(4, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(5, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "up",
+      }),
+      tabChord(6, [{ fret: 8, string: 5 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(8, [{ fret: 7, string: 5 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(9, [{ fret: 8, string: 5 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(10, [{ fret: 7, string: 5 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(11, [{ fret: 8, string: 5 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(12, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "down",
+      }),
+      tabChord(13, [{ fret: 0, string: 6 }], {
+        duration: 1,
+        palmMuteDepth: "medium",
+        stroke: "up",
+      }),
+      tabRest(14, 2),
+      tabChord(16, [{ fret: 11, string: 5 }], {
+        accent: true,
+        duration: 4,
+        stroke: "down",
+      }),
+      tabChord(20, [{ fret: 8, string: 5 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(21, [{ fret: 11, string: 5 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(22, [{ fret: 8, string: 5 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(23, [{ fret: 11, string: 5 }], {
+        accent: true,
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(24, [{ fret: 7, string: 5 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(25, [{ fret: 8, string: 5 }], {
+        duration: 1,
+        stroke: "up",
+      }),
+      tabChord(26, [{ fret: 11, string: 5 }], {
+        accent: true,
+        duration: 2,
+        stroke: "down",
+      }),
+      tabChord(28, [{ fret: 11, string: 5 }], {
+        duration: 1,
+        stroke: "down",
+      }),
+      tabChord(29, [{ fret: 8, string: 5 }], {
+        accent: true,
+        duration: 3,
+        stroke: "up",
+      }),
+    ],
+    id: "metal-phrygian-gravity",
+    markers: [
+      { at: 0, label: "E / F tension" },
+      { at: 14, label: "space" },
+      { at: 16, label: "G♯ reveal" },
+      { at: 20, label: "F / G♯" },
+      { at: 29, label: "b2 → 1" },
+    ],
+    measureCount: 2,
+    pitchScope: pitchSet("E Phrygian Dominant", E_PHRYGIAN_DOMINANT),
     repetitions: 6,
     subdivision: "sixteenths",
   }),

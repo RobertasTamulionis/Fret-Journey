@@ -2,11 +2,27 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { practiceExerciseMetadata } from "@/data/practiceExerciseMetadata";
 import {
+  isJourneyExercise,
+  type PracticeJourneyId,
+  practiceJourneys,
+} from "@/data/practiceJourneys";
+import {
   type PracticeRoutineId,
   practiceRoutines,
 } from "@/data/practiceRoutines";
 import { practiceTabExamples } from "@/data/practiceTabExamples";
+import { resolvePracticeExerciseId } from "@/features/practice/exerciseAliases";
+import { resolvePracticeJourneyLocation } from "@/features/practice/journeyNavigation";
 import {
+  completeJourneyExercise,
+  emptyPracticeJourneyProgress,
+  getCompletedJourneyExerciseIds,
+  isJourneyAttemptQualified,
+  readPracticeJourneyProgress,
+  writePracticeJourneyProgress,
+} from "@/features/practice/journeyProgress";
+import {
+  getPracticeContextCompatibility,
   getPracticeContextLabel,
   resolvePracticeTab,
 } from "@/features/practice/resolvePracticeTab";
@@ -20,7 +36,12 @@ import {
   practiceDefaultCountInBeats,
 } from "@/features/practice/session";
 import type { PracticeTabSubdivision } from "@/features/practice/tablature";
-import { useAppSelector } from "@/lib/redux/store";
+import {
+  setKey,
+  setScale,
+  setStringCount,
+} from "@/lib/redux/slices/fretboardSlice";
+import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import usePracticeTransport from "./usePracticeTransport";
 
 type PracticeExperienceState = {
@@ -47,8 +68,9 @@ type PracticeExperienceAction =
       stepIndex: number;
       type: "open-exercise";
     }
-  | { type: "back-to-library" }
+  | { screen: "journey" | "library"; type: "show-overview" }
   | {
+      journeyOverview: boolean;
       selection: PracticeExerciseSelection | null;
       type: "sync-url";
     }
@@ -92,13 +114,26 @@ const defaultState: PracticeExperienceState = {
 const findExerciseSelection = (
   exerciseId?: string,
 ): PracticeExerciseSelection | null => {
-  if (!exerciseId) {
+  const canonicalExerciseId = resolvePracticeExerciseId(exerciseId);
+
+  if (!canonicalExerciseId) {
     return null;
   }
 
   for (const routine of practiceRoutines) {
     const stepIndex = routine.steps.findIndex(
-      ({ exampleId }) => exampleId === exerciseId,
+      ({ exampleId, isSharedReference }) =>
+        exampleId === canonicalExerciseId && !isSharedReference,
+    );
+
+    if (stepIndex !== -1) {
+      return { routineId: routine.id, stepIndex };
+    }
+  }
+
+  for (const routine of practiceRoutines) {
+    const stepIndex = routine.steps.findIndex(
+      ({ exampleId }) => exampleId === canonicalExerciseId,
     );
 
     if (stepIndex !== -1) {
@@ -130,10 +165,16 @@ const openExerciseState = (
   };
 };
 
-const createInitialState = (
-  selection: PracticeExerciseSelection | null,
-): PracticeExperienceState =>
-  selection ? openExerciseState(defaultState, selection) : defaultState;
+const createInitialState = ({
+  journeyOverview,
+  selection,
+}: {
+  journeyOverview: boolean;
+  selection: PracticeExerciseSelection | null;
+}): PracticeExperienceState =>
+  selection
+    ? openExerciseState(defaultState, selection)
+    : { ...defaultState, screen: journeyOverview ? "journey" : "library" };
 
 const clampVolume = (volume: number): number =>
   Math.min(100, Math.max(0, volume));
@@ -153,13 +194,12 @@ const reducer = (
         stepIndex: action.stepIndex,
         tempo: action.exampleBpm,
       };
-    case "back-to-library":
-      return { ...state, screen: "library" };
+    case "show-overview":
+      return { ...state, screen: action.screen };
     case "sync-url":
       if (!action.selection) {
-        return state.screen === "library"
-          ? state
-          : { ...state, screen: "library" };
+        const screen = action.journeyOverview ? "journey" : "library";
+        return state.screen === screen ? state : { ...state, screen };
       }
 
       if (
@@ -203,19 +243,46 @@ const exerciseOrder = practiceRoutines.flatMap((routine) =>
   routine.steps.map((_, stepIndex) => ({ routineId: routine.id, stepIndex })),
 );
 
-export default function usePracticeExperience(exerciseId?: string) {
+export default function usePracticeExperience(
+  exerciseId?: string,
+  journeyId?: string,
+) {
   const router = useRouter();
+  const reduxDispatch = useAppDispatch();
   const { currentKey, currentScale, registeredTuning, stringCount, tuning } =
     useAppSelector((reduxState) => reduxState.fretboard);
+  const journeyLocation = resolvePracticeJourneyLocation({
+    exerciseId,
+    journeyId,
+  });
+  const canonicalExerciseId = journeyLocation.exerciseId;
+  const activeJourney = journeyLocation.journey;
+  const validJourneyExercise = Boolean(
+    activeJourney &&
+      canonicalExerciseId &&
+      isJourneyExercise(activeJourney, canonicalExerciseId),
+  );
   const urlSelection = useMemo(
-    () => findExerciseSelection(exerciseId),
-    [exerciseId],
+    () =>
+      activeJourney && !validJourneyExercise
+        ? null
+        : findExerciseSelection(canonicalExerciseId ?? undefined),
+    [activeJourney, canonicalExerciseId, validJourneyExercise],
   );
   const [state, dispatch] = useReducer(
     reducer,
-    urlSelection,
+    {
+      journeyOverview: Boolean(activeJourney && !validJourneyExercise),
+      selection: urlSelection,
+    },
     createInitialState,
   );
+  const [journeyProgress, setJourneyProgress] = useState(
+    emptyPracticeJourneyProgress,
+  );
+  const [journeyAttemptDuration, setJourneyAttemptDuration] = useState<
+    number | null
+  >(null);
   const activeRoutine =
     practiceRoutines.find(({ id }) => id === state.routineId) ??
     practiceRoutines[0];
@@ -231,9 +298,17 @@ export default function usePracticeExperience(exerciseId?: string) {
     }),
     [currentKey, currentScale, registeredTuning, stringCount, tuning],
   );
-  const activeExample = useMemo(
-    () => resolvePracticeTab(activeStep.exampleId, practiceContext),
+  const contextCompatibility = useMemo(
+    () =>
+      getPracticeContextCompatibility(activeStep.exampleId, practiceContext),
     [activeStep.exampleId, practiceContext],
+  );
+  const activeExample = useMemo(
+    () =>
+      contextCompatibility.compatible
+        ? resolvePracticeTab(activeStep.exampleId, practiceContext)
+        : practiceTabExamples[activeStep.exampleId],
+    [activeStep.exampleId, contextCompatibility.compatible, practiceContext],
   );
   const contextSignature = `${currentKey}|${currentScale}|${stringCount}|${tuning.join(",")}|${registeredTuning.status}`;
   const previousContextSignature = useRef(contextSignature);
@@ -259,6 +334,25 @@ export default function usePracticeExperience(exerciseId?: string) {
     state.durationSeconds,
     transport.snapshot.elapsedExerciseSeconds,
   );
+  const completedJourneyExerciseIds = getCompletedJourneyExerciseIds(
+    journeyProgress,
+    activeJourney?.id ?? practiceJourneys[0].id,
+  );
+  const activeJourneyStepIndex = activeJourney
+    ? activeJourney.steps.findIndex(
+        ({ exerciseId: candidateId }) => candidateId === activeStep.exampleId,
+      )
+    : -1;
+  const journeyAttemptQualified = isJourneyAttemptQualified({
+    compatible: contextCompatibility.compatible,
+    elapsedExerciseSeconds: transport.snapshot.elapsedExerciseSeconds,
+    journeyExercise: Boolean(activeJourney && activeJourneyStepIndex >= 0),
+    qualifyingDurationSeconds: journeyAttemptDuration,
+  });
+
+  useEffect(() => {
+    setJourneyProgress(readPracticeJourneyProgress());
+  }, []);
 
   useEffect(() => {
     if (remainingSeconds === 0 && transport.snapshot.phase === "playing") {
@@ -268,12 +362,62 @@ export default function usePracticeExperience(exerciseId?: string) {
 
   useEffect(() => {
     transport.stop();
-    dispatch({ selection: urlSelection, type: "sync-url" });
+    setJourneyAttemptDuration(null);
 
-    if (exerciseId && !urlSelection) {
+    if (journeyId && !activeJourney) {
+      router.replace(
+        canonicalExerciseId
+          ? `/practice?exercise=${encodeURIComponent(canonicalExerciseId)}`
+          : "/practice",
+        { scroll: false },
+      );
+      dispatch({
+        journeyOverview: false,
+        selection: findExerciseSelection(canonicalExerciseId ?? undefined),
+        type: "sync-url",
+      });
+      return;
+    }
+
+    if (activeJourney && exerciseId && !validJourneyExercise) {
+      router.replace(
+        `/practice?journey=${encodeURIComponent(activeJourney.id)}`,
+        { scroll: false },
+      );
+      dispatch({ journeyOverview: true, selection: null, type: "sync-url" });
+      return;
+    }
+
+    dispatch({
+      journeyOverview: Boolean(activeJourney && !urlSelection),
+      selection: urlSelection,
+      type: "sync-url",
+    });
+
+    if (
+      exerciseId &&
+      canonicalExerciseId &&
+      exerciseId !== canonicalExerciseId
+    ) {
+      router.replace(
+        activeJourney
+          ? `/practice?journey=${encodeURIComponent(activeJourney.id)}&exercise=${encodeURIComponent(canonicalExerciseId)}`
+          : `/practice?exercise=${encodeURIComponent(canonicalExerciseId)}`,
+        { scroll: false },
+      );
+    } else if (exerciseId && !urlSelection) {
       router.replace("/practice", { scroll: false });
     }
-  }, [exerciseId, router, transport.stop, urlSelection]);
+  }, [
+    activeJourney,
+    canonicalExerciseId,
+    exerciseId,
+    journeyId,
+    router,
+    transport.stop,
+    urlSelection,
+    validJourneyExercise,
+  ]);
 
   useEffect(() => {
     if (previousContextSignature.current === contextSignature) {
@@ -282,10 +426,19 @@ export default function usePracticeExperience(exerciseId?: string) {
 
     previousContextSignature.current = contextSignature;
     transport.stop();
+    setJourneyAttemptDuration(null);
     setContextAnnouncement(
-      `Practice stopped and reset for ${getPracticeContextLabel(practiceContext)}.`,
+      contextCompatibility.compatible
+        ? `Practice stopped and reset for ${getPracticeContextLabel(practiceContext)}.`
+        : (contextCompatibility.reason ?? "This context is unavailable."),
     );
-  }, [contextSignature, practiceContext, transport.stop]);
+  }, [
+    contextCompatibility.compatible,
+    contextCompatibility.reason,
+    contextSignature,
+    practiceContext,
+    transport.stop,
+  ]);
 
   const openExercise = (
     routineId: PracticeRoutineId,
@@ -299,6 +452,7 @@ export default function usePracticeExperience(exerciseId?: string) {
     const example = practiceTabExamples[step.exampleId];
 
     transport.stop();
+    setJourneyAttemptDuration(null);
     dispatch({
       exampleBpm: practiceExerciseMetadata[step.exampleId].tempo.recommended,
       exerciseDurationSeconds: getPracticeDurationSeconds(step.duration),
@@ -315,7 +469,58 @@ export default function usePracticeExperience(exerciseId?: string) {
     );
   };
 
+  const openJourney = (nextJourneyId: PracticeJourneyId) => {
+    transport.stop();
+    setJourneyAttemptDuration(null);
+    dispatch({ screen: "journey", type: "show-overview" });
+    router.push(`/practice?journey=${encodeURIComponent(nextJourneyId)}`, {
+      scroll: false,
+    });
+  };
+
+  const openJourneyExercise = (
+    nextExerciseId: string,
+    navigation: "push" | "replace" = "push",
+  ) => {
+    if (!activeJourney) return;
+    const canonicalId = resolvePracticeExerciseId(nextExerciseId);
+    if (!canonicalId || !isJourneyExercise(activeJourney, canonicalId)) return;
+    const selection = findExerciseSelection(canonicalId);
+    if (!selection) return;
+
+    const routine =
+      practiceRoutines.find(({ id }) => id === selection.routineId) ??
+      practiceRoutines[0];
+    const step = routine.steps[selection.stepIndex] ?? routine.steps[0];
+    const example = practiceTabExamples[step.exampleId];
+
+    transport.stop();
+    setJourneyAttemptDuration(null);
+    dispatch({
+      exampleBpm: practiceExerciseMetadata[step.exampleId].tempo.recommended,
+      exerciseDurationSeconds: getPracticeDurationSeconds(step.duration),
+      exampleSubdivision: example.subdivision,
+      routineId: routine.id,
+      stepIndex: routine.steps.indexOf(step),
+      type: "open-exercise",
+    });
+    router[navigation](
+      `/practice?journey=${encodeURIComponent(activeJourney.id)}&exercise=${encodeURIComponent(canonicalId)}`,
+      { scroll: false },
+    );
+  };
+
   const openNextExercise = () => {
+    if (activeJourney && activeJourneyStepIndex >= 0) {
+      const nextJourneyStep = activeJourney.steps[activeJourneyStepIndex + 1];
+      if (nextJourneyStep) {
+        openJourneyExercise(nextJourneyStep.exerciseId, "replace");
+      } else {
+        returnToJourney();
+      }
+      return;
+    }
+
     if (nextExercise) {
       openExercise(nextExercise.routineId, nextExercise.stepIndex, "replace");
     }
@@ -332,6 +537,10 @@ export default function usePracticeExperience(exerciseId?: string) {
   };
 
   const setDurationMinutes = (minutes: number) => {
+    if (journeyAttemptDuration !== null) {
+      transport.stop();
+      setJourneyAttemptDuration(null);
+    }
     dispatch({
       durationSeconds: clampPracticeDurationMinutes(minutes) * 60,
       type: "set-duration",
@@ -360,6 +569,10 @@ export default function usePracticeExperience(exerciseId?: string) {
   };
 
   const handlePrimaryAction = async () => {
+    if (!contextCompatibility.compatible) {
+      return;
+    }
+
     if (
       transport.snapshot.phase === "counting-in" ||
       transport.snapshot.phase === "playing"
@@ -373,39 +586,109 @@ export default function usePracticeExperience(exerciseId?: string) {
         await transport.resume();
       }
     } else {
+      if (activeJourney && journeyAttemptDuration === null) {
+        setJourneyAttemptDuration(state.durationSeconds);
+      }
       await transport.start();
+    }
+  };
+
+  const resolveContextCompatibility = () => {
+    if (contextCompatibility.resolution === "use-authored-context") {
+      if (contextCompatibility.requiredKey) {
+        reduxDispatch(setKey(contextCompatibility.requiredKey));
+      }
+      if (contextCompatibility.requiredScale) {
+        reduxDispatch(setScale(contextCompatibility.requiredScale));
+      }
+      return;
+    }
+
+    if (contextCompatibility.resolution === "restore-preset-tuning") {
+      reduxDispatch(setStringCount(stringCount));
     }
   };
 
   const backToLibrary = () => {
     transport.stop();
-    dispatch({ type: "back-to-library" });
+    setJourneyAttemptDuration(null);
+    dispatch({ screen: "library", type: "show-overview" });
     router.replace("/practice", { scroll: false });
   };
 
+  const returnToJourney = () => {
+    if (!activeJourney) {
+      backToLibrary();
+      return;
+    }
+
+    transport.stop();
+    setJourneyAttemptDuration(null);
+    dispatch({ screen: "journey", type: "show-overview" });
+    router.replace(
+      `/practice?journey=${encodeURIComponent(activeJourney.id)}`,
+      {
+        scroll: false,
+      },
+    );
+  };
+
+  const backFromSession = () => {
+    if (activeJourney) returnToJourney();
+    else backToLibrary();
+  };
+
   const completeExercise = () => {
+    if (activeJourney) {
+      if (!journeyAttemptQualified) return;
+
+      const currentProgress = readPracticeJourneyProgress();
+      const nextProgress = completeJourneyExercise(
+        currentProgress,
+        activeJourney.id,
+        activeStep.exampleId,
+      );
+      writePracticeJourneyProgress(nextProgress);
+      setJourneyProgress(nextProgress);
+    }
+
     transport.stop();
     dispatch({ type: "complete" });
   };
 
   const repeatExercise = () => {
     transport.stop();
+    setJourneyAttemptDuration(null);
     dispatch({ type: "repeat" });
   };
 
   return {
     activeExample,
+    activeJourney,
+    activeJourneyStepIndex,
     activeRoutine,
     activeStep,
+    backFromSession,
     backToLibrary,
+    completedJourneyExerciseIds,
     completeExercise,
+    contextCompatibility,
     contextAnnouncement,
     dispatch,
     handlePrimaryAction,
-    hasNextExercise: nextExercise !== undefined,
+    hasNextExercise: activeJourney
+      ? activeJourneyStepIndex >= 0 &&
+        activeJourneyStepIndex < activeJourney.steps.length - 1
+      : nextExercise !== undefined,
+    journeyAttemptQualified,
+    journeyProgress,
     openExercise,
+    openJourney,
+    openJourneyExercise,
     openNextExercise,
     repeatExercise,
+    returnToJourney,
+    resolveContextCompatibility,
     remainingSeconds,
     setDurationMinutes,
     setSubdivision,

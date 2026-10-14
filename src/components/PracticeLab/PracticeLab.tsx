@@ -11,6 +11,7 @@ import {
   type FretJourneyMotionCustom,
   practiceScreenVariants,
 } from "@/lib/motion";
+import PracticeJourneyOverview from "./PracticeJourneyOverview";
 import PracticeLibrary from "./PracticeLibrary";
 import PracticeSession from "./PracticeSession";
 import SessionComplete from "./SessionComplete";
@@ -19,22 +20,36 @@ import "./practiceLab.scss";
 
 type PracticeLabProps = {
   exerciseId?: string;
+  journeyId?: string;
 };
 
-export default function PracticeLab({ exerciseId }: PracticeLabProps) {
+export default function PracticeLab({
+  exerciseId,
+  journeyId,
+}: PracticeLabProps) {
   const {
     activeExample,
+    activeJourney,
+    activeJourneyStepIndex,
     activeRoutine,
     activeStep,
+    backFromSession,
     backToLibrary,
+    completedJourneyExerciseIds,
     completeExercise,
+    contextCompatibility,
     contextAnnouncement,
     dispatch,
     handlePrimaryAction,
     hasNextExercise,
+    journeyAttemptQualified,
     openExercise,
+    openJourney,
+    openJourneyExercise,
     openNextExercise,
     repeatExercise,
+    returnToJourney,
+    resolveContextCompatibility,
     remainingSeconds,
     setDurationMinutes,
     setSubdivision,
@@ -44,7 +59,7 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
     toggleCountIn,
     toggleMetronome,
     transport,
-  } = usePracticeExperience(exerciseId);
+  } = usePracticeExperience(exerciseId, journeyId);
   const containerRef = useRef<HTMLElement>(null);
   const previousScreenRef = useRef(state.screen);
   const motionCustom: FretJourneyMotionCustom = {
@@ -81,7 +96,20 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
             variants={practiceScreenVariants}
           >
             {state.screen === "library" && (
-              <PracticeLibrary onSelectExercise={openExercise} />
+              <PracticeLibrary
+                completedJourneyExerciseIds={completedJourneyExerciseIds}
+                onOpenJourney={openJourney}
+                onSelectExercise={openExercise}
+              />
+            )}
+
+            {state.screen === "journey" && activeJourney && (
+              <PracticeJourneyOverview
+                completedExerciseIds={completedJourneyExerciseIds}
+                journey={activeJourney}
+                onBack={backToLibrary}
+                onSelectExercise={openJourneyExercise}
+              />
             )}
 
             {state.screen === "session" && (
@@ -91,19 +119,33 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
                 audioError={transport.audioError}
                 countInBeatsRemaining={transport.snapshot.countInBeatsRemaining}
                 countInEnabled={state.countInEnabled}
+                contextCompatibility={contextCompatibility}
                 example={activeExample}
                 instrument={state.instrument}
                 instrumentPlaybackEnabled={state.instrumentPlaybackEnabled}
                 metronomeEnabled={state.metronomeEnabled}
                 metronomeVolume={state.metronomeVolume}
                 durationMinutes={state.durationSeconds / 60}
-                onBack={backToLibrary}
+                journey={
+                  activeJourney && activeJourneyStepIndex >= 0
+                    ? {
+                        objective:
+                          activeJourney.steps[activeJourneyStepIndex].objective,
+                        stepIndex: activeJourneyStepIndex,
+                        title: activeJourney.title,
+                        totalSteps: activeJourney.steps.length,
+                      }
+                    : null
+                }
+                journeyCompletionEnabled={journeyAttemptQualified}
+                onBack={backFromSession}
                 onComplete={completeExercise}
                 onDurationChange={setDurationMinutes}
                 onInstrumentChange={(instrument) =>
                   dispatch({ instrument, type: "set-instrument" })
                 }
                 onPrimaryAction={handlePrimaryAction}
+                onResolveContext={resolveContextCompatibility}
                 onSubdivisionChange={setSubdivision}
                 onTempoChange={setTempo}
                 onToggleCountIn={toggleCountIn}
@@ -128,10 +170,13 @@ export default function PracticeLab({ exerciseId }: PracticeLabProps) {
 
             {state.screen === "complete" && (
               <SessionComplete
+                completedCount={completedJourneyExerciseIds.length}
                 hasNextExercise={hasNextExercise}
                 onBackToLibrary={backToLibrary}
                 onNextExercise={openNextExercise}
                 onRepeat={repeatExercise}
+                onReturnToJourney={returnToJourney}
+                journey={activeJourney}
                 step={activeStep}
                 tempo={state.tempo}
               />

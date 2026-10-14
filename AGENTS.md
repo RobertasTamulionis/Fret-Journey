@@ -62,8 +62,14 @@ The application currently supports:
   top-right header control on every route
 - a route-backed Practice Library, focused Practice Session, and Session
   Complete flow covering a rotating Daily Mix plus eight focused technique
-  categories and 42 structured playable examples resolved for the shared key,
-  scale, string count, and pitch-class tuning
+  categories and 43 structured playable examples resolved for their supported
+  shared key, scale, string count, and pitch-class tuning contexts; centralized
+  exercise constraints preserve composed interval identity, power-chord
+  structure, articulation, and playable routes while leaving transferable
+  technique drills broadly adaptable
+- a URL-owned Rhythm → Riff Exercise Journey that reuses four existing Practice
+  exercises, derives timed completion from the Web Audio transport, and stores
+  only Journey-specific completed exercise IDs in versioned local storage
 - a static catalog of 225 reviewed, genuinely distinct relative progression
   templates with search, filtering, compatibility ranking, and source records
 - key-specific progression resolution for diatonic, borrowed, applied,
@@ -133,7 +139,7 @@ markers remain visual output rather than selectable practice targets.
   `src/data/progressionSources.ts` is the machine-readable source ledger.
 - `src/data/practiceRoutines.ts` holds typed routine copy and its visible
   research-source records outside Redux.
-- `src/data/practiceTabExamples.ts` holds the 42 authored Standard E scores;
+- `src/data/practiceTabExamples.ts` holds the 43 authored Standard E scores;
   `src/data/practiceExerciseMetadata.ts` owns their searchable genre,
   technique, difficulty, tempo, family, focus, and theory-context metadata;
   `src/features/practice/tablature.ts` owns their tuning, grid, event, pitch,
@@ -369,7 +375,7 @@ Current ownership and terminology:
 ## Current Practice Behavior
 
 - Preserve the primary flow `Practice Library -> Practice Session -> Session
-  Complete`. The library groups nine technique categories and 42 authored
+  Complete`. The library groups nine technique categories and 43 authored
   exercises; it should feel like choosing a workout rather than configuring
   software.
 - Practice selection and session controls are local and ephemeral. React owns
@@ -392,7 +398,10 @@ Current ownership and terminology:
 - The authored exercise duration initializes an editable local countdown. It
   derives elapsed time from the Web Audio transport, starts after count-in,
   pauses and resumes with playback, and pauses the transport at zero.
-  Completion remains user-triggered; there is no scoring or saved history.
+  Completion remains user-triggered and never implies performance scoring.
+  Standalone completion is ephemeral; a valid Journey session records its step
+  only after the configured transport time elapses and the player explicitly
+  finishes it.
 - Count-in and exercise metronome enablement are separate controls. The
   metronome synthesizes a distinct beat-one accent plus optional subdivisions;
   reference-instrument controls remain preference-only and produce no audio.
@@ -517,8 +526,10 @@ Current ownership and terminology:
   subdivision, an editable transport-synchronized countdown, plus structural
   metronome and instrument preferences. The TAB sequence remains visually
   static. It still has no backing track, reference-note audio, automatic
-  completion, or saved completion system. Its first audio layer is a scheduled
-  synthesized metronome with count-in, beat-one accent, and subdivision clicks.
+  completion, analytics, accounts, or cloud synchronization. Rhythm → Riff
+  persists only completed Journey exercise IDs in local storage. Its first
+  audio layer is a scheduled synthesized metronome with count-in, beat-one
+  accent, and subdivision clicks.
 - Authored Practice tablature is a verified immutable Standard E reference
   library, not generated shape, fingering, barre, or voicing data. Pure recipes
   resolve its pitches and physical frets for the current context. Source and
@@ -540,9 +551,9 @@ Current ownership and terminology:
 - Harmonic Minor and Phrygian Dominant expose 3NPS only. Minor Blues exposes
   Blues Boxes only.
 - There are no drums, backing tracks, reference-note playback, progression
-  trainer, saved practice progress, practice scoring, account system, E2E
-  runner, visual-regression suite, or CI workflow. Theme preference is the only
-  local persistence.
+  trainer, general practice-history tracking, practice scoring, account system,
+  E2E runner, visual-regression suite, or CI workflow. Local persistence is
+  limited to theme preference and Journey-specific completed exercise IDs.
 
 ---
 
@@ -636,8 +647,8 @@ Current verified baseline as of 2026-09-26:
 - `npm run theory:check` passes for 15 tonics, 5 scales, 1,395 scale chords,
   4,770 shape/tuning combinations, 225 progression templates, 14,475 resolved
   progression events, and all 47,610 scale/progression chord-and-tuning contexts
-  with 761,718 validated generated voicings, plus 42 authored Practice tabs and
-  9,450 registered Practice-resolution contexts.
+  with 761,718 validated generated voicings, plus 43 authored Practice tabs and
+  7,248 compatible registered Practice-resolution contexts.
 - `npx tsc --noEmit` passes.
 - Focused Biome checks pass for the touched Practice resolver, context bar,
   session, tablature, and theory-suite files.

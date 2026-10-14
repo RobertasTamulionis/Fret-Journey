@@ -64,6 +64,41 @@ assert.deepEqual(
   "Even eighths must advance evenly from authored slots",
 );
 
+const openRoadHook = practiceTabExamples["daily-play"];
+assert.equal(getPracticeScoreLengthBeats(openRoadHook), 8);
+assert.deepEqual(
+  Array.from({ length: 32 }, (_, slot) =>
+    getPracticeActiveEventIndexAtBeat(slot / 4, openRoadHook),
+  ),
+  [
+    0, 0, 1, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 8, 9, 9, 10, 10, 11, 12, 13, 13, 14,
+    14, 15, 15, 16, 17, 18, 19, 20, 20,
+  ],
+  "Open Road Hook must preserve every attack, sustain, and rest slot",
+);
+assert.equal(getPracticeAuthoredSlotAtBeat(7.999, openRoadHook), 31);
+assert.equal(getPracticeActiveEventIndexAtBeat(7.999, openRoadHook), 20);
+assert.equal(getPracticeActiveEventIndexAtBeat(8, openRoadHook), 0);
+assert.deepEqual(
+  (["quarters", "eighths", "triplets", "sixteenths"] as const).map(
+    (clickSubdivision) => ({
+      activeEventIndex: getPracticeActiveEventIndexAtBeat(6.5, openRoadHook),
+      clickCount: planPracticeMetronomePulses({
+        fromBeat: 6,
+        subdivision: clickSubdivision,
+        toBeat: 7,
+      }).length,
+    }),
+  ),
+  [
+    { activeEventIndex: 16, clickCount: 1 },
+    { activeEventIndex: 16, clickCount: 2 },
+    { activeEventIndex: 16, clickCount: 3 },
+    { activeEventIndex: 16, clickCount: 4 },
+  ],
+  "Metronome click subdivision must not requantize Open Road Hook",
+);
+
 const threeThreeTwoEngine = practiceTabExamples["metal-three-three-two-engine"];
 assert.equal(getPracticeScoreLengthBeats(threeThreeTwoEngine), 8);
 assert.deepEqual(
@@ -84,18 +119,257 @@ assert.equal(
   "Three-Three-Two Engine must loop only after both bars",
 );
 
-const chugsRiffSequence = getPracticeSequenceEvents(
-  practiceTabExamples["chugs-riff"],
+const gallopRelay = practiceTabExamples["metal-gallop-relay"];
+assert.equal(getPracticeScoreLengthBeats(gallopRelay), 8);
+assert.deepEqual(
+  Array.from({ length: 32 }, (_, slot) =>
+    getPracticeActiveEventIndexAtBeat(slot / 4, gallopRelay),
+  ),
+  [
+    0, 0, 1, 2, 3, 3, 4, 4, 5, 5, 6, 7, 8, 8, 8, 8, 9, 10, 11, 11, 12, 13, 14,
+    14, 15, 15, 16, 16, 17, 17, 18, 18,
+  ],
+  "Gallop Relay must preserve every authored attack, sustain, and rest slot",
 );
-assert.equal(chugsRiffSequence[3].kind, "rest");
-assert.equal(chugsRiffSequence[4].kind, "notes");
-if (chugsRiffSequence[4].kind === "notes") {
-  assert.equal(
-    chugsRiffSequence[4].notes.length,
-    2,
-    "A simultaneous chord must remain one Follow Along event",
-  );
-}
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(7.999, gallopRelay),
+  18,
+  "Gallop Relay must retain the final D5 through the end of bar two",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(8, gallopRelay),
+  0,
+  "Gallop Relay must loop directly from D5 to the opening E",
+);
+
+const burstAndResolve = practiceTabExamples["metal-burst-and-resolve"];
+assert.equal(getPracticeScoreLengthBeats(burstAndResolve), 8);
+assert.deepEqual(
+  Array.from({ length: 32 }, (_, slot) =>
+    getPracticeActiveEventIndexAtBeat(slot / 4, burstAndResolve),
+  ),
+  [
+    0, 0, 1, 1, 2, 3, 4, 5, 6, 7, 7, 7, 8, 8, 8, 8, 9, 9, 10, 10, 11, 12, 13,
+    14, 15, 16, 17, 17, 18, 18, 19, 19,
+  ],
+  "Burst and Resolve must preserve every authored attack, hold, and rest slot",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(7.999, burstAndResolve),
+  19,
+  "Burst and Resolve must retain the final D pickup through slot 31",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(8, burstAndResolve),
+  0,
+  "Burst and Resolve must loop directly from the D pickup to the opening E",
+);
+assert.deepEqual(
+  (["quarters", "eighths", "triplets", "sixteenths"] as const).map(
+    (clickSubdivision) => ({
+      activeEventIndex: getPracticeActiveEventIndexAtBeat(6.5, burstAndResolve),
+      clickCount: planPracticeMetronomePulses({
+        fromBeat: 6,
+        subdivision: clickSubdivision,
+        toBeat: 7,
+      }).length,
+    }),
+  ),
+  [
+    { activeEventIndex: 17, clickCount: 1 },
+    { activeEventIndex: 17, clickCount: 2 },
+    { activeEventIndex: 17, clickCount: 3 },
+    { activeEventIndex: 17, clickCount: 4 },
+  ],
+  "Metronome click subdivision must not requantize Burst and Resolve",
+);
+
+const legatoPhrase = practiceTabExamples["legato-phrase"];
+assert.equal(getPracticeScoreLengthBeats(legatoPhrase), 8);
+assert.deepEqual(
+  Array.from({ length: 32 }, (_, slot) =>
+    getPracticeActiveEventIndexAtBeat(slot / 4, legatoPhrase),
+  ),
+  [
+    0, 0, 1, 2, 3, 4, 5, 5, 6, 6, 7, 7, 8, 8, 8, 8, 9, 9, 10, 11, 12, 13, 14,
+    14, 15, 16, 17, 17, 18, 18, 18, 18,
+  ],
+  "Answer the Climb must preserve every attack, sustain, and rest slot",
+);
+assert.equal(getPracticeActiveEventIndexAtBeat(7.999, legatoPhrase), 18);
+assert.equal(getPracticeActiveEventIndexAtBeat(8, legatoPhrase), 0);
+assert.deepEqual(
+  (["quarters", "eighths", "triplets", "sixteenths"] as const).map(
+    (clickSubdivision) => ({
+      activeEventIndex: getPracticeActiveEventIndexAtBeat(6.5, legatoPhrase),
+      clickCount: planPracticeMetronomePulses({
+        fromBeat: 6,
+        subdivision: clickSubdivision,
+        toBeat: 7,
+      }).length,
+    }),
+  ),
+  [
+    { activeEventIndex: 17, clickCount: 1 },
+    { activeEventIndex: 17, clickCount: 2 },
+    { activeEventIndex: 17, clickCount: 3 },
+    { activeEventIndex: 17, clickCount: 4 },
+  ],
+  "Metronome click subdivision must not requantize Answer the Climb",
+);
+
+const skippingPhrase = practiceTabExamples["skipping-phrase"];
+assert.equal(getPracticeScoreLengthBeats(skippingPhrase), 8);
+assert.deepEqual(
+  Array.from({ length: 32 }, (_, slot) =>
+    getPracticeActiveEventIndexAtBeat(slot / 4, skippingPhrase),
+  ),
+  [
+    0, 0, 1, 2, 3, 3, 4, 5, 6, 6, 7, 8, 9, 9, 10, 10, 11, 12, 13, 14, 15, 15,
+    16, 16, 17, 18, 19, 19, 20, 20, 21, 21,
+  ],
+  "Across the Wire must preserve every attack, sustain, and rest slot",
+);
+assert.equal(getPracticeActiveEventIndexAtBeat(7.999, skippingPhrase), 21);
+assert.equal(getPracticeActiveEventIndexAtBeat(8, skippingPhrase), 0);
+assert.deepEqual(
+  (["quarters", "eighths", "triplets", "sixteenths"] as const).map(
+    (clickSubdivision) => ({
+      activeEventIndex: getPracticeActiveEventIndexAtBeat(6.5, skippingPhrase),
+      clickCount: planPracticeMetronomePulses({
+        fromBeat: 6,
+        subdivision: clickSubdivision,
+        toBeat: 7,
+      }).length,
+    }),
+  ),
+  [
+    { activeEventIndex: 19, clickCount: 1 },
+    { activeEventIndex: 19, clickCount: 2 },
+    { activeEventIndex: 19, clickCount: 3 },
+    { activeEventIndex: 19, clickCount: 4 },
+  ],
+  "Metronome click subdivision must not requantize Across the Wire",
+);
+
+const scalesConnect = practiceTabExamples["scales-connect"];
+assert.equal(getPracticeScoreLengthBeats(scalesConnect), 8);
+assert.deepEqual(
+  Array.from({ length: 32 }, (_, slot) =>
+    getPracticeActiveEventIndexAtBeat(slot / 4, scalesConnect),
+  ),
+  [
+    0, 0, 1, 2, 3, 3, 4, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 11, 12, 12, 13, 13, 14,
+    15, 16, 16, 17, 17, 18, 18, 19, 19,
+  ],
+  "Carry the Motif must preserve every attack and sustain slot",
+);
+assert.equal(getPracticeActiveEventIndexAtBeat(7.999, scalesConnect), 19);
+assert.equal(getPracticeActiveEventIndexAtBeat(8, scalesConnect), 0);
+assert.deepEqual(
+  (["quarters", "eighths", "triplets", "sixteenths"] as const).map(
+    (clickSubdivision) => ({
+      activeEventIndex: getPracticeActiveEventIndexAtBeat(6.5, scalesConnect),
+      clickCount: planPracticeMetronomePulses({
+        fromBeat: 6,
+        subdivision: clickSubdivision,
+        toBeat: 7,
+      }).length,
+    }),
+  ),
+  [
+    { activeEventIndex: 17, clickCount: 1 },
+    { activeEventIndex: 17, clickCount: 2 },
+    { activeEventIndex: 17, clickCount: 3 },
+    { activeEventIndex: 17, clickCount: 4 },
+  ],
+  "Metronome click subdivision must not requantize Carry the Motif",
+);
+
+const ironPulse = practiceTabExamples["metal-iron-pulse"];
+assert.equal(getPracticeScoreLengthBeats(ironPulse), 8);
+assert.deepEqual(
+  Array.from({ length: 32 }, (_, slot) =>
+    getPracticeActiveEventIndexAtBeat(slot / 4, ironPulse),
+  ),
+  [
+    0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11,
+    12, 12, 13, 14, 15, 15, 16, 16,
+  ],
+  "Iron Pulse must preserve every authored attack, cutoff, rest, and chord slot",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(7.999, ironPulse),
+  16,
+  "Iron Pulse must retain its final G5 through slot 31",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(8, ironPulse),
+  0,
+  "Iron Pulse must loop directly from G5 to the opening A pedal",
+);
+assert.deepEqual(
+  (["quarters", "eighths", "triplets", "sixteenths"] as const).map(
+    (clickSubdivision) => ({
+      activeEventIndex: getPracticeActiveEventIndexAtBeat(6.75, ironPulse),
+      clickCount: planPracticeMetronomePulses({
+        fromBeat: 6,
+        subdivision: clickSubdivision,
+        toBeat: 7,
+      }).length,
+    }),
+  ),
+  [
+    { activeEventIndex: 14, clickCount: 1 },
+    { activeEventIndex: 14, clickCount: 2 },
+    { activeEventIndex: 14, clickCount: 3 },
+    { activeEventIndex: 14, clickCount: 4 },
+  ],
+  "Metronome click subdivision must not requantize Iron Pulse",
+);
+
+const phrygianGravity = practiceTabExamples["metal-phrygian-gravity"];
+assert.equal(getPracticeScoreLengthBeats(phrygianGravity), 8);
+const phrygianGravitySlotProjection = Array.from({ length: 32 }, (_, slot) =>
+  getPracticeActiveEventIndexAtBeat(slot / 4, phrygianGravity),
+);
+assert.deepEqual(
+  phrygianGravitySlotProjection,
+  [
+    0, 1, 2, 3, 4, 5, 6, 6, 7, 8, 9, 10, 11, 12, 13, 13, 14, 14, 14, 14, 15, 16,
+    17, 18, 19, 20, 21, 21, 22, 23, 23, 23,
+  ],
+  "Phrygian Gravity must preserve every authored attack, hold, and rest slot",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(7.999, phrygianGravity),
+  23,
+  "Phrygian Gravity must hold its final F through slot 31",
+);
+assert.equal(
+  getPracticeActiveEventIndexAtBeat(8, phrygianGravity),
+  0,
+  "Phrygian Gravity must loop directly from F to the opening low E",
+);
+assert.deepEqual(
+  (["quarters", "eighths", "triplets", "sixteenths"] as const).map(
+    (clickSubdivision) => ({
+      activeEventIndex: getPracticeActiveEventIndexAtBeat(6.5, phrygianGravity),
+      clickCount: planPracticeMetronomePulses({
+        fromBeat: 6,
+        subdivision: clickSubdivision,
+        toBeat: 7,
+      }).length,
+    }),
+  ),
+  [
+    { activeEventIndex: 21, clickCount: 1 },
+    { activeEventIndex: 21, clickCount: 2 },
+    { activeEventIndex: 21, clickCount: 3 },
+    { activeEventIndex: 21, clickCount: 4 },
+  ],
+  "Metronome click subdivision must not requantize Phrygian Gravity",
+);
 
 const gallopSequence = getPracticeSequenceEvents(
   practiceTabExamples["metal-gallop-control"],
@@ -170,12 +444,6 @@ assert.deepEqual(
   [0, 0, 0, 0],
   "A held note must remain current for its authored duration",
 );
-assert.equal(
-  getPracticeActiveEventIndexAtBeat(3, practiceTabExamples["legato-phrase"]),
-  12,
-  "A later explicit rest must supersede an earlier sustain at its authored start",
-);
-
 assert.deepEqual(
   [1, 1.5, 2, 2.5].map((beat) =>
     getPracticeActiveEventIndexAtBeat(

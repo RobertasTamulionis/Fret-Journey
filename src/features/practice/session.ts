@@ -11,7 +11,11 @@ export type {
 } from "./audio/PracticeMetronomeEngine";
 export { clampPracticeTempo } from "./timing";
 
-export type PracticeExperienceScreen = "library" | "session" | "complete";
+export type PracticeExperienceScreen =
+  | "library"
+  | "journey"
+  | "session"
+  | "complete";
 export type PracticeInstrument = "clean-guitar" | "piano" | "simple-tone";
 
 export const practiceDefaultCountInBeats = 4;
