@@ -111,6 +111,7 @@ import progressionLabReducer, {
   setSelectedVoicingSignature,
 } from "../src/lib/redux/slices/progressionLabSlice";
 import { verifiedMusicalContextAssertions } from "./verify-musical-context";
+import { verifiedVoiceLeadingAssertions } from "./verify-voice-leading";
 
 const scaleNames = Object.keys(scaleDefinitions) as ScaleName[];
 
@@ -3930,5 +3931,5 @@ assert.deepEqual(
 );
 
 console.log(
-  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), ${verifiedPracticeExampleCount} authored practice tabs, ${verifiedResolvedPracticeContextCount} resolved practice contexts, and ${verifiedMusicalContextAssertions} musical-context assertion groups.`,
+  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), ${verifiedPracticeExampleCount} authored practice tabs, ${verifiedResolvedPracticeContextCount} resolved practice contexts, ${verifiedMusicalContextAssertions} musical-context assertion groups, and ${verifiedVoiceLeadingAssertions} voice-leading assertion groups.`,
 );

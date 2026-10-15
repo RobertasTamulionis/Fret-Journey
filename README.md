@@ -25,6 +25,10 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   third, fifth, seventh, and ninth roles across the neck.
 - Read theory-derived note spellings, formulas, chord names, and active-chord
   summaries.
+- Read a compact Scale Identity summary with the selected scale's spelled
+  notes, degree formula, and deliberately limited color degrees. When Chord
+  Tones is active, compare every chord tone's scale degree with its
+  chord-relative interval and distinguish the remaining scale tones.
 - Derive reusable musical-context facts for scale degrees, active-chord roles,
   scale-color degrees, shared chord tones, nearest pitch-class targets,
   chord transitions, and resolved progression steps without storing derived
@@ -66,6 +70,13 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   suspensions, added tones, and slash basses.
 - Step through a progression while the active chord name, note list, fretboard,
   large chart, and compact chart overview update together.
+- Compare each active progression chord with the previous chord through
+  descriptive common, leaving, entering, and shared-tone role changes without
+  treating pitch-class proximity as voice-leading advice.
+- Compare deterministic Smooth, Ascending, and Descending chord-tone pathways
+  that preserve exact note register and map each target to one playable string
+  and fret on registered 6-, 7-, or 8-string tunings. Inspect the active target
+  directly on the fretboard, including real open-string positions.
 - Compare the selected physical grip with a Harmonic Context neck that keeps
   the selected scale stable while emphasizing the focused chord root and chord
   tones, including chromatic tones outside the scale.

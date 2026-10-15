@@ -1,4 +1,5 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
+import type { VoiceLeadingPolicy } from "@/features/voice-leading";
 
 export type ProgressionCompatibilityFilter =
   | "all"
@@ -16,7 +17,8 @@ export type ProgressionDifficultyFilter =
   | "advanced";
 export type ProgressionVisualizationMode =
   | "selected-voicing"
-  | "all-chord-tones";
+  | "all-chord-tones"
+  | "melodic-target";
 
 export type ProgressionLabState = {
   activeStepIndex: number;
@@ -30,6 +32,7 @@ export type ProgressionLabState = {
   search: string;
   selectedVoicingSignaturesByStepId: Record<string, string>;
   style: string;
+  voiceLeadingPolicy: VoiceLeadingPolicy;
   visualizationMode: ProgressionVisualizationMode;
 };
 
@@ -45,6 +48,7 @@ const initialState: ProgressionLabState = {
   search: "",
   selectedVoicingSignaturesByStepId: {},
   style: "all",
+  voiceLeadingPolicy: "smooth",
   visualizationMode: "selected-voicing",
 };
 
@@ -55,6 +59,7 @@ const progressionLabSlice = createSlice({
     resetProgressionDetail: (state) => {
       state.activeStepIndex = 0;
       state.selectedVoicingSignaturesByStepId = {};
+      state.voiceLeadingPolicy = "smooth";
       state.visualizationMode = "selected-voicing";
     },
     setProgressionActiveStep: (state, action: PayloadAction<number>) => {
@@ -107,6 +112,13 @@ const progressionLabSlice = createSlice({
     ) => {
       state.visualizationMode = action.payload;
     },
+    setVoiceLeadingPolicy: (
+      state,
+      action: PayloadAction<VoiceLeadingPolicy>,
+    ) => {
+      state.voiceLeadingPolicy = action.payload;
+      state.visualizationMode = "melodic-target";
+    },
     setSelectedVoicingSignature: (
       state,
       action: PayloadAction<{
@@ -143,6 +155,7 @@ export const {
   setProgressionSearch,
   setProgressionStyle,
   setProgressionVisualizationMode,
+  setVoiceLeadingPolicy,
   setSelectedVoicingSignature,
 } = progressionLabSlice.actions;
 

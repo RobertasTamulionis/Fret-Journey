@@ -1,11 +1,15 @@
-import type { ResolvedChord, TonalContext } from "@/features/progressions";
+import type { TonalContext } from "@/features/progressions";
 import { chromaticPitchClasses } from "@/helpers/musicTheory";
 import { analyzeNoteInContext, getScaleColorDegrees } from "./noteAnalysis";
-import type { PitchClassContext, PitchClassContextMap } from "./types";
+import type {
+  ContextChord,
+  PitchClassContext,
+  PitchClassContextMap,
+} from "./types";
 
 export const buildPitchClassContextMap = (
   context: TonalContext,
-  chord: ResolvedChord,
+  chord: ContextChord,
 ): PitchClassContextMap => {
   const scaleColorDegreeLabels = new Set(
     getScaleColorDegrees(context.currentScale).map(

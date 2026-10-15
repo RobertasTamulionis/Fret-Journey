@@ -21,6 +21,7 @@ import ScaleChords from "../ScaleChords/ScaleChords";
 import ScaleShapes from "../ScaleShapes/ScaleShapes";
 import StringCountSelector from "../StringCountSelector/StringCountSelector";
 import FretboardNeck from "./FretboardNeck";
+import FretboardTheoryContext from "./FretboardTheoryContext";
 
 export default function Fretboard() {
   const {
@@ -82,6 +83,27 @@ export default function Fretboard() {
         })),
       }
     : { tones: selectedScaleChord.notes };
+  const activeContextChord =
+    displayMode === "chord-tones"
+      ? (progressionChord ?? {
+          root: selectedScaleChord.root,
+          tones: selectedScaleChord.notes,
+        })
+      : undefined;
+  const activeContextChordName = progressionChord
+    ? progressionChord.name
+    : `${formatNoteName(selectedScaleChord.root.name)} ${selectedScaleChord.label}`;
+  const activeContextChordTones = progressionChord
+    ? progressionChord.tones.map((tone) => ({
+        intervalLabel: getResolvedChordToneIntervalLabel(tone),
+        name: tone.name,
+        pitchClass: tone.pitchClass,
+      }))
+    : selectedScaleChord.notes.map((tone) => ({
+        intervalLabel: tone.intervalName,
+        name: tone.name,
+        pitchClass: tone.pitchClass,
+      }));
 
   return (
     <>
@@ -93,6 +115,13 @@ export default function Fretboard() {
         <DisplayModeSelector />
         <ScaleChords />
       </div>
+      <FretboardTheoryContext
+        chord={activeContextChord}
+        chordName={activeContextChord ? activeContextChordName : undefined}
+        chordTones={activeContextChord ? activeContextChordTones : undefined}
+        currentKey={currentKey}
+        currentScale={currentScale}
+      />
       {progressionTemplate && progressionStep && progressionChord && (
         <div
           aria-atomic="true"

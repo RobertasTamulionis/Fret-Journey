@@ -1,5 +1,87 @@
 @use "variables" as *;
 
+.fretboardTheoryContext {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 12px;
+  margin-top: 12px;
+
+  > div {
+    min-width: 0;
+    padding: 13px 15px;
+    border: 1px solid $border;
+    border-radius: 16px;
+    background: var(--panel-background-soft);
+    box-shadow: var(--shadow-panel);
+  }
+
+  &__eyebrow {
+    display: block;
+    color: $cyan;
+    font-size: 8px;
+    font-weight: 720;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+  }
+
+  h2 {
+    margin: 4px 0 10px;
+    color: $white;
+    font-size: 15px;
+    letter-spacing: -0.02em;
+  }
+
+  p {
+    margin: 9px 0 0;
+    color: var(--color-text-soft);
+    font-size: 10px;
+    line-height: 1.5;
+
+    strong { color: var(--color-text-strong); }
+  }
+
+  &__facts {
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 0.8fr);
+    gap: 7px;
+    margin: 0;
+
+    div { min-width: 0; display: grid; gap: 3px; }
+    dt { color: $muted; font-size: 7px; letter-spacing: 0.06em; text-transform: uppercase; }
+    dd { margin: 0; color: var(--color-text-strong); font-family: var(--font-geist-mono), monospace; font-size: 10px; line-height: 1.45; }
+  }
+
+  &__toneList {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+
+    li {
+      min-width: 118px;
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 2px 7px;
+      padding: 7px 9px;
+      border: 1px solid color-mix(in srgb, $cyan 18%, $border);
+      border-radius: 10px;
+      background: var(--control-background);
+      color: var(--color-text-soft);
+      font-size: 9px;
+    }
+
+    strong {
+      grid-row: span 2;
+      align-self: center;
+      color: $cyan;
+      font-family: var(--font-geist-mono), monospace;
+      font-size: 13px;
+    }
+  }
+}
+
 .fretboard {
   --fret-height: 38px;
   --fret-label-size: 26px;
@@ -581,5 +663,11 @@
     > .scaleShapes { grid-column: span 4; }
     > .displayModeSelector { grid-column: span 8; }
     > .scaleChords { grid-column: 1 / -1; }
+  }
+
+  .fretboardTheoryContext {
+    grid-template-columns: 1fr;
+
+    &__facts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   }
 }

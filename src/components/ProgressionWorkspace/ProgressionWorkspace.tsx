@@ -10,7 +10,10 @@ import FretboardNeck, {
 } from "@/components/Fretboard/FretboardNeck";
 import FretCountSelector from "@/components/FretCountSelector/FretCountSelector";
 import ProgressionContext from "@/components/ProgressionContext/ProgressionContext";
-import { buildPitchClassContextMap } from "@/features/musical-context";
+import {
+  analyzeProgressionContext,
+  buildPitchClassContextMap,
+} from "@/features/musical-context";
 import {
   getResolvedChordToneIntervalLabel,
   type ProgressionTemplate,
@@ -18,6 +21,10 @@ import {
   resolveProgression,
 } from "@/features/progressions";
 import { useProgressionUrlContext } from "@/features/progressions/useProgressionUrlContext";
+import {
+  generateVoiceLeadingPathways,
+  type VoiceLeadingTarget,
+} from "@/features/voice-leading";
 import {
   buildResolvedChordVoicingRequest,
   generateChordVoicings,
@@ -42,9 +49,12 @@ import {
   setProgressionActiveStep,
   setProgressionVisualizationMode,
   setSelectedVoicingSignature,
+  setVoiceLeadingPolicy,
 } from "@/lib/redux/slices/progressionLabSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import "./progressionWorkspace.scss";
+import ChordTransitionSummary from "./ChordTransitionSummary";
+import VoiceLeadingPathways from "./VoiceLeadingPathways";
 
 type ProgressionWorkspaceProps = { progression: ProgressionTemplate };
 type VoicingSet = [PlayableVoicing, ...PlayableVoicing[]];
@@ -121,6 +131,7 @@ export default function ProgressionWorkspace({
   const {
     activeStepIndex,
     selectedVoicingSignaturesByStepId,
+    voiceLeadingPolicy,
     visualizationMode,
   } = useAppSelector((state) => state.progressionLab);
 
@@ -165,7 +176,7 @@ export default function ProgressionWorkspace({
       ({ signature }) => signature === selectedVoicing.signature,
     ),
   );
-  const exactPositions = useMemo(
+  const selectedVoicingPositions = useMemo(
     () => getExactPositions(selectedVoicing),
     [selectedVoicing],
   );
@@ -177,6 +188,48 @@ export default function ProgressionWorkspace({
     () =>
       buildPitchClassContextMap({ currentKey, currentScale }, activeStep.chord),
     [activeStep.chord, currentKey, currentScale],
+  );
+  const progressionContext = useMemo(
+    () => analyzeProgressionContext(resolved),
+    [resolved],
+  );
+  const activeStepContext = progressionContext.steps[safeActiveStepIndex];
+  const voiceLeadingResult = useMemo(
+    () =>
+      generateVoiceLeadingPathways({
+        fretCount,
+        registeredTuning,
+        steps: resolved.steps,
+        stringCount,
+      }),
+    [fretCount, registeredTuning, resolved.steps, stringCount],
+  );
+  const activePathway = voiceLeadingResult.available
+    ? voiceLeadingResult.pathways[voiceLeadingPolicy]
+    : undefined;
+  const activeMelodicTarget: VoiceLeadingTarget | undefined =
+    activePathway?.available
+      ? activePathway.targets[safeActiveStepIndex]
+      : undefined;
+  const exactPositions = useMemo(() => {
+    if (visualizationMode !== "melodic-target") {
+      return selectedVoicingPositions;
+    }
+
+    if (!activeMelodicTarget || activeMelodicTarget.fret === 0) {
+      return new Set<string>();
+    }
+
+    return new Set([
+      `${activeMelodicTarget.stringIndex}-${activeMelodicTarget.fret}`,
+    ]);
+  }, [activeMelodicTarget, selectedVoicingPositions, visualizationMode]);
+  const highlightedOpenStringIndexes = useMemo(
+    () =>
+      visualizationMode === "melodic-target" && activeMelodicTarget?.fret === 0
+        ? new Set([activeMelodicTarget.stringIndex])
+        : undefined,
+    [activeMelodicTarget, visualizationMode],
   );
   const harmonicContextSummary = useMemo(
     () =>
@@ -365,6 +418,16 @@ export default function ProgressionWorkspace({
                 >
                   Harmonic Context
                 </button>
+                <button
+                  aria-pressed={visualizationMode === "melodic-target"}
+                  disabled={!activeMelodicTarget}
+                  onClick={() =>
+                    dispatch(setProgressionVisualizationMode("melodic-target"))
+                  }
+                  type="button"
+                >
+                  Melodic target
+                </button>
               </fieldset>
               <FretCountSelector />
               <button onClick={openOnFretboard} type="button">
@@ -389,6 +452,7 @@ export default function ProgressionWorkspace({
             displayMode="chord-tones"
             exactPositions={exactPositions}
             fretCount={fretCount}
+            highlightedOpenStringIndexes={highlightedOpenStringIndexes}
             pitchClassContexts={pitchClassContexts}
             tuning={tuning}
             visualizationMode={visualizationMode}
@@ -474,6 +538,16 @@ export default function ProgressionWorkspace({
           </dl>
         </aside>
       </section>
+
+      <VoiceLeadingPathways
+        activeStepIndex={safeActiveStepIndex}
+        onPolicyChange={(policy) => dispatch(setVoiceLeadingPolicy(policy))}
+        onTargetSelect={selectStep}
+        policy={voiceLeadingPolicy}
+        result={voiceLeadingResult}
+      />
+
+      <ChordTransitionSummary analysis={activeStepContext} />
 
       <section
         aria-labelledby="progression-shapes-heading"

@@ -10,11 +10,14 @@ export {
   getScaleColorDegrees,
 } from "./noteAnalysis";
 export { buildPitchClassContextMap } from "./pitchClassContext";
+export { formatChordIntervalName } from "./presentation";
 export { analyzeProgressionContext } from "./progressionAnalysis";
 export type {
   ChordToneAnalysis,
   ChordToneRelationship,
   ChordTransitionAnalysis,
+  ContextChord,
+  ContextChordTone,
   NoteContextAnalysis,
   PitchClassContext,
   PitchClassContextMap,

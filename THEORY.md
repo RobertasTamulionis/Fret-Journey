@@ -83,6 +83,14 @@ the selected scale. Each step exposes its chord-tone note contexts and its
 derived transition from the previous chord and to the next chord. Catalog
 templates remain immutable, and derived context is not stored in Redux.
 
+The main Fretboard presents Scale Identity from the same scale definitions:
+correctly spelled notes, degree formula, and the limited color-degree metadata
+above. When a chord is active, its compact Note Roles guide derives one shared
+pitch-class context map and reports each chord tone's scale relationship beside
+its chord-relative interval. Other scale tones and chord tones outside the
+scale remain separate categories. These summaries do not add fingering or
+melodic recommendations and do not add text to individual fret cells.
+
 Progression Detail derives one semantic entry for each of the twelve pitch
 classes from its selected step. Its Harmonic Context neck shows every selected-
 scale tone plus every active-chord tone, including chord tones outside the
@@ -91,6 +99,28 @@ use scale-degree labels. The active chord root is visually strongest, while
 scale tonic and scale-color status remain independent, quieter facts. This is
 still a pitch-class map: it does not choose a bass, inversion, fingering,
 voice-leading path, or melodic resolution.
+
+Progression Detail also presents the previous-to-active chord transition from
+the existing progression-context analysis. It lists exact common pitch classes,
+leaving tones, entering tones, and the old/new chord-relative roles of common
+tones. The first step has no fabricated predecessor. Nearest pitch-class target
+data remains outside this presentation and is not described as voice leading.
+
+Progression Detail may additionally derive one register-aware chord-tone target
+per progression step for Smooth, non-descending Ascending, and non-ascending
+Descending example pathways. Candidates come only from the actual resolved
+chord tones and verified open-string MIDI pitches within the selected fret
+boundary. Path comparison minimizes the largest MIDI leap before total MIDI
+movement, then uses physical fret and string movement only as secondary
+preferences. Equal MIDI pitches are retained as genuine common notes; octave-
+equivalent pitch classes are not silently substituted. The result is a
+deterministic playable example, not a claim of optimal fingering or a uniquely
+correct melody.
+
+Register-aware pathways are unavailable for pitch-class-only custom tunings.
+The application does not infer their string octaves or borrow registered
+Standard-tuning pitches. Open-string targets remain fret 0 positions and are
+shown through the tuning controls rather than fabricated fretboard cells.
 
 ## Chord construction
 

@@ -3,8 +3,19 @@ import type {
   ResolvedChordTone,
   ResolvedProgressionStep,
 } from "@/features/progressions";
-import type { ScaleTone } from "@/helpers/musicTheory";
-import type { PitchClass, ScaleDegreeLabel } from "@/helpers/typesHelpers";
+import type { ScaleChordTone, ScaleTone } from "@/helpers/musicTheory";
+import type {
+  PitchClass,
+  ScaleDegreeLabel,
+  SpelledNote,
+} from "@/helpers/typesHelpers";
+
+export type ContextChordTone = ResolvedChordTone | ScaleChordTone;
+
+export type ContextChord = {
+  readonly root: SpelledNote;
+  readonly tones: readonly ContextChordTone[];
+};
 
 export type ScaleDegreeAnalysis = {
   readonly inScale: boolean;
@@ -13,7 +24,7 @@ export type ScaleDegreeAnalysis = {
 
 export type ChordToneAnalysis = {
   readonly isChordTone: boolean;
-  readonly tone?: ResolvedChordTone;
+  readonly tone?: ContextChordTone;
 };
 
 export type NoteContextAnalysis = {

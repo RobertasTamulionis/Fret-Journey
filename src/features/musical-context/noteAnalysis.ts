@@ -1,4 +1,4 @@
-import type { ResolvedChord, TonalContext } from "@/features/progressions";
+import type { TonalContext } from "@/features/progressions";
 import {
   getPitchClass,
   getScaleTone,
@@ -11,6 +11,7 @@ import type {
 } from "@/helpers/typesHelpers";
 import type {
   ChordToneAnalysis,
+  ContextChord,
   NoteContextAnalysis,
   ScaleColorDegree,
   ScaleDegreeAnalysis,
@@ -30,7 +31,7 @@ export const analyzeScaleDegree = (
 };
 
 export const analyzeChordTone = (
-  chord: ResolvedChord,
+  chord: ContextChord,
   pitchClass: PitchClass,
 ): ChordToneAnalysis => {
   const tone = chord.tones.find(
@@ -43,7 +44,7 @@ export const analyzeChordTone = (
 export const analyzeNoteInContext = (
   context: TonalContext,
   pitchClass: PitchClass,
-  chord?: ResolvedChord,
+  chord?: ContextChord,
 ): NoteContextAnalysis => ({
   chord: chord ? analyzeChordTone(chord, pitchClass) : { isChordTone: false },
   isChordRoot: chord?.root.pitchClass === pitchClass,

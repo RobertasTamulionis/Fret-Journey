@@ -50,6 +50,14 @@
       font-size: 11px;
       letter-spacing: -0.035em;
     }
+
+    &--melodic-target {
+      border-color: color-mix(in srgb, $cyan 82%, transparent);
+      color: $cyan;
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, $cyan 18%, transparent),
+        0 0 16px color-mix(in srgb, $cyan 34%, transparent);
+    }
   }
 
   &__selection {

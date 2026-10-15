@@ -31,7 +31,8 @@ export type ChordVisualization = {
 export type FretboardVisualizationMode =
   | "standard"
   | "all-chord-tones"
-  | "selected-voicing";
+  | "selected-voicing"
+  | "melodic-target";
 
 export type FretboardNeckProps = {
   accessibleLabel?: string;
@@ -43,6 +44,7 @@ export type FretboardNeckProps = {
   currentScale: ScaleName;
   displayMode: FretboardDisplayMode;
   exactPositions?: ReadonlySet<string>;
+  highlightedOpenStringIndexes?: ReadonlySet<number>;
   fretCount: number;
   pitchClassContexts?: PitchClassContextMap;
   shapeIndex?: number;
@@ -67,6 +69,8 @@ const defaultSummaries: Record<FretboardVisualizationMode, string> = {
     "Every matching chord pitch class is shown across the neck. This is a pitch-class map, not a playable chord grip.",
   "selected-voicing":
     "Only the exact fretted positions belonging to the selected playable voicing are shown.",
+  "melodic-target":
+    "Only the exact melodic target position is shown. This target is independent of the selected chord grip.",
   standard:
     "Scale notes and the selected fretboard labels are shown across the neck.",
 };
@@ -98,6 +102,7 @@ export default function FretboardNeck({
   currentScale,
   displayMode,
   exactPositions,
+  highlightedOpenStringIndexes,
   fretCount,
   pitchClassContexts,
   shapeIndex = 0,
@@ -229,7 +234,10 @@ export default function FretboardNeck({
       <p className="fretboard__summary" id={summaryId}>
         {summary}
       </p>
-      <Tuning key={tuning.length} />
+      <Tuning
+        highlightedOpenStringIndexes={highlightedOpenStringIndexes}
+        key={tuning.length}
+      />
       <div className="fretboard__notes">
         {fretPositions.map((stringPositions, stringIndex) => (
           <div
@@ -257,7 +265,8 @@ export default function FretboardNeck({
                   exactPositions?.has(positionKey),
                 );
                 const isVisibleNote =
-                  visualizationMode === "selected-voicing"
+                  visualizationMode === "selected-voicing" ||
+                  visualizationMode === "melodic-target"
                     ? isExactPosition
                     : visualizationMode === "all-chord-tones"
                       ? showsHarmonicContext

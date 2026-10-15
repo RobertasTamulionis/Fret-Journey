@@ -80,9 +80,16 @@ The application currently supports:
 - pure musical-context analysis for scale degrees, resolved chord-tone roles,
   scale-color degrees, common tones, nearest pitch-class targets, chord
   transitions, and resolved progression steps
+- a compact Fretboard Scale Identity and Note Roles presentation derived from
+  the shared scale and pitch-class context model, plus descriptive previous-to-
+  active common/leaving/entering tone summaries in Progression Detail
 - a Progression Detail Harmonic Context view that keeps the selected scale
   visible while the manually focused step changes chord-root and chord-tone
   emphasis; selected physical voicings remain a separate view
+- deterministic Smooth, Ascending, and Descending single-note chord-tone
+  pathways in Progression Detail, derived from exact MIDI register and bounded
+  physical positions for verified preset tunings; custom pitch-class-only
+  tunings remain explicitly unavailable rather than receiving guessed octaves
 - a progression-detail voicing navigator preserving every returned compact
   grip by physical neck region, showing one primary grip at a time, with
   session-local selections remembered per chord step and reflected in the

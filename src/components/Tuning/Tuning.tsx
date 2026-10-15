@@ -18,7 +18,13 @@ import { setTuningNote } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import "./tuning.scss";
 
-export default function Tuning(): React.ReactElement {
+type TuningProps = {
+  highlightedOpenStringIndexes?: ReadonlySet<number>;
+};
+
+export default function Tuning({
+  highlightedOpenStringIndexes,
+}: TuningProps): React.ReactElement {
   const dispatch = useAppDispatch();
   const tuningId = useId();
   const tuningRef = useRef<HTMLDivElement>(null);
@@ -106,11 +112,13 @@ export default function Tuning(): React.ReactElement {
           currentScale,
         );
         const isSelectionOpen = activeStringIndex === index;
+        const isMelodicTarget = highlightedOpenStringIndexes?.has(index);
         const selectionId = `${tuningId}-selection-${index}`;
         const tuningNoteClassName: string = `
           tuning__note
           ${noteIndex ? `tuning__note--${noteIndex}` : ""}
           ${tuningLabel.includes("/") ? "tuning__note--enharmonic" : ""}
+          ${isMelodicTarget ? "tuning__note--melodic-target" : ""}
         `;
 
         return (
@@ -118,7 +126,7 @@ export default function Tuning(): React.ReactElement {
             <button
               aria-controls={selectionId}
               aria-expanded={isSelectionOpen}
-              aria-label={`Change tuning for string ${index + 1}, currently ${tuningLabel}`}
+              aria-label={`Change tuning for string ${index + 1}, currently ${tuningLabel}${isMelodicTarget ? ", melodic target on the open string" : ""}`}
               onClick={() => setActiveNoteSelection(index)}
               className={tuningNoteClassName}
               type="button"

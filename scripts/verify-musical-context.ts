@@ -16,7 +16,11 @@ import {
   resolveProgression,
   resolveRelativeChord,
 } from "../src/features/progressions";
-import { getPitchClass, getScaleTones } from "../src/helpers/musicTheory";
+import {
+  getPitchClass,
+  getScaleChords,
+  getScaleTones,
+} from "../src/helpers/musicTheory";
 import type { PitchClass, TonicName } from "../src/helpers/typesHelpers";
 
 const chord = (
@@ -46,6 +50,78 @@ const scaleDegreeLabel = (
     { currentKey: tonic, currentScale: scale },
     pitchClass(note),
   ).tone?.degreeLabel;
+
+const eNaturalMinorTones = getScaleTones("E", "minor");
+assert.deepEqual(
+  eNaturalMinorTones.map(({ name }) => name),
+  ["E", "F#", "G", "A", "B", "C", "D"],
+  "E Natural Minor must preserve its seven correctly spelled notes",
+);
+const eMinorScaleChord = getScaleChords("E", "minor", "triad")[0];
+assert.deepEqual(
+  eMinorScaleChord.notes.map(({ name }) => name),
+  ["E", "G", "B"],
+  "The E Natural Minor tonic triad must be E-G-B",
+);
+const eMinorScaleChordContexts = buildPitchClassContextMap(
+  { currentKey: "E", currentScale: "minor" },
+  { root: eMinorScaleChord.root, tones: eMinorScaleChord.notes },
+);
+assert.deepEqual(
+  ["E", "G", "B"].map((note) => {
+    const context = eMinorScaleChordContexts.get(pitchClass(note));
+    return [
+      context?.scale.tone?.degreeLabel,
+      context?.chord.tone?.role,
+      context?.isScaleTonic,
+      context?.isChordRoot,
+    ];
+  }),
+  [
+    ["1", "root", true, true],
+    ["b3", "third", false, false],
+    ["5", "fifth", false, false],
+  ],
+  "E, G, and B must retain simultaneous scale and E-minor chord roles",
+);
+
+const eMinor = chord("E", "minor", 1);
+const cMajorInE = chord("E", "major", 6, -1);
+const dMajorInE = chord("E", "major", 7, -1);
+const eMinorToC = analyzeChordTransition(eMinor, cMajorInE);
+assert.deepEqual(
+  eMinorToC.commonTones.map(({ toneInFromChord, toneInToChord }) => [
+    toneInFromChord.name,
+    toneInFromChord.role,
+    toneInToChord.role,
+  ]),
+  [
+    ["E", "root", "third"],
+    ["G", "third", "fifth"],
+  ],
+  "Em to C must preserve E and G while changing their chord roles",
+);
+assert.deepEqual(
+  eMinorToC.leavingTones.map(({ name }) => name),
+  ["B"],
+);
+assert.deepEqual(
+  eMinorToC.enteringTones.map(({ name }) => name),
+  ["C"],
+);
+const cToD = analyzeChordTransition(cMajorInE, dMajorInE);
+assert.deepEqual(
+  cToD.commonTones.map(({ toneInToChord }) => toneInToChord.name),
+  [],
+);
+assert.deepEqual(
+  cToD.leavingTones.map(({ name }) => name),
+  ["C", "E", "G"],
+);
+assert.deepEqual(
+  cToD.enteringTones.map(({ name }) => name),
+  ["D", "F#", "A"],
+);
 
 assert.deepEqual(
   ["A", "B", "C", "D", "E", "F", "G"].map((note) =>
@@ -302,4 +378,4 @@ assert.equal(
   "Gb",
 );
 
-export const verifiedMusicalContextAssertions = 23;
+export const verifiedMusicalContextAssertions = 32;
