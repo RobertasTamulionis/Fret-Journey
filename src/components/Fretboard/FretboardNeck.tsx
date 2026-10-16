@@ -31,8 +31,14 @@ export type ChordVisualization = {
 export type FretboardVisualizationMode =
   | "standard"
   | "all-chord-tones"
+  | "improvisation"
   | "selected-voicing"
   | "melodic-target";
+
+export type FretboardPitchEmphasis = {
+  readonly kind: "connection" | "objective-target";
+  readonly label?: string;
+};
 
 export type FretboardNeckProps = {
   accessibleLabel?: string;
@@ -47,6 +53,7 @@ export type FretboardNeckProps = {
   highlightedOpenStringIndexes?: ReadonlySet<number>;
   fretCount: number;
   pitchClassContexts?: PitchClassContextMap;
+  pitchClassEmphasis?: ReadonlyMap<PitchClass, FretboardPitchEmphasis>;
   shapeIndex?: number;
   shapePositions?: ReadonlySet<string>;
   tuning: PitchClass[];
@@ -67,6 +74,8 @@ const supportedChordToneRoles = new Set([
 const defaultSummaries: Record<FretboardVisualizationMode, string> = {
   "all-chord-tones":
     "Every matching chord pitch class is shown across the neck. This is a pitch-class map, not a playable chord grip.",
+  improvisation:
+    "Scale notes and active chord tones are shown across the neck. Objective targets and next-chord connections receive additional emphasis.",
   "selected-voicing":
     "Only the exact fretted positions belonging to the selected playable voicing are shown.",
   "melodic-target":
@@ -105,6 +114,7 @@ export default function FretboardNeck({
   highlightedOpenStringIndexes,
   fretCount,
   pitchClassContexts,
+  pitchClassEmphasis,
   shapeIndex = 0,
   shapePositions,
   tuning,
@@ -123,7 +133,9 @@ export default function FretboardNeck({
       ? "Every matching selected-chord pitch class is shown across the neck, with other scale tones subdued. This is a pitch-class map, not a playable chord grip."
       : defaultSummaries[visualizationMode]);
   const showsHarmonicContext =
-    visualizationMode === "all-chord-tones" && Boolean(pitchClassContexts);
+    (visualizationMode === "all-chord-tones" ||
+      visualizationMode === "improvisation") &&
+    Boolean(pitchClassContexts);
 
   const getChordTone = (pitchClass: PitchClass) =>
     chord?.tones.find((tone) => tone.pitchClass === pitchClass);
@@ -136,6 +148,11 @@ export default function FretboardNeck({
     intervalName?: string,
   ): string | undefined => {
     const chordTone = getChordTone(pitchClass);
+    const emphasis = pitchClassEmphasis?.get(pitchClass);
+
+    if (visualizationMode === "improvisation" && emphasis?.label) {
+      return emphasis.label;
+    }
 
     if (showsHarmonicContext) {
       if (chordTone) {
@@ -237,6 +254,7 @@ export default function FretboardNeck({
       <Tuning
         highlightedOpenStringIndexes={highlightedOpenStringIndexes}
         key={tuning.length}
+        pitchClassEmphasis={pitchClassEmphasis}
       />
       <div className="fretboard__notes">
         {fretPositions.map((stringPositions, stringIndex) => (
@@ -264,13 +282,15 @@ export default function FretboardNeck({
                 const isExactPosition = Boolean(
                   exactPositions?.has(positionKey),
                 );
+                const pitchEmphasis = pitchClassEmphasis?.get(pitchClass);
                 const isVisibleNote =
                   visualizationMode === "selected-voicing" ||
                   visualizationMode === "melodic-target"
                     ? isExactPosition
-                    : visualizationMode === "all-chord-tones"
+                    : visualizationMode === "all-chord-tones" ||
+                        visualizationMode === "improvisation"
                       ? showsHarmonicContext
-                        ? isScaleNote || isChordTone
+                        ? isScaleNote || isChordTone || Boolean(pitchEmphasis)
                         : isChordTone
                       : isScaleNote ||
                         (displayMode === "chord-tones" && isChordTone);
@@ -299,6 +319,9 @@ export default function FretboardNeck({
                 const harmonicContextClassName = isVisibleNote
                   ? getHarmonicContextClassName(pitchClass)
                   : "";
+                const emphasisClassName = pitchEmphasis
+                  ? `fretboard__fret-piece--improv-${pitchEmphasis.kind}`
+                  : "";
                 const noteClassName = `
                   fretboard__fret-piece
                   ${isVisibleNote ? "fretboard__fret-piece--note" : ""}
@@ -307,6 +330,7 @@ export default function FretboardNeck({
                   ${shapeClassName}
                   ${chordToneClassName}
                   ${harmonicContextClassName}
+                  ${emphasisClassName}
                 `;
 
                 return (

@@ -16,14 +16,17 @@ import {
 } from "@/lib/motion";
 import { setTuningNote } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
+import type { FretboardPitchEmphasis } from "../Fretboard/FretboardNeck";
 import "./tuning.scss";
 
 type TuningProps = {
   highlightedOpenStringIndexes?: ReadonlySet<number>;
+  pitchClassEmphasis?: ReadonlyMap<PitchClass, FretboardPitchEmphasis>;
 };
 
 export default function Tuning({
   highlightedOpenStringIndexes,
+  pitchClassEmphasis,
 }: TuningProps): React.ReactElement {
   const dispatch = useAppDispatch();
   const tuningId = useId();
@@ -113,12 +116,14 @@ export default function Tuning({
         );
         const isSelectionOpen = activeStringIndex === index;
         const isMelodicTarget = highlightedOpenStringIndexes?.has(index);
+        const emphasis = pitchClassEmphasis?.get(tuningPitchClass);
         const selectionId = `${tuningId}-selection-${index}`;
         const tuningNoteClassName: string = `
           tuning__note
           ${noteIndex ? `tuning__note--${noteIndex}` : ""}
           ${tuningLabel.includes("/") ? "tuning__note--enharmonic" : ""}
           ${isMelodicTarget ? "tuning__note--melodic-target" : ""}
+          ${emphasis ? `tuning__note--improv-${emphasis.kind}` : ""}
         `;
 
         return (
@@ -126,7 +131,7 @@ export default function Tuning({
             <button
               aria-controls={selectionId}
               aria-expanded={isSelectionOpen}
-              aria-label={`Change tuning for string ${index + 1}, currently ${tuningLabel}${isMelodicTarget ? ", melodic target on the open string" : ""}`}
+              aria-label={`Change tuning for string ${index + 1}, currently ${tuningLabel}${isMelodicTarget ? ", melodic target on the open string" : ""}${emphasis ? `, ${emphasis.kind.replace("-", " ")} in Improvisation Mode` : ""}`}
               onClick={() => setActiveNoteSelection(index)}
               className={tuningNoteClassName}
               type="button"

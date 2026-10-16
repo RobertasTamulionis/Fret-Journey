@@ -58,6 +58,19 @@
         0 0 0 3px color-mix(in srgb, $cyan 18%, transparent),
         0 0 16px color-mix(in srgb, $cyan 34%, transparent);
     }
+
+    &--improv-connection {
+      border-color: color-mix(in srgb, var(--semantic-success) 72%, transparent);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--semantic-success) 15%, transparent);
+    }
+
+    &--improv-objective-target {
+      border-color: var(--color-accent);
+      color: var(--color-accent);
+      box-shadow:
+        0 0 0 3px color-mix(in srgb, var(--color-accent) 18%, transparent),
+        0 0 14px color-mix(in srgb, var(--color-accent) 28%, transparent);
+    }
   }
 
   &__selection {

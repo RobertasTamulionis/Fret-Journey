@@ -122,6 +122,19 @@ The application does not infer their string octaves or borrow registered
 Standard-tuning pitches. Open-string targets remain fret 0 positions and are
 shown through the tuning controls rather than fabricated fretboard cells.
 
+Improvisation Mode is a focused projection of the resolved progression and
+musical-context analysis, selected with `mode=improv` on the progression-detail
+URL. It does not construct new chords or generate a melody. Chord Tones Only
+emphasizes every resolved active-chord tone; Target the Third uses only a tone
+whose resolved role is `third` and reports its absence for suspended or
+power-chord material; Connect the Changes distinguishes exact common tones,
+next-chord destinations, and one- or two-semitone directional approaches.
+Common tones are never classified as approaches, and proximity is presented as
+a possibility rather than a promised resolution. The last step connects to the
+first only for loop-form progressions; sequence endings have no invented next
+chord. Pitch-class guidance remains valid for custom tunings without inferring
+string octaves or exact-register movement.
+
 Registered instrument tunings are ordered from the highest physical string to
 the lowest and store one exact open-string MIDI pitch per string. The catalog
 contains five six-string presets (E Standard, E-flat Standard, D Standard,

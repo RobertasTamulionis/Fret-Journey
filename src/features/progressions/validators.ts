@@ -2,6 +2,7 @@ import { scaleDefinitions, tonicOptions } from "@/helpers/musicTheory";
 import type { ScaleDegree, ScaleName, TonicName } from "@/helpers/typesHelpers";
 import type {
   DegreeAlteration,
+  ProgressionDetailMode,
   ProgressionTemplate,
   ProgressionUrlContext,
   RelativeDegree,
@@ -39,7 +40,7 @@ export const isRelativeDegree = (value: unknown): value is RelativeDegree => {
 
 const getSearchParameter = (
   searchParams: ProgressionSearchParams,
-  name: "key" | "scale",
+  name: "key" | "mode" | "scale",
 ): string | undefined => {
   if ("get" in searchParams && typeof searchParams.get === "function") {
     return searchParams.get(name) ?? undefined;
@@ -73,6 +74,11 @@ export const parseProgressionUrlContext = (
     ...(isScaleName(scale) ? { currentScale: scale } : {}),
   };
 };
+
+export const parseProgressionDetailMode = (
+  searchParams: ProgressionSearchParams,
+): ProgressionDetailMode =>
+  getSearchParameter(searchParams, "mode") === "improv" ? "improv" : "standard";
 
 export const resolveProgressionTonalContext = ({
   defaults,

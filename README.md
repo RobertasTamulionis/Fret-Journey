@@ -77,6 +77,11 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   that preserve exact note register and map each target to one playable string
   and fret on registered 6-, 7-, or 8-string tunings. Inspect the active target
   directly on the fretboard, including real open-string positions.
+- Launch a focused Improvisation Mode from any progression, manually follow its
+  chord changes, and practice Chord Tones Only, Target the Third, or Connect the
+  Changes with derived common tones, destinations, and bounded directional
+  approaches. Borrowed chord tones remain valid even outside the selected
+  scale, and missing thirds are reported rather than invented.
 - Choose among nine registered Standard, lowered-standard, and Drop tuning
   presets for 6-, 7-, and 8-string guitars. Each preset carries exact
   open-string MIDI register for generated grips and chord-tone pathways, while
@@ -292,6 +297,7 @@ Toolkit, Sass, and Biome.
 | `src/lib/motion.ts` | Shared restrained motion durations, easing, and Practice presentation variants |
 | `src/features/theme/themes.ts` | Theme options, validation, storage key, and bootstrap script |
 | `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
+| `src/features/improvisation` | Pure active-chord, next-chord, objective, common-tone, and approach guidance |
 | `src/features/voicings` | Formula-independent dynamic chord generation, ranking, and accessible descriptions |
 | `src/data/practiceRoutines.ts` | Typed practice routines and research-source records |
 | `src/data/practiceTabExamples.ts` | Forty-one immutable structured Standard E reference scores |

@@ -110,6 +110,7 @@ import progressionLabReducer, {
   setProgressionActiveStep,
   setSelectedVoicingSignature,
 } from "../src/lib/redux/slices/progressionLabSlice";
+import { verifiedImprovisationAssertions } from "./verify-improvisation";
 import { verifiedMusicalContextAssertions } from "./verify-musical-context";
 import { verifiedRegisteredTuningAssertions } from "./verify-registered-tunings";
 import { verifiedVoiceLeadingAssertions } from "./verify-voice-leading";
@@ -3944,5 +3945,5 @@ assert.deepEqual(
 );
 
 console.log(
-  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), ${verifiedPracticeExampleCount} authored practice tabs, ${verifiedResolvedPracticeContextCount} resolved practice contexts, ${verifiedMusicalContextAssertions} musical-context assertion groups, ${verifiedVoiceLeadingAssertions} voice-leading assertion groups, and ${verifiedRegisteredTuningAssertions} registered-tuning assertion groups.`,
+  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), ${verifiedPracticeExampleCount} authored practice tabs, ${verifiedResolvedPracticeContextCount} resolved practice contexts, ${verifiedMusicalContextAssertions} musical-context assertion groups, ${verifiedVoiceLeadingAssertions} voice-leading assertion groups, ${verifiedRegisteredTuningAssertions} registered-tuning assertion groups, and ${verifiedImprovisationAssertions} improvisation assertion groups.`,
 );

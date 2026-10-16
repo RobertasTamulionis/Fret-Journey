@@ -50,6 +50,12 @@
   &__chordNames { margin: 5px 0 0; color: $cyan; font-size: 13px; }
 
   &__heroAside { display: grid; justify-items: end; gap: 10px; }
+  &__improvEntry {
+    min-height: 34px;
+    padding-inline: 16px;
+    border-color: color-mix(in srgb, $cyan 55%, transparent);
+    color: $cyan;
+  }
   &__why {
     margin: 0;
     color: var(--color-text-soft);
@@ -81,6 +87,16 @@
     margin: 0;
     padding: 9px;
     overflow-x: auto;
+    margin: 0;
+    border: 0;
+
+    legend {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
     border: 1px solid $border;
     border-radius: 15px;
     background: var(--panel-background-soft);
@@ -414,6 +430,165 @@
   }
 }
 
+.improvisationWorkspace {
+  display: grid;
+  gap: 14px;
+
+  &__header {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 4px;
+
+    span, small {
+      color: $cyan;
+      font-size: 9px;
+      font-weight: 720;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 5px 0 0 !important;
+      color: $white !important;
+      font-size: 28px !important;
+      letter-spacing: -0.04em !important;
+      text-transform: none !important;
+    }
+
+    p { margin: 6px 0 0; color: var(--color-text-soft); font-size: 11px; }
+    > button { min-height: 34px; padding-inline: 14px; }
+  }
+
+  &__objectives {
+    min-inline-size: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    border: 0;
+
+    legend {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+
+    button {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      padding: 11px 13px;
+      text-align: left;
+
+      strong { color: var(--color-text-strong); font-size: 11px; }
+      small { color: $muted; font-size: 8px; }
+
+      &[aria-pressed="true"] {
+        border-color: color-mix(in srgb, $cyan 62%, transparent);
+        background: var(--control-background-active);
+        box-shadow: 0 0 16px color-mix(in srgb, $cyan 12%, transparent);
+
+        strong { color: $cyan; }
+      }
+    }
+  }
+
+  &__navigation {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid $border;
+    border-radius: 15px;
+    background: var(--panel-background-soft);
+
+    button { min-height: 32px; padding-inline: 12px; font-size: 9px; }
+    div { min-width: 0; display: grid; gap: 3px; text-align: center; }
+    small { color: $muted; font-size: 8px; text-transform: uppercase; }
+    strong { overflow: hidden; color: var(--color-text-strong); font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+  }
+
+  &__timeline {
+    display: flex;
+    gap: 7px;
+    padding: 8px;
+    overflow-x: auto;
+
+    button {
+      min-width: 112px;
+      display: flex;
+      align-items: baseline;
+      gap: 8px;
+      padding: 8px 10px;
+      text-align: left;
+
+      span { color: $cyan; font-family: var(--font-geist-mono), monospace; font-size: 9px; }
+      strong { overflow: hidden; color: var(--color-text-soft); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+      &[aria-pressed="true"] { border-color: color-mix(in srgb, $cyan 58%, transparent); background: var(--control-background-active); }
+    }
+  }
+
+  &__instruction, &__connections {
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    align-items: center;
+    gap: 16px;
+    padding: 13px 15px;
+    border: 1px solid $border;
+    border-radius: 16px;
+    background: var(--panel-background-soft);
+
+    span { color: $cyan; font-size: 8px; font-weight: 720; letter-spacing: 0.08em; text-transform: uppercase; }
+    h2 { margin: 4px 0 0; color: $white; font-size: 15px; }
+    p { margin: 0; color: var(--color-text-soft); font-size: 10px; line-height: 1.55; }
+  }
+
+  &__neck {
+    min-width: 0;
+    padding: 13px;
+    border: 1px solid $border;
+    border-radius: 18px;
+    overflow-x: auto;
+    background: var(--panel-background);
+    box-shadow: var(--shadow-panel);
+
+    > .fretboard { margin: 0; padding: 13px; box-shadow: none; }
+  }
+
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 10px;
+    margin-bottom: 0;
+    padding: 0;
+    color: var(--color-text-soft);
+    font-size: 9px;
+    list-style: none;
+
+    li { display: inline-flex; align-items: center; gap: 6px; }
+    i { width: 10px; height: 10px; border-radius: 50%; background: var(--color-text-soft); }
+    i[data-kind="target"] { border: 2px solid $cyan; background: transparent; }
+    i[data-kind="connection"] { border: 1px solid var(--semantic-success); background: transparent; }
+    i[data-kind="chord"] { background: $cyan; }
+    i[data-kind="scale"] { opacity: 0.45; }
+  }
+
+  &__connections {
+    grid-template-columns: 180px minmax(0, 1fr) 220px;
+    align-items: start;
+
+    ul { display: grid; gap: 5px; margin: 0; padding-left: 17px; color: var(--color-text-strong); font-size: 9px; line-height: 1.45; }
+    > p { color: $muted; font-size: 9px; }
+  }
+}
+
 @media (max-width: 1200px) {
   .progressionWorkspace {
     &__main { grid-template-columns: minmax(0, 1fr) 270px; }
@@ -435,6 +610,14 @@
     &__transitionFacts { grid-template-columns: 1fr; }
     &__voiceLeadingHeader { align-items: start; flex-direction: column; }
     &__voiceLeadingTargets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .improvisationWorkspace {
+    &__header { align-items: start; flex-direction: column; }
+    &__objectives { grid-template-columns: 1fr; }
+    &__navigation { grid-template-columns: 1fr 1fr; }
+    &__navigation div { grid-column: 1 / -1; grid-row: 1; }
+    &__instruction, &__connections { grid-template-columns: 1fr; }
   }
 }
 

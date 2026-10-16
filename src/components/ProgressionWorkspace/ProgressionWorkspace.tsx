@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo } from "react";
 import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import ChordDiagram from "@/components/ChordDiagram/ChordDiagram";
@@ -10,6 +10,7 @@ import FretboardNeck, {
 } from "@/components/Fretboard/FretboardNeck";
 import FretCountSelector from "@/components/FretCountSelector/FretCountSelector";
 import ProgressionContext from "@/components/ProgressionContext/ProgressionContext";
+import { buildImprovisationGuidance } from "@/features/improvisation";
 import {
   analyzeProgressionContext,
   buildPitchClassContextMap,
@@ -17,6 +18,7 @@ import {
 import {
   getResolvedChordToneIntervalLabel,
   type ProgressionTemplate,
+  parseProgressionDetailMode,
   type ResolvedChord,
   resolveProgression,
 } from "@/features/progressions";
@@ -54,6 +56,7 @@ import {
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import "./progressionWorkspace.scss";
 import ChordTransitionSummary from "./ChordTransitionSummary";
+import ImprovisationWorkspace from "./ImprovisationWorkspace";
 import VoiceLeadingPathways from "./VoiceLeadingPathways";
 
 type ProgressionWorkspaceProps = { progression: ProgressionTemplate };
@@ -118,6 +121,8 @@ export default function ProgressionWorkspace({
 }: ProgressionWorkspaceProps) {
   const dispatch = useAppDispatch();
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { beginTransition } = useRouteTransition();
   const isUrlContextReady = useProgressionUrlContext();
   const {
@@ -194,6 +199,10 @@ export default function ProgressionWorkspace({
     [resolved],
   );
   const activeStepContext = progressionContext.steps[safeActiveStepIndex];
+  const improvisationGuidance = useMemo(
+    () => buildImprovisationGuidance(resolved, safeActiveStepIndex),
+    [resolved, safeActiveStepIndex],
+  );
   const voiceLeadingResult = useMemo(
     () =>
       generateVoiceLeadingPathways({
@@ -251,6 +260,7 @@ export default function ProgressionWorkspace({
     [activeStep.chord, pitchClassContexts],
   );
   const tuningLabel = getTuningLabel(stringCount, registeredTuning);
+  const detailMode = parseProgressionDetailMode(searchParams);
 
   if (!isUrlContextReady) {
     return (
@@ -269,6 +279,20 @@ export default function ProgressionWorkspace({
     dispatch(setProgressionVisualizationMode("selected-voicing"));
   };
 
+  const setDetailMode = (mode: "improv" | "standard") => {
+    const nextSearchParams = new URLSearchParams(searchParams.toString());
+
+    if (mode === "improv") {
+      nextSearchParams.set("mode", "improv");
+    } else {
+      nextSearchParams.delete("mode");
+    }
+
+    router.push(`${pathname}?${nextSearchParams.toString()}`, {
+      scroll: false,
+    });
+  };
+
   const openOnFretboard = () => {
     dispatch(
       setActiveProgressionChord({
@@ -279,6 +303,21 @@ export default function ProgressionWorkspace({
     beginTransition("backward");
     router.push("/");
   };
+
+  if (detailMode === "improv") {
+    return (
+      <ImprovisationWorkspace
+        currentKey={currentKey}
+        currentScale={currentScale}
+        fretCount={fretCount}
+        guidance={improvisationGuidance}
+        onExit={() => setDetailMode("standard")}
+        onSelectStep={selectStep}
+        progression={resolved}
+        tuning={tuning}
+      />
+    );
+  }
 
   return (
     <section className="progressionWorkspace">
@@ -301,6 +340,13 @@ export default function ProgressionWorkspace({
           </p>
         </div>
         <div className="progressionWorkspace__heroAside">
+          <button
+            className="progressionWorkspace__improvEntry"
+            onClick={() => setDetailMode("improv")}
+            type="button"
+          >
+            Practice improvising
+          </button>
           <ProgressionContext compact />
           <p className="progressionWorkspace__why">
             <strong>Why it works</strong>

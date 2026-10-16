@@ -189,3 +189,5 @@ export type ProgressionUrlContext = {
   currentKey?: TonicName;
   currentScale?: ScaleName;
 };
+
+export type ProgressionDetailMode = "improv" | "standard";

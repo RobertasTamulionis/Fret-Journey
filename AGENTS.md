@@ -93,6 +93,10 @@ The application currently supports:
   pathways in Progression Detail, derived from exact MIDI register and bounded
   physical positions for verified preset tunings; custom pitch-class-only
   tunings remain explicitly unavailable rather than receiving guessed octaves
+- a URL-owned focused Improvisation Mode inside Progression Detail with manual
+  chord stepping, three local objectives, active/next-chord targeting, common
+  tones, and bounded directional approaches derived from resolved harmony;
+  custom tunings retain pitch-class guidance without guessed register
 - a progression-detail voicing navigator preserving every returned compact
   grip by physical neck region, showing one primary grip at a time, with
   session-local selections remembered per chord step and reflected in the
@@ -142,6 +146,8 @@ markers remain visual output rather than selectable practice targets.
   validation, presentation, and catalog validation.
 - `src/features/musical-context` composes scale and resolved-progression theory
   into pure note, chord-transition, and progression-context analysis.
+- `src/features/improvisation` projects resolved progression and musical-context
+  data into objective-specific pitch-class guidance without composing melodies.
 - `src/features/voicings` owns formula-independent dynamic chord generation,
   request adapters, ranking, signatures, physical-location grouping, and
   accessible chart descriptions.
