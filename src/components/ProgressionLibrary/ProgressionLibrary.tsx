@@ -2,9 +2,16 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { type MouseEvent, useEffect, useMemo } from "react";
+import { type MouseEvent, useEffect, useMemo, useState } from "react";
 import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import { progressionCatalog } from "@/data/progressionCatalog";
+import {
+  type AuthoredProgression,
+  deleteAuthoredProgression,
+  readAuthoredProgressionStore,
+  resolveAuthoredProgression,
+  writeAuthoredProgressionStore,
+} from "@/features/progression-builder";
 import {
   buildProgressionHref,
   isProgressionCompatibleWithScale,
@@ -179,6 +186,15 @@ export default function ProgressionLibrary() {
     (state) => state.fretboard,
   );
   const filters = useAppSelector((state) => state.progressionLab);
+  const [savedProgressions, setSavedProgressions] = useState<
+    readonly AuthoredProgression[]
+  >([]);
+
+  useEffect(() => {
+    setSavedProgressions(
+      readAuthoredProgressionStore(window.localStorage).progressions,
+    );
+  }, []);
 
   useEffect(() => {
     const storedScroll = window.sessionStorage.getItem(
@@ -335,6 +351,19 @@ export default function ProgressionLibrary() {
     );
   };
 
+  const removeSavedProgression = (progression: AuthoredProgression) => {
+    if (!window.confirm(`Delete “${progression.name}” from this browser?`)) {
+      return;
+    }
+    const next = deleteAuthoredProgression(
+      readAuthoredProgressionStore(window.localStorage),
+      progression.id,
+    );
+    if (writeAuthoredProgressionStore(window.localStorage, next).ok) {
+      setSavedProgressions(next.progressions);
+    }
+  };
+
   return (
     <section className="progressionLibrary">
       <header className="progressionLibrary__hero">
@@ -364,6 +393,61 @@ export default function ProgressionLibrary() {
           </div>
         </div>
       </header>
+
+      <section
+        className="progressionLibrary__saved"
+        aria-labelledby="saved-progressions-heading"
+      >
+        <div className="progressionLibrary__savedHeader">
+          <div>
+            <span className="progressionLibrary__eyebrow">
+              Browser-local songwriting
+            </span>
+            <h2 id="saved-progressions-heading">Your progressions</h2>
+          </div>
+          <Link
+            className="progressionLibrary__create"
+            href="/progressions/builder"
+          >
+            Create progression
+          </Link>
+        </div>
+        {savedProgressions.length > 0 ? (
+          <div className="progressionLibrary__savedGrid">
+            {savedProgressions.map((progression) => {
+              const resolved = resolveAuthoredProgression(progression, {
+                currentKey,
+                currentScale,
+              });
+              return (
+                <article
+                  className="progressionLibrary__savedCard"
+                  key={progression.id}
+                >
+                  <Link href={`/progressions/builder?id=${progression.id}`}>
+                    <strong>{progression.name}</strong>
+                    <span>{resolved.chordNames.join(" – ")}</span>
+                    <small>
+                      {progression.steps.length} chords · {progression.form}
+                    </small>
+                  </Link>
+                  <button
+                    onClick={() => removeSavedProgression(progression)}
+                    type="button"
+                  >
+                    Delete
+                  </button>
+                </article>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="progressionLibrary__savedEmpty">
+            No local progressions yet. Build an exact chord sequence without
+            changing the reviewed catalog.
+          </p>
+        )}
+      </section>
 
       <section
         aria-labelledby="progression-filters-heading"

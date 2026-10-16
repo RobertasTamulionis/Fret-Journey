@@ -21,6 +21,7 @@ export type HarmonicScope =
   | "chromatic";
 
 export type ChordFormulaId =
+  | "power5"
   | "major"
   | "minor"
   | "diminished"
@@ -72,7 +73,13 @@ export type ChordToneAlteration = {
 export type ChordFormulaBehavior = {
   readonly additions: readonly ChordToneRole[];
   readonly alterations: readonly ChordToneAlteration[];
-  readonly family: "triad" | "seventh" | "suspended" | "added-tone" | "sixth";
+  readonly family:
+    | "power"
+    | "triad"
+    | "seventh"
+    | "suspended"
+    | "added-tone"
+    | "sixth";
   readonly omittable: readonly ChordToneRole[];
   readonly replaces: readonly ChordToneRole[];
 };

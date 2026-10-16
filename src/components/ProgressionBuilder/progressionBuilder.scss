@@ -1,0 +1,35 @@
+@use "variables" as *;
+
+.progressionBuilder {
+  display: grid;
+  gap: 24px;
+
+  &__header, &__settings, &__editor, &__sequence, &__analysis {
+    border: 1px solid var(--color-border);
+    border-radius: 20px;
+    background: var(--color-surface-raised);
+    box-shadow: var(--shadow-card);
+  }
+  &__header { display: flex; justify-content: space-between; gap: 32px; padding: 28px; }
+  &__header span { color: $cyan; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .1em; }
+  h1, h2, h3, p { margin-top: 0; }
+  &__save { display: flex; align-items: center; gap: 12px; }
+  &__settings { display: grid; grid-template-columns: 2fr 1fr auto; align-items: end; gap: 16px; padding: 18px 20px; }
+  label { display: grid; gap: 7px; color: var(--color-text-muted); font-size: 11px; font-weight: 650; }
+  input, select { min-height: 40px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 10px; background: var(--color-surface-inset); color: var(--color-text); }
+  button, a { border-radius: 10px; }
+  &__layout { display: grid; grid-template-columns: minmax(290px, .8fr) minmax(420px, 1.2fr) minmax(260px, .7fr); gap: 16px; align-items: start; }
+  &__editor, &__sequence, &__analysis { padding: 20px; }
+  &__fields { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  &__actions, &__shortcuts { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px 0; }
+  &__error { color: var(--color-danger, #ff857a); font-size: 12px; }
+  &__sectionTitle { display: flex; justify-content: space-between; align-items: center; }
+  ol { display: grid; gap: 8px; padding: 0; list-style: none; }
+  li { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px; border: 1px solid var(--color-border); border-radius: 12px; }
+  li.is-active { border-color: $cyan; background: color-mix(in srgb, $cyan 7%, transparent); }
+  li > button { display: grid; justify-items: start; gap: 3px; border: 0; background: transparent; color: var(--color-text); text-align: left; }
+  li > div { display: flex; gap: 4px; }
+  li span, small { color: var(--color-text-muted); font-size: 11px; }
+  &__analysis > button { width: 100%; margin-top: 14px; }
+  &--empty { max-width: 620px; padding: 48px; border: 1px solid var(--color-border); border-radius: 24px; background: var(--color-surface-raised); }
+}

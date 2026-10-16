@@ -228,6 +228,21 @@ seconds and fourths; major and minor added ninths; major and minor sixths; and
 dominant-seven suspended-fourth chords. Authored formula type always wins over
 the Fretboard's global `Triads | 7ths | 9ths` interface setting.
 
+The centralized `power5` formula contains only the required root and perfect
+fifth. It has no third, so downstream analysis must not infer major or minor
+quality and Improvisation Mode must report its Target the Third objective as
+unavailable.
+
+### Local authored progressions
+
+Progression Builder definitions use absolute, explicitly spelled roots rather
+than the catalog's relative roots. Changing the analysis tonic or scale changes
+classification and contextual labels only; it never transposes a chord,
+changes an inversion, or reorders a step. An optional slash bass must resolve
+to one of the chord formula's pitch classes. The narrow authored resolver
+projects these definitions into the existing resolved-chord consumer contract
+at four beats per chord without enrolling them in the static catalog.
+
 Chord tones are spelled by both pitch interval and diatonic letter movement.
 This preserves spellings such as F♯ rather than G♭ when F♯ is the chordal
 third, and continues to support double accidentals where the selected tonic

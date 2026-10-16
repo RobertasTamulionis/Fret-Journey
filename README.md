@@ -65,6 +65,10 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
 - Browse 225 editorially reviewed, genuinely distinct relative progression
   templates with search, compatibility-first ranking, filters, and an
   “Inspire me” action scoped to the visible verified results.
+- Author exact 2–8 chord progressions in `/progressions/builder`, analyze them
+  through the shared key and scale context without transposing their chord
+  names, inspect generated guitar grips, save them explicitly in this browser,
+  and reopen them in the existing Improvisation Mode.
 - Transpose authored Roman-numeral progressions without changing their chord
   types, including borrowed chords, applied dominants, altered roots,
   suspensions, added tones, and slash basses.
@@ -210,6 +214,12 @@ The catalog stores each progression once as a relative formula rather than as
 15 transposed copies. Uniqueness is enforced by stable identifiers and a
 canonical normalized signature; loop rotations are not counted as separate
 templates. Every entry carries an editorial status and source references.
+
+The separate Progression Builder stores absolute chord roots, formula IDs,
+optional chord-tone inversions, stable step IDs, form, and analysis context in
+versioned browser-local storage. Save is explicit; derived chords, voicings,
+analysis, and improvisation guidance are recomputed and never persisted. Local
+progressions are not inserted into or validated as editorial catalog entries.
 
 Default 6-, 7-, and 8-string configurations include exact registered MIDI
 pitches. Editing a string through the beginner-friendly pitch-class control

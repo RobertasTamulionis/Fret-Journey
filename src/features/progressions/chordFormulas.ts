@@ -24,6 +24,25 @@ const tone = (
 const behavior = (value: ChordFormulaBehavior): ChordFormulaBehavior => value;
 
 export const chordFormulas: Readonly<Record<ChordFormulaId, ChordFormula>> = {
+  power5: {
+    id: "power5",
+    displayName: "Power chord",
+    suffix: "5",
+    romanCase: "upper",
+    romanSuffix: "5",
+    supportsAppliedDominant: false,
+    tones: [
+      tone(0, 0, "root", true, "structural"),
+      tone(7, 4, "fifth", true, "structural"),
+    ],
+    behavior: behavior({
+      family: "power",
+      additions: [],
+      alterations: [],
+      omittable: [],
+      replaces: ["third"],
+    }),
+  },
   major: {
     id: "major",
     displayName: "Major",

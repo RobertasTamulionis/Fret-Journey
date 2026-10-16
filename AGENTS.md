@@ -97,6 +97,10 @@ The application currently supports:
   chord stepping, three local objectives, active/next-chord targeting, common
   tones, and bounded directional approaches derived from resolved harmony;
   custom tunings retain pitch-class guidance without guessed register
+- a URL-owned Progression Builder for exact absolute chords, 2–8-step local
+  loop or sequence definitions, shared-context harmonic analysis, generated
+  grips, voice-leading availability, and saved-only Improvisation handoff;
+  authored definitions persist explicitly in versioned browser local storage
 - a progression-detail voicing navigator preserving every returned compact
   grip by physical neck region, showing one primary grip at a time, with
   session-local selections remembered per chord step and reflected in the
@@ -144,6 +148,9 @@ markers remain visual output rather than selectable practice targets.
   sort, active step, selected voicing, and visualization choice.
 - `src/features/progressions` owns relative chord formulas, resolution, URL
   validation, presentation, and catalog validation.
+- `src/features/progression-builder` owns the absolute local progression model,
+  narrow resolver, immutable step edits, validation, and versioned persistence;
+  local progressions remain outside the static editorial catalog.
 - `src/features/musical-context` composes scale and resolved-progression theory
   into pure note, chord-transition, and progression-context analysis.
 - `src/features/improvisation` projects resolved progression and musical-context
