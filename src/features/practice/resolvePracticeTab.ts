@@ -115,7 +115,7 @@ export const getPracticeContextCompatibility = (
     return {
       authoredContextLabel,
       compatible: false,
-      reason: `${exerciseName} requires a preset tuning.`,
+      reason: `${exerciseName} requires the default tuning for this instrument.`,
       resolution: "restore-preset-tuning",
     };
   }
@@ -411,6 +411,17 @@ export const getPracticeContextLabel = (
   context: PracticeResolutionContext,
 ): string =>
   `${formatNoteName(context.currentKey)} ${scaleDefinitions[context.currentScale].label}, ${context.stringCount}-string, ${getTuningLabel(context.stringCount, context.registeredTuning)}`;
+
+export const getPracticeContextSignature = (
+  context: PracticeResolutionContext,
+): string => {
+  const registeredIdentity =
+    context.registeredTuning.status === "verified"
+      ? `${context.registeredTuning.id}:${context.registeredTuning.midiPitches.join(",")}`
+      : context.registeredTuning.status;
+
+  return `${context.currentKey}|${context.currentScale}|${context.stringCount}|${context.tuning.join(",")}|${registeredIdentity}`;
+};
 
 /** Resolve a reviewed source tab into a fresh, context-specific score. */
 export const resolvePracticeTab = (

@@ -5,6 +5,7 @@ import AvailableKeys from "@/components/AvailableKeys/AvailableKeys";
 import AvailableScales from "@/components/AvailableScales/AvailableScales";
 import StringCountSelector from "@/components/StringCountSelector/StringCountSelector";
 import Tuning from "@/components/Tuning/Tuning";
+import TuningPresetSelector from "@/components/TuningPresetSelector/TuningPresetSelector";
 import { getTuningLabel } from "@/helpers/fretboardHelpers";
 import { useAppSelector } from "@/lib/redux/store";
 import "./musicalContextBar.scss";
@@ -39,6 +40,7 @@ export default function MusicalContextBar() {
           </header>
           <div className="musicalContextBar__guitarControls">
             <StringCountSelector showHeading={false} />
+            <TuningPresetSelector />
             <fieldset className="musicalContextBar__tuning">
               <legend>String tuning</legend>
               <Tuning />

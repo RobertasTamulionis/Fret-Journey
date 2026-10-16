@@ -50,6 +50,9 @@ The application currently supports:
 - 15 tonic spellings across Major, Natural Minor, Minor Blues, Harmonic Minor,
   and Phrygian Dominant
 - 6-, 7-, and 8-string presets with per-string pitch-class tuning
+- nine registered 6-, 7-, and 8-string Standard, lowered-standard, and Drop
+  tuning presets with exact high-to-low open-string MIDI pitches; manual
+  per-string pitch-class edits deliberately return to unregistered custom state
 - cyclic 12-fret and full 24-fret views
 - mutually exclusive Notes, Scale Degrees, Intervals, and Chord Tones modes
 - triads, seventh chords, and ninth chords

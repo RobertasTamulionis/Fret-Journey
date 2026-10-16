@@ -24,6 +24,7 @@ import {
 import {
   getPracticeContextCompatibility,
   getPracticeContextLabel,
+  getPracticeContextSignature,
   resolvePracticeTab,
 } from "@/features/practice/resolvePracticeTab";
 import {
@@ -310,7 +311,7 @@ export default function usePracticeExperience(
         : practiceTabExamples[activeStep.exampleId],
     [activeStep.exampleId, contextCompatibility.compatible, practiceContext],
   );
-  const contextSignature = `${currentKey}|${currentScale}|${stringCount}|${tuning.join(",")}|${registeredTuning.status}`;
+  const contextSignature = getPracticeContextSignature(practiceContext);
   const previousContextSignature = useRef(contextSignature);
   const [contextAnnouncement, setContextAnnouncement] = useState("");
   const orderIndex = exerciseOrder.findIndex(

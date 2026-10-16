@@ -1,4 +1,10 @@
 import {
+  buildRegisteredTuningState,
+  defaultRegisteredTuningIds,
+  getRegisteredTuningPreset,
+  getTuningPitchClasses,
+} from "@/features/tunings";
+import {
   chromaticPitchClasses,
   getPitchClass,
   getPitchClassAtOffset,
@@ -133,22 +139,37 @@ export const guitarConfigurations: Record<
   6: {
     stringCount: 6,
     label: "6 String",
-    defaultTuning: [4, 11, 7, 2, 9, 4],
-    defaultRegisteredTuning: [64, 59, 55, 50, 45, 40],
+    defaultTuning: getTuningPitchClasses(
+      getRegisteredTuningPreset(defaultRegisteredTuningIds[6]),
+    ),
+    defaultRegisteredTuning: [
+      ...getRegisteredTuningPreset(defaultRegisteredTuningIds[6])
+        .midiPitchesHighToLow,
+    ],
     tuningLabel: "Standard E tuning",
   },
   7: {
     stringCount: 7,
     label: "7 String",
-    defaultTuning: [4, 11, 7, 2, 9, 4, 11],
-    defaultRegisteredTuning: [64, 59, 55, 50, 45, 40, 35],
+    defaultTuning: getTuningPitchClasses(
+      getRegisteredTuningPreset(defaultRegisteredTuningIds[7]),
+    ),
+    defaultRegisteredTuning: [
+      ...getRegisteredTuningPreset(defaultRegisteredTuningIds[7])
+        .midiPitchesHighToLow,
+    ],
     tuningLabel: "Standard B tuning",
   },
   8: {
     stringCount: 8,
     label: "8 String",
-    defaultTuning: [4, 11, 7, 2, 9, 4, 11, 6],
-    defaultRegisteredTuning: [64, 59, 55, 50, 45, 40, 35, 30],
+    defaultTuning: getTuningPitchClasses(
+      getRegisteredTuningPreset(defaultRegisteredTuningIds[8]),
+    ),
+    defaultRegisteredTuning: [
+      ...getRegisteredTuningPreset(defaultRegisteredTuningIds[8])
+        .midiPitchesHighToLow,
+    ],
     tuningLabel: "Standard F♯ tuning",
   },
 };
@@ -187,43 +208,28 @@ export const getDefaultTuning = (
 
 export const getDefaultRegisteredTuning = (
   stringCount: GuitarStringCount,
-): RegisteredTuningState => ({
-  midiPitches: [...guitarConfigurations[stringCount].defaultRegisteredTuning],
-  source: "preset-default",
-  status: "verified",
-  version: 1,
-});
+): RegisteredTuningState =>
+  buildRegisteredTuningState(
+    getRegisteredTuningPreset(defaultRegisteredTuningIds[stringCount]),
+  );
 
 export const getRegisteredTuningState = (
-  stringCount: GuitarStringCount,
-  tuning: PitchClass[],
-): RegisteredTuningState => {
-  const isPresetDefault =
-    tuning.length === guitarConfigurations[stringCount].defaultTuning.length &&
-    tuning.every(
-      (pitchClass, stringIndex) =>
-        pitchClass ===
-        guitarConfigurations[stringCount].defaultTuning[stringIndex],
-    );
-
-  if (isPresetDefault) {
-    return getDefaultRegisteredTuning(stringCount);
-  }
-
-  return {
+  _stringCount: GuitarStringCount,
+  _tuning: PitchClass[],
+): RegisteredTuningState =>
+  ({
     midiPitches: null,
     reason: "pitch-class-only-custom",
     status: "unregistered",
     version: 1,
-  };
-};
+  }) as const;
 
 export const getTuningLabel = (
-  stringCount: GuitarStringCount,
+  _stringCount: GuitarStringCount,
   registeredTuning: RegisteredTuningState,
 ): string =>
   registeredTuning.status === "verified"
-    ? guitarConfigurations[stringCount].tuningLabel
+    ? getRegisteredTuningPreset(registeredTuning.id).label
     : "Custom tuning";
 
 export const getFretPitchClass = (

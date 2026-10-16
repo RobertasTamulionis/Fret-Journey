@@ -77,6 +77,10 @@ theory behavior is governed by the sourced [theory contract](./THEORY.md).
   that preserve exact note register and map each target to one playable string
   and fret on registered 6-, 7-, or 8-string tunings. Inspect the active target
   directly on the fretboard, including real open-string positions.
+- Choose among nine registered Standard, lowered-standard, and Drop tuning
+  presets for 6-, 7-, and 8-string guitars. Each preset carries exact
+  open-string MIDI register for generated grips and chord-tone pathways, while
+  manual pitch-class edits remain explicitly octave-unverified.
 - Compare the selected physical grip with a Harmonic Context neck that keeps
   the selected scale stable while emphasizing the focused chord root and chord
   tones, including chromatic tones outside the scale.

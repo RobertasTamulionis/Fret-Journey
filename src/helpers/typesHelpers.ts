@@ -71,10 +71,22 @@ export type ScaleDegreeLabel =
 
 export type GuitarStringCount = 6 | 7 | 8;
 
+export type RegisteredTuningId =
+  | "6-standard-e"
+  | "6-standard-eb"
+  | "6-standard-d"
+  | "6-drop-d"
+  | "6-drop-c"
+  | "7-standard-b"
+  | "7-drop-a"
+  | "8-standard-f-sharp"
+  | "8-drop-e";
+
 export type RegisteredTuningState =
   | {
+      id: RegisteredTuningId;
       midiPitches: number[];
-      source: "preset-default";
+      source: "preset-default" | "preset-alternate";
       status: "verified";
       version: 1;
     }

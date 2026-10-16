@@ -111,6 +111,7 @@ import progressionLabReducer, {
   setSelectedVoicingSignature,
 } from "../src/lib/redux/slices/progressionLabSlice";
 import { verifiedMusicalContextAssertions } from "./verify-musical-context";
+import { verifiedRegisteredTuningAssertions } from "./verify-registered-tunings";
 import { verifiedVoiceLeadingAssertions } from "./verify-voice-leading";
 
 const scaleNames = Object.keys(scaleDefinitions) as ScaleName[];
@@ -524,7 +525,13 @@ for (const stringCount of [6, 7, 8] as GuitarStringCount[]) {
   );
   assert.deepEqual(
     getRegisteredTuningState(stringCount, getDefaultTuning(stringCount)),
-    registeredTuning,
+    {
+      midiPitches: null,
+      reason: "pitch-class-only-custom",
+      status: "unregistered",
+      version: 1,
+    },
+    "Manual pitch-class input must not infer registered octaves",
   );
 
   const customTuning = getDefaultTuning(stringCount);
@@ -1269,7 +1276,7 @@ assert.deepEqual(
   {
     authoredContextLabel: "E Natural Minor",
     compatible: false,
-    reason: "Open Road Hook requires a preset tuning.",
+    reason: "Open Road Hook requires the default tuning for this instrument.",
     resolution: "restore-preset-tuning",
   },
 );
@@ -1708,7 +1715,7 @@ assert.equal(
 );
 assert.equal(
   getPracticeContextCompatibility(skippingPhraseId, customLegatoContext).reason,
-  "Across the Wire requires a preset tuning.",
+  "Across the Wire requires the default tuning for this instrument.",
 );
 assert.throws(() => resolvePracticeTab(skippingPhraseId, customLegatoContext));
 
@@ -1934,7 +1941,7 @@ assert.equal(
 );
 assert.equal(
   getPracticeContextCompatibility(scalesConnectId, customLegatoContext).reason,
-  "Carry the Motif requires a preset tuning.",
+  "Carry the Motif requires the default tuning for this instrument.",
 );
 assert.throws(() => resolvePracticeTab(scalesConnectId, customLegatoContext));
 
@@ -3395,7 +3402,13 @@ sharedContextState = fretboardReducer(
 );
 assert.deepEqual(
   sharedContextState.registeredTuning,
-  getDefaultRegisteredTuning(7),
+  {
+    midiPitches: null,
+    reason: "pitch-class-only-custom",
+    status: "unregistered",
+    version: 1,
+  },
+  "Manually restoring preset pitch classes must not infer string octaves",
 );
 sharedContextState = fretboardReducer(
   sharedContextState,
@@ -3931,5 +3944,5 @@ assert.deepEqual(
 );
 
 console.log(
-  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), ${verifiedPracticeExampleCount} authored practice tabs, ${verifiedResolvedPracticeContextCount} resolved practice contexts, ${verifiedMusicalContextAssertions} musical-context assertion groups, and ${verifiedVoiceLeadingAssertions} voice-leading assertion groups.`,
+  `Theory verification passed for ${tonicOptions.length} tonics, ${scaleNames.length} scales, ${verifiedChordCount} scale chords, ${verifiedShapeCount} shape/tuning combinations, ${progressionCatalog.length} progression templates (${verifiedProgressionResolutionCount} resolved chord events), ${verifiedVoicingContextCount} complete chord/tuning voicing contexts (${verifiedGeneratedVoicingCount} generated voicings), ${verifiedPracticeExampleCount} authored practice tabs, ${verifiedResolvedPracticeContextCount} resolved practice contexts, ${verifiedMusicalContextAssertions} musical-context assertion groups, ${verifiedVoiceLeadingAssertions} voice-leading assertion groups, and ${verifiedRegisteredTuningAssertions} registered-tuning assertion groups.`,
 );

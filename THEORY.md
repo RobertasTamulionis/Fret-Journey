@@ -122,6 +122,15 @@ The application does not infer their string octaves or borrow registered
 Standard-tuning pitches. Open-string targets remain fret 0 positions and are
 shown through the tuning controls rather than fabricated fretboard cells.
 
+Registered instrument tunings are ordered from the highest physical string to
+the lowest and store one exact open-string MIDI pitch per string. The catalog
+contains five six-string presets (E Standard, E-flat Standard, D Standard,
+Drop D, and Drop C), two seven-string presets (B Standard and Drop A), and two
+eight-string presets (F-sharp Standard and Drop E). Selecting a preset derives
+its pitch-class tuning from those same MIDI values atomically. Manual string
+editing remains pitch-class-only and always invalidates registered octave data,
+even when the edited pitch classes happen to match a known preset.
+
 ## Chord construction
 
 For seven-note scales, chords are constructed by stacking thirds from each scale

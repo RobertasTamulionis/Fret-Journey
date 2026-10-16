@@ -1,5 +1,10 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 import {
+  buildRegisteredTuningState,
+  getRegisteredTuningPreset,
+  getTuningPitchClasses,
+} from "@/features/tunings";
+import {
   getAvailableScaleShapeSystems,
   getDefaultRegisteredTuning,
   getDefaultTuning,
@@ -11,6 +16,7 @@ import type {
   FretboardDisplayMode,
   GuitarStringCount,
   PitchClass,
+  RegisteredTuningId,
   RegisteredTuningState,
   ScaleChordSize,
   ScaleDegree,
@@ -87,6 +93,20 @@ const fretboardSlice = createSlice({
       state.stringCount = action.payload;
       state.tuning = getDefaultTuning(action.payload);
       state.registeredTuning = getDefaultRegisteredTuning(action.payload);
+      reconcileShapeSystem(state);
+    },
+    setRegisteredTuningPreset: (
+      state,
+      action: PayloadAction<RegisteredTuningId>,
+    ) => {
+      const preset = getRegisteredTuningPreset(action.payload);
+
+      if (preset.stringCount !== state.stringCount) {
+        return;
+      }
+
+      state.tuning = getTuningPitchClasses(preset);
+      state.registeredTuning = buildRegisteredTuningState(preset);
       reconcileShapeSystem(state);
     },
     setTuningNote: (
@@ -187,6 +207,7 @@ const fretboardSlice = createSlice({
 
 export const {
   setKey,
+  setRegisteredTuningPreset,
   setScale,
   setStringCount,
   setTuningNote,

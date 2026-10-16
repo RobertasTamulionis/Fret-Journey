@@ -68,7 +68,7 @@
 
   &__instrumentControls {
     display: grid;
-    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-columns: auto minmax(168px, 0.45fr) minmax(0, 1fr);
     align-items: end;
     gap: 16px;
     padding-top: 14px;

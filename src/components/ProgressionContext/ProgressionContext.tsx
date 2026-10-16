@@ -10,6 +10,7 @@ import AvailableKeys from "../AvailableKeys/AvailableKeys";
 import AvailableScales from "../AvailableScales/AvailableScales";
 import StringCountSelector from "../StringCountSelector/StringCountSelector";
 import Tuning from "../Tuning/Tuning";
+import TuningPresetSelector from "../TuningPresetSelector/TuningPresetSelector";
 import "./progressionContext.scss";
 
 type ProgressionContextProps = {
@@ -50,6 +51,7 @@ export default function ProgressionContext({
         </div>
         <div className="progressionContext__instrumentControls">
           <StringCountSelector />
+          <TuningPresetSelector />
           <fieldset>
             <legend>String tuning</legend>
             <Tuning />
