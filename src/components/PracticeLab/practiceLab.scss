@@ -1372,6 +1372,13 @@ $practice-accent: var(--semantic-practice-accent);
   overflow: hidden;
 }
 
+.practiceInstrumentStatus {
+  margin: 0;
+  color: var(--color-text-faint);
+  font-size: 8px;
+  line-height: 1.45;
+}
+
 .volumeControl {
   display: grid;
   gap: 9px;

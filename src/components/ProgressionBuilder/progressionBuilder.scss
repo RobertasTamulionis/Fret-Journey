@@ -27,6 +27,7 @@
   ol { display: grid; gap: 8px; padding: 0; list-style: none; }
   li { display: grid; grid-template-columns: 1fr auto; gap: 8px; padding: 8px; border: 1px solid var(--color-border); border-radius: 12px; }
   li.is-active { border-color: $cyan; background: color-mix(in srgb, $cyan 7%, transparent); }
+  li.is-playback-active { box-shadow: 0 0 0 1px color-mix(in srgb, $cyan 58%, transparent), 0 0 16px color-mix(in srgb, $cyan 13%, transparent); }
   li > button { display: grid; justify-items: start; gap: 3px; border: 0; background: transparent; color: var(--color-text); text-align: left; }
   li > div { display: flex; gap: 4px; }
   li span, small { color: var(--color-text-muted); font-size: 11px; }

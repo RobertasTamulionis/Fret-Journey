@@ -124,6 +124,10 @@
 
       small { color: $cyan; }
     }
+
+    &.is-playback-active {
+      box-shadow: 0 0 0 1px color-mix(in srgb, $cyan 62%, transparent), 0 0 18px color-mix(in srgb, $cyan 16%, transparent);
+    }
   }
 
   &__main {

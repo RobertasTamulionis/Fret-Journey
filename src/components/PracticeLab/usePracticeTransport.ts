@@ -17,6 +17,8 @@ const initialSnapshot: PracticeTransportSnapshot = {
   countInBeatsRemaining: 0,
   elapsedExerciseSeconds: 0,
   exerciseBeat: 0,
+  instrumentError: null,
+  instrumentStatus: "idle",
   phase: "idle",
 };
 
@@ -27,6 +29,8 @@ const snapshotsMatchForPresentation = (
   current.activeEventIndex === next.activeEventIndex &&
   current.authoredSlot === next.authoredSlot &&
   current.countInBeatsRemaining === next.countInBeatsRemaining &&
+  current.instrumentError === next.instrumentError &&
+  current.instrumentStatus === next.instrumentStatus &&
   Math.floor(current.elapsedExerciseSeconds) ===
     Math.floor(next.elapsedExerciseSeconds) &&
   current.phase === next.phase;
@@ -36,6 +40,10 @@ export default function usePracticeTransport({
   clickSubdivision,
   countInBeats,
   countInEnabled,
+  instrumentEnabled,
+  instrumentPlan,
+  instrumentPreset,
+  instrumentVolume,
   metronomeEnabled,
   tempo,
   volume,
@@ -50,6 +58,10 @@ export default function usePracticeTransport({
       authoredScore,
       clickSubdivision,
       countInEnabled,
+      instrumentEnabled,
+      instrumentPlan,
+      instrumentPreset,
+      instrumentVolume,
       metronomeEnabled,
       tempo,
       volume,
@@ -58,6 +70,10 @@ export default function usePracticeTransport({
       authoredScore,
       clickSubdivision,
       countInEnabled,
+      instrumentEnabled,
+      instrumentPlan,
+      instrumentPreset,
+      instrumentVolume,
       metronomeEnabled,
       tempo,
       volume,
@@ -120,7 +136,12 @@ export default function usePracticeTransport({
   const start = useCallback(async () => {
     try {
       setAudioError(null);
-      await engineRef.current?.start({ countInBeats, fromExerciseBeat: 0 });
+      const activation = engineRef.current?.start({
+        countInBeats,
+        fromExerciseBeat: 0,
+      });
+      sampleSnapshot();
+      await activation;
       sampleSnapshot();
     } catch (error) {
       if (!mountedRef.current) {
@@ -144,7 +165,9 @@ export default function usePracticeTransport({
   const resume = useCallback(async () => {
     try {
       setAudioError(null);
-      await engineRef.current?.resume({ countInBeats });
+      const activation = engineRef.current?.resume({ countInBeats });
+      sampleSnapshot();
+      await activation;
       sampleSnapshot();
     } catch (error) {
       if (!mountedRef.current) {

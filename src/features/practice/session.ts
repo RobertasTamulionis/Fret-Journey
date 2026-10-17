@@ -1,3 +1,4 @@
+import type { GuitarPresetId } from "@/features/audio/types";
 import type {
   PracticeTabExample,
   PracticeTabMarker,
@@ -16,7 +17,7 @@ export type PracticeExperienceScreen =
   | "journey"
   | "session"
   | "complete";
-export type PracticeInstrument = "clean-guitar" | "piano" | "simple-tone";
+export type PracticeInstrument = GuitarPresetId;
 
 export const practiceDefaultCountInBeats = 4;
 export const practiceDurationMinimumMinutes = 1;
@@ -121,7 +122,7 @@ export const practiceInstrumentOptions: ReadonlyArray<{
   label: string;
   value: PracticeInstrument;
 }> = [
-  { label: "Clean guitar", value: "clean-guitar" },
-  { label: "Piano", value: "piano" },
-  { label: "Simple tone", value: "simple-tone" },
+  { label: "Clean Electric", value: "clean-electric" },
+  { label: "High-Gain Electric", value: "high-gain-electric" },
+  { label: "Acoustic Guitar", value: "acoustic-guitar" },
 ];

@@ -1,3 +1,6 @@
+import { guitarPresets } from "@/features/audio/guitarPresets";
+import { MultisampleInstrument } from "@/features/audio/MultisampleInstrument";
+import type { GuitarPresetId, PitchedInstrument } from "@/features/audio/types";
 import type { PracticeTabExample, PracticeTabSubdivision } from "../tablature";
 import {
   clampPracticeTempo,
@@ -9,6 +12,8 @@ import {
   type PracticeTimelineAnchor,
   planPracticeMetronomePulses,
 } from "../timing";
+import type { PracticeAudioEventPlan } from "./buildPracticeAudioEvents";
+import { planPracticeAudioEvents } from "./buildPracticeAudioEvents";
 
 export type PracticeAudioTransportPhase =
   | "idle"
@@ -23,6 +28,10 @@ export type PracticeMetronomeConfig = {
   >;
   clickSubdivision: PracticeTabSubdivision;
   countInEnabled: boolean;
+  instrumentEnabled: boolean;
+  instrumentPlan: PracticeAudioEventPlan;
+  instrumentPreset: GuitarPresetId;
+  instrumentVolume: number;
   metronomeEnabled: boolean;
   tempo: number;
   volume: number;
@@ -34,6 +43,8 @@ export type PracticeTransportSnapshot = {
   countInBeatsRemaining: number;
   elapsedExerciseSeconds: number;
   exerciseBeat: number;
+  instrumentError: string | null;
+  instrumentStatus: "error" | "idle" | "loading" | "ready" | "unavailable";
   phase: PracticeAudioTransportPhase;
 };
 
@@ -45,6 +56,10 @@ export type PracticeTransportStartOptions = {
 export type PracticeMetronomeEnvironment = {
   clearTimeout: (timeoutId: number) => void;
   createAudioContext: () => AudioContext;
+  createInstrument: (
+    context: AudioContext,
+    preset: GuitarPresetId,
+  ) => PitchedInstrument;
   setTimeout: (callback: () => void, delay: number) => number;
 };
 
@@ -86,6 +101,8 @@ const defaultEnvironment: PracticeMetronomeEnvironment = {
 
     return new AudioContextConstructor();
   },
+  createInstrument: (context, preset) =>
+    new MultisampleInstrument(context, guitarPresets[preset]),
   setTimeout: (callback, delay) => window.setTimeout(callback, delay),
 };
 
@@ -95,6 +112,8 @@ const defaultSnapshot: PracticeTransportSnapshot = {
   countInBeatsRemaining: 0,
   elapsedExerciseSeconds: 0,
   exerciseBeat: 0,
+  instrumentError: null,
+  instrumentStatus: "idle",
   phase: "idle",
 };
 
@@ -107,6 +126,7 @@ const normalizeConfig = (
   config: PracticeMetronomeConfig,
 ): PracticeMetronomeConfig => ({
   ...config,
+  instrumentVolume: clampVolume(config.instrumentVolume),
   tempo: clampPracticeTempo(config.tempo),
   volume: clampVolume(config.volume),
 });
@@ -122,6 +142,18 @@ export class PracticeMetronomeEngine {
   private disposed = false;
   private environment: PracticeMetronomeEnvironment;
   private generation = 0;
+  private instrument: PitchedInstrument | null = null;
+  private instrumentErrors = new Map<GuitarPresetId, string>();
+  private instrumentError: string | null = null;
+  private instrumentGain: GainNode | null = null;
+  private instruments = new Map<GuitarPresetId, PitchedInstrument>();
+  private instrumentLoadPromises = new Map<GuitarPresetId, Promise<void>>();
+  private instrumentStatuses = new Map<
+    GuitarPresetId,
+    "error" | "loading" | "ready"
+  >();
+  private instrumentStatus: PracticeTransportSnapshot["instrumentStatus"] =
+    "idle";
   private lookAheadSeconds: number;
   private mode: "idle" | "paused" | "running" = "idle";
   private pausedExerciseBeat = 0;
@@ -152,6 +184,10 @@ export class PracticeMetronomeEngine {
     const pulsePlanChanged =
       previousConfig.clickSubdivision !== nextConfig.clickSubdivision ||
       previousConfig.metronomeEnabled !== nextConfig.metronomeEnabled;
+    const instrumentPlanChanged =
+      previousConfig.instrumentEnabled !== nextConfig.instrumentEnabled ||
+      previousConfig.instrumentPlan !== nextConfig.instrumentPlan ||
+      previousConfig.instrumentPreset !== nextConfig.instrumentPreset;
     const cancelActiveCountIn =
       previousConfig.countInEnabled &&
       !nextConfig.countInEnabled &&
@@ -181,13 +217,54 @@ export class PracticeMetronomeEngine {
       );
     }
 
+    if (this.instrumentGain && this.context) {
+      this.instrumentGain.gain.setValueAtTime(
+        volumeToGain(nextConfig.instrumentVolume),
+        this.context.currentTime,
+      );
+    }
+
+    if (!nextConfig.instrumentPlan.available) {
+      this.instrumentStatus = "unavailable";
+      this.instrumentError = nextConfig.instrumentPlan.reason;
+    } else if (!nextConfig.instrumentEnabled) {
+      this.instrumentStatus = "idle";
+      this.instrumentError = null;
+    } else {
+      this.instrumentStatus =
+        this.instrumentStatuses.get(nextConfig.instrumentPreset) ?? "idle";
+      this.instrumentError =
+        this.instrumentErrors.get(nextConfig.instrumentPreset) ?? null;
+    }
+
     if (
       this.mode === "running" &&
       this.context &&
       this.run &&
-      (tempoChanged || pulsePlanChanged || cancelActiveCountIn)
+      (tempoChanged ||
+        pulsePlanChanged ||
+        instrumentPlanChanged ||
+        cancelActiveCountIn)
     ) {
-      this.restartScheduler();
+      if (
+        previousConfig.instrumentPreset !== nextConfig.instrumentPreset &&
+        this.context
+      ) {
+        for (const instrument of this.instruments.values()) {
+          instrument.stopAll(this.context.currentTime);
+        }
+      }
+      if (
+        instrumentPlanChanged &&
+        nextConfig.instrumentEnabled &&
+        nextConfig.instrumentPlan.available
+      ) {
+        void this.prepareInstrument(this.context).then(() => {
+          if (this.mode === "running") this.restartScheduler();
+        });
+      } else {
+        this.restartScheduler();
+      }
     }
   }
 
@@ -246,7 +323,11 @@ export class PracticeMetronomeEngine {
 
   getSnapshot(): PracticeTransportSnapshot {
     if (this.mode === "idle") {
-      return defaultSnapshot;
+      return {
+        ...defaultSnapshot,
+        instrumentError: this.instrumentError,
+        instrumentStatus: this.getInstrumentStatus(),
+      };
     }
 
     if (this.mode === "paused" || !this.context || !this.run) {
@@ -262,6 +343,8 @@ export class PracticeMetronomeEngine {
         countInBeatsRemaining: 0,
         elapsedExerciseSeconds: this.pausedExerciseSeconds,
         exerciseBeat: this.pausedExerciseBeat,
+        instrumentError: this.instrumentError,
+        instrumentStatus: this.getInstrumentStatus(),
         phase: "paused",
       };
     }
@@ -293,6 +376,8 @@ export class PracticeMetronomeEngine {
         ),
         elapsedExerciseSeconds: this.run.elapsedExerciseSecondsAtPlaybackStart,
         exerciseBeat: this.run.playbackStartBeat,
+        instrumentError: this.instrumentError,
+        instrumentStatus: this.getInstrumentStatus(),
         phase: "counting-in",
       };
     }
@@ -316,6 +401,8 @@ export class PracticeMetronomeEngine {
         this.run.elapsedExerciseSecondsAtPlaybackStart +
         Math.max(0, now - this.run.playbackStartAudioTime),
       exerciseBeat,
+      instrumentError: this.instrumentError,
+      instrumentStatus: this.getInstrumentStatus(),
       phase: "playing",
     };
   }
@@ -330,6 +417,9 @@ export class PracticeMetronomeEngine {
 
     const context = this.context;
     this.context = null;
+    for (const instrument of this.instruments.values()) instrument.dispose();
+    this.instruments.clear();
+    this.instrument = null;
 
     if (context && context.state !== "closed") {
       await context.close();
@@ -361,14 +451,28 @@ export class PracticeMetronomeEngine {
     }
 
     const activationGeneration = ++this.activationGeneration;
-    const activationPromise = this.ensureRunningContext().then((context) => {
-      if (this.disposed || activationGeneration !== this.activationGeneration) {
-        return;
-      }
+    const activationPromise = this.ensureRunningContext().then(
+      async (context) => {
+        if (
+          this.disposed ||
+          activationGeneration !== this.activationGeneration
+        ) {
+          return;
+        }
 
-      this.pausedExerciseBeat = fromExerciseBeat;
-      this.startRun(context, fromExerciseBeat, countInBeats);
-    });
+        await this.prepareInstrument(context);
+
+        if (
+          this.disposed ||
+          activationGeneration !== this.activationGeneration
+        ) {
+          return;
+        }
+
+        this.pausedExerciseBeat = fromExerciseBeat;
+        this.startRun(context, fromExerciseBeat, countInBeats);
+      },
+    );
 
     const pendingActivation = activationPromise.finally(() => {
       if (this.activationPromise === pendingActivation) {
@@ -473,6 +577,12 @@ export class PracticeMetronomeEngine {
       this.context.currentTime,
     );
     this.runGain.connect(this.context.destination);
+    this.instrumentGain = this.context.createGain();
+    this.instrumentGain.gain.setValueAtTime(
+      volumeToGain(this.config.instrumentVolume),
+      this.context.currentTime,
+    );
+    this.instrumentGain.connect(this.context.destination);
     this.scheduledThroughAudioTime = this.context.currentTime;
 
     const generation = this.generation;
@@ -502,6 +612,7 @@ export class PracticeMetronomeEngine {
     if (windowEnd > windowStart) {
       this.scheduleCountInWindow(windowStart, windowEnd);
       this.scheduleExerciseWindow(windowStart, windowEnd);
+      this.scheduleInstrumentWindow(windowStart, windowEnd);
       this.scheduledThroughAudioTime = windowEnd;
     }
 
@@ -615,6 +726,115 @@ export class PracticeMetronomeEngine {
     oscillator.stop(audioTime + duration + 0.005);
   }
 
+  private scheduleInstrumentWindow(
+    windowStart: number,
+    windowEnd: number,
+  ): void {
+    if (
+      !this.context ||
+      !this.run ||
+      !this.instrument ||
+      !this.instrumentGain ||
+      !this.config.instrumentEnabled ||
+      !this.config.instrumentPlan.available ||
+      this.instrumentStatus !== "ready"
+    ) {
+      return;
+    }
+
+    const fromAudioTime = Math.max(
+      windowStart,
+      this.run.playbackStartAudioTime,
+    );
+    if (windowEnd <= fromAudioTime) return;
+
+    const fromBeat = getPracticeExerciseBeatAtAudioTime(
+      this.run.anchor,
+      fromAudioTime,
+    );
+    const toBeat = getPracticeExerciseBeatAtAudioTime(
+      this.run.anchor,
+      windowEnd,
+    );
+    const secondsPerBeat = getPracticeSecondsPerBeat(this.run.anchor.tempo);
+
+    for (const event of planPracticeAudioEvents({
+      events: this.config.instrumentPlan.events,
+      fromBeat,
+      scoreLengthBeats: this.config.instrumentPlan.scoreLengthBeats,
+      toBeat,
+    })) {
+      this.instrument.schedule(
+        {
+          duration: event.durationBeats * secondsPerBeat,
+          id: event.id,
+          notes: event.notes,
+          startTime: getPracticeAudioTimeAtExerciseBeat(
+            this.run.anchor,
+            event.startBeat,
+          ),
+        },
+        this.instrumentGain,
+      );
+    }
+  }
+
+  private getInstrumentStatus(): PracticeTransportSnapshot["instrumentStatus"] {
+    if (!this.config.instrumentPlan.available) return "unavailable";
+    if (!this.config.instrumentEnabled) return "idle";
+    return this.instrumentStatus;
+  }
+
+  private prepareInstrument(context: AudioContext): Promise<void> {
+    if (
+      !this.config.instrumentEnabled ||
+      !this.config.instrumentPlan.available
+    ) {
+      return Promise.resolve();
+    }
+    if (this.instrumentStatus === "ready") return Promise.resolve();
+    const existingLoad = this.instrumentLoadPromises.get(
+      this.config.instrumentPreset,
+    );
+    if (existingLoad) return existingLoad;
+
+    const preset = this.config.instrumentPreset;
+    this.instrument =
+      this.instruments.get(preset) ??
+      this.environment.createInstrument(context, preset);
+    this.instruments.set(preset, this.instrument);
+    this.instrumentStatus = "loading";
+    this.instrumentStatuses.set(preset, "loading");
+    this.instrumentError = null;
+    const loadPromise = this.instrument
+      .load()
+      .then(() => {
+        this.instrumentStatuses.set(preset, "ready");
+        this.instrumentErrors.delete(preset);
+        if (this.config.instrumentPreset === preset) {
+          this.instrumentStatus = "ready";
+          this.instrumentError = null;
+        }
+      })
+      .catch((error: unknown) => {
+        const message =
+          error instanceof Error
+            ? error.message
+            : `${guitarPresets[preset].label} samples could not load.`;
+        this.instrumentStatuses.set(preset, "error");
+        this.instrumentErrors.set(preset, message);
+        if (this.config.instrumentPreset === preset) {
+          this.instrumentStatus = "error";
+          this.instrumentError = message;
+        }
+      })
+      .finally(() => {
+        this.instrumentLoadPromises.delete(preset);
+      });
+    this.instrumentLoadPromises.set(preset, loadPromise);
+    return loadPromise;
+  }
+
   private cancelScheduledAudio(): void {
     this.generation += 1;
 
@@ -644,7 +864,10 @@ export class PracticeMetronomeEngine {
     }
 
     this.scheduledClicks.clear();
+    this.instrument?.stopAll(now);
     this.runGain?.disconnect();
     this.runGain = null;
+    this.instrumentGain?.disconnect();
+    this.instrumentGain = null;
   }
 }

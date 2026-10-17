@@ -23,6 +23,17 @@
 # misc
 .DS_Store
 *.pem
+*.swp
+*.swo
+*.temp
+*.tmp
+
+# local audio-source working material
+/public/audio-source/
+/public/audio/**/*.7z
+/public/audio/**/*.rar
+/public/audio/**/*.tar*
+/public/audio/**/*.zip
 
 # debug
 npm-debug.log*

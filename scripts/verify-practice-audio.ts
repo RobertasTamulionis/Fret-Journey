@@ -1,10 +1,36 @@
 import assert from "node:assert/strict";
+import { existsSync, statSync } from "node:fs";
+import { join } from "node:path";
 import { practiceTabExamples } from "../src/data/practiceTabExamples";
+import {
+  acousticGuitarAssetSource,
+  acousticGuitarManifest,
+} from "../src/features/audio/acousticGuitarManifest";
+import {
+  cleanElectricAssetSources,
+  cleanElectricManifest,
+} from "../src/features/audio/cleanElectricManifest";
+import { guitarPresets } from "../src/features/audio/guitarPresets";
+import {
+  getArticulationPlayback,
+  getPitchAutomation,
+  getPolyphonyGainScale,
+} from "../src/features/audio/MultisampleInstrument";
+import type {
+  GuitarPresetId,
+  PitchedInstrument,
+  ScheduledMusicalEvent,
+} from "../src/features/audio/types";
+import {
+  buildPracticeAudioEvents,
+  planPracticeAudioEvents,
+} from "../src/features/practice/audio/buildPracticeAudioEvents";
 import {
   type PracticeMetronomeConfig,
   PracticeMetronomeEngine,
   type PracticeMetronomeEnvironment,
 } from "../src/features/practice/audio/PracticeMetronomeEngine";
+import { resolvePracticeTab } from "../src/features/practice/resolvePracticeTab";
 import {
   clampPracticeDurationMinutes,
   formatPracticeTime,
@@ -25,6 +51,11 @@ import {
   getPracticeSecondsPerEvent,
   planPracticeMetronomePulses,
 } from "../src/features/practice/timing";
+import {
+  buildRegisteredTuningState,
+  getRegisteredTuningPreset,
+  getTuningPitchClasses,
+} from "../src/features/tunings";
 
 assert.equal(getPracticeSecondsPerBeat(120), 0.5);
 assert.equal(getPracticeSecondsPerBeat(1), 2);
@@ -40,6 +71,200 @@ assert.equal(formatPracticeTime(65), "1:05");
 assert.equal(getPracticeRemainingSeconds(60, 0), 60);
 assert.equal(getPracticeRemainingSeconds(60, 1.1), 59);
 assert.equal(getPracticeRemainingSeconds(60, 60.1), 0);
+
+const dailyAudioPlan = buildPracticeAudioEvents(
+  practiceTabExamples["daily-reset"],
+);
+assert.equal(dailyAudioPlan.available, true);
+if (dailyAudioPlan.available) {
+  assert.equal(dailyAudioPlan.events[0].notes[0].midi, 40);
+  assert.equal(dailyAudioPlan.events[0].startBeat, 0);
+  assert.equal(dailyAudioPlan.events[0].durationBeats, 0.5);
+  assert.deepEqual(
+    planPracticeAudioEvents({
+      events: dailyAudioPlan.events,
+      fromBeat: 3.9,
+      scoreLengthBeats: dailyAudioPlan.scoreLengthBeats,
+      toBeat: 4.1,
+    }).map(({ startBeat }) => startBeat),
+    [4],
+    "Instrument events must restart on the exact score loop boundary",
+  );
+}
+
+const chordAudioPlan = buildPracticeAudioEvents(
+  practiceTabExamples["funk-pocket-stabs"],
+);
+assert.equal(chordAudioPlan.available, true);
+if (chordAudioPlan.available) {
+  assert.ok(
+    chordAudioPlan.events.some(({ notes }) => notes.length === 3),
+    "Grouped TAB notes must remain simultaneous audio notes",
+  );
+  assert.ok(
+    chordAudioPlan.events.every(({ notes }) =>
+      notes.every(({ midi }) => midi === null || Number.isInteger(midi)),
+    ),
+    "Dead notes must remain explicitly unpitched",
+  );
+}
+
+const allPracticeAudioNotes = Object.values(practiceTabExamples).flatMap(
+  (example) => {
+    const plan = buildPracticeAudioEvents(example);
+    return plan.available ? plan.events.flatMap(({ notes }) => notes) : [];
+  },
+);
+for (const articulation of [
+  "palm-mute-light",
+  "palm-mute-medium",
+  "palm-mute-deep",
+  "dead-note",
+  "hammer",
+  "pull",
+  "slide-up",
+  "slide-down",
+  "bend",
+  "release",
+  "vibrato",
+] as const) {
+  assert.ok(
+    allPracticeAudioNotes.some((note) => note.articulation === articulation),
+    `${articulation} metadata must reach the musical event contract`,
+  );
+}
+assert.ok(
+  allPracticeAudioNotes.some(
+    ({ articulation, targetMidi }) =>
+      articulation === "bend" && targetMidi !== undefined,
+  ),
+  "Authored bend targets must resolve to exact MIDI pitches",
+);
+assert.ok(
+  allPracticeAudioNotes.some(
+    ({ articulation, transitionFromMidi }) =>
+      articulation === "slide-up" && transitionFromMidi !== undefined,
+  ),
+  "Slides must retain their preceding same-string pitch",
+);
+assert.ok(
+  getArticulationPlayback("palm-mute-light").durationScale >
+    getArticulationPlayback("palm-mute-medium").durationScale,
+);
+assert.ok(
+  getArticulationPlayback("palm-mute-medium").durationScale >
+    getArticulationPlayback("palm-mute-deep").durationScale,
+);
+assert.ok(
+  getArticulationPlayback("hammer").attackSeconds >
+    getArticulationPlayback("normal").attackSeconds,
+);
+assert.equal(getPolyphonyGainScale(1), 1);
+assert.ok(getPolyphonyGainScale(6) < 0.5, "Chords must receive headroom");
+assert.deepEqual(
+  getPitchAutomation(
+    { articulation: "slide-up", midi: 64, transitionFromMidi: 62, velocity: 1 },
+    0.5,
+  ),
+  { duration: 0.18, fromMidi: 62, kind: "transition" },
+);
+assert.deepEqual(
+  getPitchAutomation(
+    { articulation: "bend", midi: 64, targetMidi: 66, velocity: 1 },
+    0.5,
+  ),
+  { cents: 200, duration: 0.325, kind: "bend" },
+);
+assert.deepEqual(
+  getPitchAutomation({ articulation: "vibrato", midi: 64, velocity: 1 }, 0.5),
+  { depthCents: 18, duration: 0.42, kind: "vibrato" },
+);
+
+const customTuningPlan = buildPracticeAudioEvents({
+  ...practiceTabExamples["daily-reset"],
+  tuning: {
+    label: "Custom tuning",
+    midiPitchesHighToLow: null,
+    pitchClassesHighToLow: [4, 11, 7, 2, 9, 4],
+    registerStatus: "unregistered",
+    stringLabelsHighToLow: ["E", "B", "G", "D", "A", "E"],
+  },
+});
+assert.equal(customTuningPlan.available, false);
+
+for (const tuningId of [
+  "6-standard-eb",
+  "6-standard-d",
+  "6-drop-d",
+  "6-drop-c",
+  "7-standard-b",
+  "7-drop-a",
+  "8-standard-f-sharp",
+  "8-drop-e",
+] as const) {
+  const preset = getRegisteredTuningPreset(tuningId);
+  const resolved = resolvePracticeTab("daily-reset", {
+    currentKey: "C",
+    currentScale: "major",
+    registeredTuning: buildRegisteredTuningState(preset),
+    stringCount: preset.stringCount,
+    tuning: getTuningPitchClasses(preset),
+  });
+  const plan = buildPracticeAudioEvents(resolved);
+  assert.equal(plan.available, true, `${preset.label} must support audio`);
+  if (plan.available) {
+    assert.ok(
+      plan.events.every(({ notes }) =>
+        notes.every(
+          ({ midi }) =>
+            midi === null ||
+            (midi >= cleanElectricManifest.minimumMidi &&
+              midi <= cleanElectricManifest.maximumMidi),
+        ),
+      ),
+      `${preset.label} must remain inside the verified sample manifest`,
+    );
+  }
+}
+
+assert.equal(cleanElectricAssetSources.shinyguitar.license, "CC0-1.0");
+assert.equal(cleanElectricAssetSources.lowEightString.license, "CC0-1.0");
+assert.equal(cleanElectricManifest.minimumMidi, 28);
+assert.equal(cleanElectricManifest.maximumMidi, 91);
+for (const { url } of cleanElectricManifest.regions) {
+  const path = join(process.cwd(), "public", url.replace(/^\//, ""));
+  assert.ok(existsSync(path), `Missing Clean Electric asset: ${url}`);
+  assert.ok(statSync(path).size > 10_000, `Empty Clean Electric asset: ${url}`);
+}
+assert.ok(
+  existsSync(join(process.cwd(), "public/audio/clean-electric/NOTICE.md")),
+  "Clean Electric assets must retain a license and source record",
+);
+assert.deepEqual(Object.keys(guitarPresets).sort(), [
+  "acoustic-guitar",
+  "clean-electric",
+  "high-gain-electric",
+]);
+assert.equal(guitarPresets["clean-electric"].processing, "clean");
+assert.equal(guitarPresets["high-gain-electric"].processing, "high-gain");
+assert.equal(guitarPresets["acoustic-guitar"].processing, "acoustic");
+assert.equal(acousticGuitarAssetSource.license, "CC0-1.0");
+assert.equal(acousticGuitarAssetSource.nativeMinimumMidi, 40);
+assert.equal(acousticGuitarAssetSource.nativeMaximumMidi, 84);
+assert.equal(acousticGuitarManifest.minimumMidi, 28);
+assert.equal(acousticGuitarManifest.maximumMidi, 88);
+for (const { url } of acousticGuitarManifest.regions) {
+  const path = join(process.cwd(), "public", url.replace(/^\//, ""));
+  assert.ok(existsSync(path), `Missing Acoustic Guitar asset: ${url}`);
+  assert.ok(
+    statSync(path).size > 10_000,
+    `Empty Acoustic Guitar asset: ${url}`,
+  );
+}
+assert.ok(
+  existsSync(join(process.cwd(), "public/audio/acoustic/NOTICE.md")),
+  "Acoustic Guitar assets must retain a license and source record",
+);
 
 const anchor = { audioTime: 10, exerciseBeat: 2, tempo: 120 };
 assert.equal(getPracticeExerciseBeatAtAudioTime(anchor, 11), 4);
@@ -628,14 +853,52 @@ class FakeAudioContext {
   }
 }
 
-const createFakeEnvironment = () => {
+class FakeInstrument implements PitchedInstrument {
+  disposed = false;
+  loadCount = 0;
+  scheduled: ScheduledMusicalEvent[] = [];
+  stopCount = 0;
+
+  constructor(private readonly loadError: Error | null = null) {}
+
+  dispose() {
+    this.disposed = true;
+  }
+
+  async load() {
+    this.loadCount += 1;
+    if (this.loadError) throw this.loadError;
+  }
+
+  schedule(event: ScheduledMusicalEvent) {
+    this.scheduled.push(event);
+    return [];
+  }
+
+  stopAll() {
+    this.stopCount += 1;
+  }
+}
+
+const createFakeEnvironment = (instrumentLoadError: Error | null = null) => {
   const context = new FakeAudioContext();
+  const instruments = new Map<GuitarPresetId, FakeInstrument>();
+  const getInstrument = (preset: GuitarPresetId) => {
+    let instrument = instruments.get(preset);
+    if (!instrument) {
+      instrument = new FakeInstrument(instrumentLoadError);
+      instruments.set(preset, instrument);
+    }
+    return instrument;
+  };
+  const instrument = getInstrument("clean-electric");
   const callbacks = new Map<number, () => void>();
   let nextTimeoutId = 1;
 
   const environment: PracticeMetronomeEnvironment = {
     clearTimeout: (timeoutId) => callbacks.delete(timeoutId),
     createAudioContext: () => context as unknown as AudioContext,
+    createInstrument: (_context, preset) => getInstrument(preset),
     setTimeout: (callback) => {
       const timeoutId = nextTimeoutId;
       nextTimeoutId += 1;
@@ -644,13 +907,17 @@ const createFakeEnvironment = () => {
     },
   };
 
-  return { callbacks, context, environment };
+  return { callbacks, context, environment, instrument, instruments };
 };
 
 const baseConfig: PracticeMetronomeConfig = {
   authoredScore: practiceTabExamples["daily-reset"],
   clickSubdivision: "quarters",
   countInEnabled: true,
+  instrumentEnabled: false,
+  instrumentPlan: dailyAudioPlan,
+  instrumentPreset: "clean-electric",
+  instrumentVolume: 70,
   metronomeEnabled: false,
   tempo: 120,
   volume: 70,
@@ -759,6 +1026,117 @@ const verifyPracticeMetronomeEngine = async () => {
     0,
     "Count-in and exercise metronome enablement must remain independent",
   );
+
+  const instrumentHarness = createFakeEnvironment();
+  const instrumentEngine = new PracticeMetronomeEngine(
+    {
+      ...baseConfig,
+      countInEnabled: false,
+      instrumentEnabled: true,
+      metronomeEnabled: true,
+    },
+    { environment: instrumentHarness.environment, lookAheadSeconds: 1.2 },
+  );
+  await instrumentEngine.start({ countInBeats: 0 });
+  assert.equal(instrumentHarness.instrument.loadCount, 1);
+  assert.equal(instrumentEngine.getSnapshot().instrumentStatus, "ready");
+  assert.ok(instrumentHarness.instrument.scheduled.length > 0);
+  assert.equal(
+    instrumentHarness.instrument.scheduled[0].startTime,
+    instrumentHarness.context.oscillators[0].startTime,
+    "Instrument and metronome must share the same audio-time anchor",
+  );
+
+  instrumentEngine.configure({
+    ...baseConfig,
+    countInEnabled: false,
+    instrumentEnabled: true,
+    instrumentVolume: 25,
+    metronomeEnabled: true,
+  });
+  assert.ok(
+    instrumentHarness.context.gains.some(
+      ({ gain }) => gain.value === 0.25 ** 2,
+    ),
+    "Instrument volume must update its own gain bus",
+  );
+
+  const clicksBeforeMute = instrumentHarness.context.oscillators.length;
+  instrumentEngine.configure({
+    ...baseConfig,
+    countInEnabled: false,
+    instrumentEnabled: false,
+    metronomeEnabled: true,
+  });
+  assert.ok(instrumentHarness.instrument.stopCount > 0);
+  assert.ok(
+    instrumentHarness.context.oscillators.length > clicksBeforeMute,
+    "Muting the instrument must leave the metronome scheduler active",
+  );
+  assert.equal(instrumentEngine.getSnapshot().instrumentStatus, "idle");
+  instrumentEngine.stop();
+  assert.equal(instrumentHarness.callbacks.size, 0);
+  await instrumentEngine.dispose();
+  assert.equal(instrumentHarness.instrument.disposed, true);
+
+  const switchHarness = createFakeEnvironment();
+  const switchEngine = new PracticeMetronomeEngine(
+    {
+      ...baseConfig,
+      countInEnabled: false,
+      instrumentEnabled: true,
+    },
+    { environment: switchHarness.environment, lookAheadSeconds: 1.2 },
+  );
+  await switchEngine.start({ countInBeats: 0 });
+  const cleanInstrument = switchHarness.instruments.get("clean-electric");
+  assert.ok(cleanInstrument);
+  switchEngine.configure({
+    ...baseConfig,
+    countInEnabled: false,
+    instrumentEnabled: true,
+    instrumentPreset: "acoustic-guitar",
+  });
+  await Promise.resolve();
+  await Promise.resolve();
+  const acousticInstrument = switchHarness.instruments.get("acoustic-guitar");
+  assert.ok(acousticInstrument);
+  assert.equal(acousticInstrument.loadCount, 1);
+  assert.ok(
+    cleanInstrument.stopCount > 0,
+    "Preset switching must stop stale voices",
+  );
+  assert.equal(switchEngine.getSnapshot().phase, "playing");
+  assert.equal(switchEngine.getSnapshot().instrumentStatus, "ready");
+  await switchEngine.dispose();
+
+  const failedInstrumentHarness = createFakeEnvironment(
+    new Error("Sample request failed"),
+  );
+  const failedInstrumentEngine = new PracticeMetronomeEngine(
+    {
+      ...baseConfig,
+      countInEnabled: false,
+      instrumentEnabled: true,
+      metronomeEnabled: true,
+    },
+    {
+      environment: failedInstrumentHarness.environment,
+      lookAheadSeconds: 1.2,
+    },
+  );
+  await failedInstrumentEngine.start({ countInBeats: 0 });
+  assert.equal(failedInstrumentEngine.getSnapshot().phase, "playing");
+  assert.equal(failedInstrumentEngine.getSnapshot().instrumentStatus, "error");
+  assert.equal(
+    failedInstrumentEngine.getSnapshot().instrumentError,
+    "Sample request failed",
+  );
+  assert.ok(
+    failedInstrumentHarness.context.oscillators.length > 0,
+    "A sample load failure must not prevent metronome playback",
+  );
+  await failedInstrumentEngine.dispose();
 
   const tempoHarness = createFakeEnvironment();
   const tempoEngine = new PracticeMetronomeEngine(

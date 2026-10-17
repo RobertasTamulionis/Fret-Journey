@@ -11,6 +11,7 @@ import {
   practiceRoutines,
 } from "@/data/practiceRoutines";
 import { practiceTabExamples } from "@/data/practiceTabExamples";
+import { buildPracticeAudioEvents } from "@/features/practice/audio/buildPracticeAudioEvents";
 import { resolvePracticeExerciseId } from "@/features/practice/exerciseAliases";
 import { resolvePracticeJourneyLocation } from "@/features/practice/journeyNavigation";
 import {
@@ -100,7 +101,7 @@ const defaultState: PracticeExperienceState = {
   durationSeconds: getPracticeDurationSeconds(
     practiceRoutines[0].steps[0].duration,
   ),
-  instrument: "clean-guitar",
+  instrument: "clean-electric",
   instrumentPlaybackEnabled: false,
   metronomeEnabled: false,
   metronomeVolume: 70,
@@ -312,6 +313,10 @@ export default function usePracticeExperience(
     [activeStep.exampleId, contextCompatibility.compatible, practiceContext],
   );
   const contextSignature = getPracticeContextSignature(practiceContext);
+  const instrumentPlan = useMemo(
+    () => buildPracticeAudioEvents(activeExample),
+    [activeExample],
+  );
   const previousContextSignature = useRef(contextSignature);
   const [contextAnnouncement, setContextAnnouncement] = useState("");
   const orderIndex = exerciseOrder.findIndex(
@@ -323,6 +328,10 @@ export default function usePracticeExperience(
     authoredScore: activeExample,
     clickSubdivision: state.selectedSubdivision,
     countInEnabled: state.countInEnabled,
+    instrumentEnabled: state.instrumentPlaybackEnabled,
+    instrumentPlan,
+    instrumentPreset: state.instrument,
+    instrumentVolume: state.volume,
     metronomeEnabled: state.metronomeEnabled,
     tempo: state.tempo,
     volume: state.metronomeVolume,
@@ -563,6 +572,20 @@ export default function usePracticeExperience(
     dispatch({ type: "toggle-metronome" });
   };
 
+  const toggleInstrumentPlayback = () => {
+    configureTransport({
+      instrumentEnabled: !state.instrumentPlaybackEnabled,
+      instrumentPreset: state.instrument,
+    });
+    dispatch({ type: "toggle-instrument-playback" });
+  };
+
+  const setInstrumentVolume = (volume: number) => {
+    const nextVolume = clampVolume(volume);
+    configureTransport({ instrumentVolume: nextVolume });
+    dispatch({ type: "set-volume", volume: nextVolume });
+  };
+
   const setMetronomeVolume = (volume: number) => {
     const nextVolume = clampVolume(volume);
     configureTransport({ volume: nextVolume });
@@ -692,11 +715,13 @@ export default function usePracticeExperience(
     resolveContextCompatibility,
     remainingSeconds,
     setDurationMinutes,
+    setInstrumentVolume,
     setSubdivision,
     setMetronomeVolume,
     setTempo,
     state,
     toggleCountIn,
+    toggleInstrumentPlayback,
     toggleMetronome,
     transport,
   };

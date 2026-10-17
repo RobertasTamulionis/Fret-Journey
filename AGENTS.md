@@ -105,6 +105,9 @@ The application currently supports:
   grip by physical neck region, showing one primary grip at a time, with
   session-local selections remembered per chord step and reflected in the
   compact progression-shape strip
+- audio-clock-synchronized catalog and local-builder progression playback using
+  exact selected generated grips, authored beat lengths, looping, BPM, volume,
+  and the shared Clean Electric, High-Gain Electric, and Acoustic presets
 
 The shared shell exposes `/`, `/progressions`, `/progressions/[slug]`, and
 `/practice` with real links and browser-history behavior. Fret cells and fret
@@ -173,7 +176,11 @@ markers remain visual output rather than selectable practice targets.
   the bounded tempo, subdivision, and instrument option contracts.
 - `src/features/practice/timing.ts` owns pure beat, event-index, timeline, and
   metronome-pulse planning; `src/features/practice/audio` owns the headless Web
-  Audio transport and scheduler.
+  Audio transport, TAB event conversion, and scheduler; `src/features/audio`
+  owns the React-independent musical-event and multisample instrument engine.
+- `src/features/progression-audio` owns generated-voicing-to-MIDI conversion,
+  progression beat planning, and the headless Web Audio playback controller;
+  `src/components/ProgressionPlayback` owns the shared catalog/builder controls.
 - `docs/PROGRESSION_SOURCES.md` documents provenance, licenses, and the import
   boundary; `scripts/progression-pipeline` normalizes audited candidates
   offline without bundling raw datasets.
@@ -427,7 +434,9 @@ Current ownership and terminology:
   finishes it.
 - Count-in and exercise metronome enablement are separate controls. The
   metronome synthesizes a distinct beat-one accent plus optional subdivisions;
-  reference-instrument controls remain preference-only and produce no audio.
+  Clean Electric, High-Gain Electric, and Acoustic Guitar playback schedule the
+  resolved TAB on the same Web Audio timeline and have an independent mute and
+  volume control.
 
 ## Practice Design and Interaction Principles
 
@@ -460,8 +469,14 @@ Current ownership and terminology:
   pulse planning. Both the current-event highlight and scheduled clicks derive
   from that beat axis and the same selected subdivision.
 - `PracticeMetronomeEngine` has no React imports. It owns the Web Audio timeline
-  and schedules a short look-ahead window against `AudioContext.currentTime`;
-  its timeout only wakes the scheduler and is not the musical clock.
+  and schedules metronome clicks and multisample notes in one short look-ahead
+  window against `AudioContext.currentTime`; its timeout only wakes the
+  scheduler and is not the musical clock.
+- The shared multisample engine accepts MIDI pitch, audio start time, duration,
+  velocity, articulation metadata, and simultaneous notes without depending on
+  Practice or Progression domain models. Practice converts resolved TAB;
+  Progression playback converts selected generated grips with verified MIDI
+  register and excludes muted strings.
 - React samples transport snapshots with `requestAnimationFrame` for visual
   presentation. It does not advance musical time and avoids rerendering when
   the visible phase, active event, and count-in value have not changed.
@@ -542,17 +557,21 @@ Current ownership and terminology:
   remembers a selected signature per chord step for the current session. The
   24-fret neck does not imply 24-fret generation; upper-neck generation beyond
   fret 12 remains unsupported.
+- Progression detail and the local builder play exact selected generated grips
+  through the shared guitar presets. Authored step beat lengths define chord
+  changes; Web Audio time owns playback and Follow Along. Custom tunings without
+  registered octaves remain explicitly unavailable for pitched playback.
 - Practice content remains a curated guided-routine library. Its durations,
   clean-tempo rules, success criteria, musical prompts, health note, and
   external research links remain instructional copy. The current session has a
   looping current-event highlight synchronized to its local tempo and selected
-  subdivision, an editable transport-synchronized countdown, plus structural
-  metronome and instrument preferences. The TAB sequence remains visually
-  static. It still has no backing track, reference-note audio, automatic
+  subdivision, an editable transport-synchronized countdown, a metronome, and
+  optional selectable guitar playback of resolved TAB. The TAB sequence
+  remains visually static. It still has no backing track, automatic
   completion, analytics, accounts, or cloud synchronization. Rhythm → Riff
   persists only completed Journey exercise IDs in local storage. Its first
-  audio layer is a scheduled synthesized metronome with count-in, beat-one
-  accent, and subdivision clicks.
+  audio layer uses one scheduled Web Audio transport for the synthesized
+  metronome and curated CC0 guitar multisamples.
 - Authored Practice tablature is a verified immutable Standard E reference
   library, not generated shape, fingering, barre, or voicing data. Pure recipes
   resolve its pitches and physical frets for the current context. Source and
@@ -573,7 +592,7 @@ Current ownership and terminology:
   8-string instruments are outside the named CAGED form.
 - Harmonic Minor and Phrygian Dominant expose 3NPS only. Minor Blues exposes
   Blues Boxes only.
-- There are no drums, backing tracks, reference-note playback, progression
+- There are no drums, backing tracks, progression
   trainer, general practice-history tracking, practice scoring, account system,
   E2E runner, visual-regression suite, or CI workflow. Local persistence is
   limited to theme preference and Journey-specific completed exercise IDs.
@@ -633,9 +652,10 @@ now ship. The following remains future work:
   required-tone, omission, and doubling rules.
 - Add a deliberate registered-pitch workflow before supporting custom or
   re-entrant tuning diagrams.
-- Keep Practice audio beyond the first metronome layer, automatic progression-
-  wide voice-leading, progression building, AI suggestions, favorites/history,
-  accounts, cloud persistence, practice scoring, and song associations deferred.
+- Keep dedicated articulation recordings beyond the deterministic Phase 2
+  processing, custom strumming, automatic progression-wide voice-leading,
+  progression building, AI suggestions, favorites/history, accounts, cloud
+  persistence, practice scoring, and song associations deferred.
 
 Do not implement this remaining backlog until the user explicitly reopens it.
 

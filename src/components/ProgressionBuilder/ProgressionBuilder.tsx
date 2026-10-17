@@ -2,11 +2,17 @@
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import ChordDiagram from "@/components/ChordDiagram/ChordDiagram";
+import ProgressionPlayback from "@/components/ProgressionPlayback/ProgressionPlayback";
 import ImprovisationWorkspace from "@/components/ProgressionWorkspace/ImprovisationWorkspace";
 import { buildImprovisationGuidance } from "@/features/improvisation";
 import { analyzeProgressionContext } from "@/features/musical-context";
+import {
+  buildProgressionAudioPlan,
+  getSelectedProgressionVoicings,
+  type ProgressionPlaybackSnapshot,
+} from "@/features/progression-audio";
 import {
   type AuthoredChordSpec,
   type AuthoredProgression,
@@ -91,6 +97,11 @@ export default function ProgressionBuilder() {
   const [status, setStatus] = useState("Not saved");
   const [missing, setMissing] = useState(false);
   const [voicingIndex, setVoicingIndex] = useState(0);
+  const [selectedVoicingSignatures, setSelectedVoicingSignatures] = useState<
+    Record<string, string>
+  >({});
+  const [playbackSnapshot, setPlaybackSnapshot] =
+    useState<ProgressionPlaybackSnapshot | null>(null);
   const [savedContext, setSavedContext] = useState({
     scale: currentScale,
     tonic: currentKey,
@@ -185,18 +196,30 @@ export default function ProgressionBuilder() {
       return error instanceof Error ? error.message : "Invalid chord";
     }
   }, [chordDraft, currentKey, currentScale]);
-  const voicings = useMemo(
+  const voicingsByStep = useMemo(
     () =>
-      selected
-        ? generateChordVoicings(
-            buildResolvedChordVoicingRequest(selected.chord, {
-              registeredTuning,
-              stringCount,
-              tuning,
-            }),
-          )
-        : [],
-    [registeredTuning, selected, stringCount, tuning],
+      resolved.steps.map((step) =>
+        generateChordVoicings(
+          buildResolvedChordVoicingRequest(step.chord, {
+            registeredTuning,
+            stringCount,
+            tuning,
+          }),
+        ),
+      ),
+    [registeredTuning, resolved.steps, stringCount, tuning],
+  );
+  const voicings = voicingsByStep[safeIndex] ?? [];
+  const progressionAudioPlan = useMemo(
+    () =>
+      buildProgressionAudioPlan(
+        getSelectedProgressionVoicings(
+          resolved,
+          voicingsByStep,
+          selectedVoicingSignatures,
+        ),
+      ),
+    [resolved, selectedVoicingSignatures, voicingsByStep],
   );
   const voiceLeading = useMemo(
     () =>
@@ -218,6 +241,35 @@ export default function ProgressionBuilder() {
     setDirty(true);
     setSaved(false);
     setStatus("Unsaved changes");
+  };
+  const selectProgressionStep = useCallback(
+    (index: number) => {
+      setSelectedIndex(index);
+      const step = resolved.steps[index];
+      const choices = voicingsByStep[index] ?? [];
+      const selectedSignature = step
+        ? selectedVoicingSignatures[step.id]
+        : undefined;
+      setVoicingIndex(
+        Math.max(
+          0,
+          choices.findIndex(({ signature }) => signature === selectedSignature),
+        ),
+      );
+    },
+    [resolved.steps, selectedVoicingSignatures, voicingsByStep],
+  );
+  const chooseVoicingIndex = (index: number) => {
+    const next = Math.max(0, Math.min(index, voicings.length - 1));
+    setVoicingIndex(next);
+    const step = resolved.steps[safeIndex];
+    const voicing = voicings[next];
+    if (step && voicing) {
+      setSelectedVoicingSignatures((current) => ({
+        ...current,
+        [step.id]: voicing.signature,
+      }));
+    }
   };
   const add = (chord: AuthoredChordSpec = chordDraft) => {
     if (steps.length >= maximumAuthoredProgressionSteps) return;
@@ -351,6 +403,12 @@ export default function ProgressionBuilder() {
         </span>
       </div>
 
+      <ProgressionPlayback
+        onActiveStepChange={selectProgressionStep}
+        onSnapshotChange={setPlaybackSnapshot}
+        plan={progressionAudioPlan}
+      />
+
       <div className="progressionBuilder__layout">
         <section
           className="progressionBuilder__editor"
@@ -464,13 +522,12 @@ export default function ProgressionBuilder() {
             <ol>
               {resolved.steps.map((step, index) => (
                 <li
-                  className={index === safeIndex ? "is-active" : ""}
+                  className={`${index === safeIndex ? "is-active" : ""}${playbackSnapshot?.phase !== "idle" && playbackSnapshot?.activeStepIndex === index ? " is-playback-active" : ""}`}
                   key={step.id}
                 >
                   <button
                     onClick={() => {
-                      setSelectedIndex(index);
-                      setVoicingIndex(0);
+                      selectProgressionStep(index);
                     }}
                     type="button"
                   >
@@ -580,20 +637,14 @@ export default function ProgressionBuilder() {
                   <div className="progressionBuilder__voicingNav">
                     <button
                       disabled={voicingIndex === 0}
-                      onClick={() =>
-                        setVoicingIndex((index) => Math.max(0, index - 1))
-                      }
+                      onClick={() => chooseVoicingIndex(voicingIndex - 1)}
                       type="button"
                     >
                       Previous grip
                     </button>
                     <button
                       disabled={voicingIndex >= voicings.length - 1}
-                      onClick={() =>
-                        setVoicingIndex((index) =>
-                          Math.min(voicings.length - 1, index + 1),
-                        )
-                      }
+                      onClick={() => chooseVoicingIndex(voicingIndex + 1)}
                       type="button"
                     >
                       Next grip

@@ -48,6 +48,13 @@ type PracticeSessionProps = {
   example: PracticeTabExample;
   instrument: PracticeInstrument;
   instrumentPlaybackEnabled: boolean;
+  instrumentPlaybackError: string | null;
+  instrumentPlaybackStatus:
+    | "error"
+    | "idle"
+    | "loading"
+    | "ready"
+    | "unavailable";
   journey: {
     objective: string;
     stepIndex: number;
@@ -186,6 +193,7 @@ function AnimatedReadoutValue({
 }
 
 type PracticeToggleProps = {
+  disabled?: boolean;
   label: string;
   motionCustom: FretJourneyMotionCustom;
   onToggle: () => void;
@@ -193,13 +201,19 @@ type PracticeToggleProps = {
 };
 
 function PracticeToggle({
+  disabled = false,
   label,
   motionCustom,
   onToggle,
   pressed,
 }: PracticeToggleProps) {
   return (
-    <button aria-pressed={pressed} onClick={onToggle} type="button">
+    <button
+      aria-pressed={pressed}
+      disabled={disabled}
+      onClick={onToggle}
+      type="button"
+    >
       <span>{label}</span>
       <AnimatePresence initial={false} mode="popLayout">
         <motion.strong
@@ -315,6 +329,8 @@ export default function PracticeSession({
   example,
   instrument,
   instrumentPlaybackEnabled,
+  instrumentPlaybackError,
+  instrumentPlaybackStatus,
   journey,
   journeyCompletionEnabled,
   metronomeEnabled,
@@ -341,6 +357,9 @@ export default function PracticeSession({
   transportStatus,
   volume,
 }: PracticeSessionProps) {
+  const selectedInstrumentLabel =
+    practiceInstrumentOptions.find(({ value }) => value === instrument)
+      ?.label ?? "Guitar";
   const position = getPracticePositionSnapshot(
     example,
     activeEventIndex,
@@ -645,12 +664,29 @@ export default function PracticeSession({
               pressed={metronomeEnabled}
             />
             <PracticeToggle
+              disabled={
+                instrumentPlaybackStatus === "unavailable" &&
+                !instrumentPlaybackEnabled
+              }
               label="Instrument playback"
               motionCustom={motionCustom}
               onToggle={onToggleInstrumentPlayback}
               pressed={instrumentPlaybackEnabled}
             />
           </div>
+
+          <p aria-live="polite" className="practiceInstrumentStatus">
+            {instrumentPlaybackStatus === "loading"
+              ? `Loading ${selectedInstrumentLabel} samples…`
+              : instrumentPlaybackStatus === "error"
+                ? `Instrument unavailable: ${instrumentPlaybackError ?? "samples could not load"}. Metronome playback remains available.`
+                : instrumentPlaybackStatus === "unavailable"
+                  ? instrumentPlaybackError
+                  : instrumentPlaybackEnabled &&
+                      instrumentPlaybackStatus === "ready"
+                    ? `${selectedInstrumentLabel} ready.`
+                    : `${selectedInstrumentLabel} samples load when playback starts.`}
+          </p>
 
           <div className="volumeControl">
             <label htmlFor="practice-metronome-volume">

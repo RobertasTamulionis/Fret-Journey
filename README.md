@@ -166,6 +166,10 @@ The focused session currently provides:
 - A synthesized Web Audio metronome with a distinct beat-one accent, optional
   subdivision clicks, and click volume. Count-in and exercise metronome
   playback are independent controls.
+- Optional Clean Electric, High-Gain Electric, and Acoustic Guitar playback of
+  the resolved TAB through curated CC0 recordings. Notes and clicks share the
+  transport's Web Audio clock; chords are scheduled together, rests remain
+  silent, and dead notes use a short unpitched percussive voice.
 - A static guided score that emphasizes the current grouped note or rest, fades
   played events, and leaves upcoming events neutral. It does not animate a
   playhead between TAB positions.
@@ -175,9 +179,9 @@ The focused session currently provides:
 - An editable exercise countdown initialized from the authored practice window.
   It derives elapsed time from the Web Audio transport, starts after count-in,
   pauses and resumes with playback, and pauses the exercise at zero.
-- Local, ephemeral duration, tempo, subdivision, metronome,
-  reference-instrument, and volume preferences. The reference-instrument
-  controls remain structural preferences and do not currently produce audio.
+- Local, ephemeral duration, tempo, subdivision, metronome, guitar preset,
+  and independent click/instrument volume preferences. Pitched playback is
+  unavailable for custom tunings without verified octave registers.
 - A Session Complete view for repeating the exercise, opening the next
   exercise, or returning to the library. Standalone completion is not saved;
   Rhythm → Riff stores only its completed exercise IDs in versioned browser
@@ -241,6 +245,14 @@ progression step. Grip choices are local to the current workspace session and
 remembered per step; they are not saved progress or an automatically optimized
 voice-leading path.
 
+Catalog details and the Progression Builder can play those exact generated
+grips through the shared Clean Electric, High-Gain Electric, or Acoustic Guitar
+multisample engine. Each sounding string becomes its verified MIDI pitch,
+muted strings remain silent, authored step durations define chord changes, and
+the audio-clock-derived active chord follows Play, Pause, Stop, BPM changes,
+looping, volume changes, and live preset changes. Pitched playback is disabled
+for custom tunings whose octave register is unknown.
+
 The complete source ledger and ingestion policy live in
 [docs/PROGRESSION_SOURCES.md](./docs/PROGRESSION_SOURCES.md). The catalog ships
 original editorial templates; it does not ship song titles, artist names,
@@ -272,7 +284,8 @@ Open [http://localhost:3000](http://localhost:3000).
 | `npm run build` | Create a production build |
 | `npm run start` | Start the built application |
 | `npm run theory:check` | Verify theory, chord, shape, tuning, and Redux behavior |
-| `npm run practice:audio:check` | Verify Practice timing, metronome scheduling, and transport lifecycle |
+| `npm run practice:audio:check` | Verify Practice timing, TAB-to-audio conversion, multisample assets, scheduling, and transport lifecycle |
+| `npm run progression:audio:check` | Verify progression voicing conversion, timing, looping, and audio lifecycle |
 | `npm run progressions:candidates` | Normalize an audited relative-candidate file outside the production bundle |
 | `npm run lint` | Run repository-wide Biome checks |
 | `npm run format` | Format supported files with Biome |
@@ -297,13 +310,16 @@ Toolkit, Sass, and Biome.
 | `src/components/Fretboard/FretboardNeck.tsx` | Reusable all-tone and exact-voicing neck visualization |
 | `src/components/ProgressionLibrary` | Catalog search, filtering, ranking, and cards |
 | `src/components/ProgressionWorkspace` | Active-step timeline, diagrams, and fretboard integration |
+| `src/components/ProgressionPlayback` | Shared catalog and builder progression playback controls |
 | `src/components/PracticeLab` | Practice Library, focused Practice Session, Session Complete, local session state, and graphical tab player |
 | `src/features/practice/session.ts` | Practice-session display helpers and control option contracts |
 | `src/features/practice/tablature.ts` | Typed tuning, rhythm, event, notation, and pitch helpers for authored tabs |
 | `src/features/practice/recipes.ts` | Immutable transformation intent for every authored Practice score |
 | `src/features/practice/resolvePracticeTab.ts` | Pure key-, scale-, string-, and tuning-aware Practice score resolver |
 | `src/features/practice/timing.ts` | Pure Practice beat, event-index, timeline, and metronome-pulse planning |
-| `src/features/practice/audio/PracticeMetronomeEngine.ts` | Headless Web Audio transport and look-ahead metronome scheduler |
+| `src/features/practice/audio/PracticeMetronomeEngine.ts` | Headless Web Audio transport and shared look-ahead metronome/instrument scheduler |
+| `src/features/audio` | React-independent musical event, multisample manifest, and native Web Audio instrument engine |
+| `src/features/progression-audio` | Pure voicing-to-MIDI planning and headless progression transport |
 | `src/lib/motion.ts` | Shared restrained motion durations, easing, and Practice presentation variants |
 | `src/features/theme/themes.ts` | Theme options, validation, storage key, and bootstrap script |
 | `src/features/progressions` | Relative formulas, resolution, URL validation, and catalog contracts |
@@ -376,8 +392,8 @@ As of 2026-09-26:
 ## Current limitations
 
 Fret Journey remains a visualization, exploration, and guided-routine tool.
-Practice now includes its first scheduled audio layer and an editable transport-
-synchronized exercise countdown, but not a reference-instrument system:
+Practice now includes an editable transport-synchronized countdown, metronome,
+and three selectable reference-instrument sounds:
 
 - Dynamic diagrams include every authored chord tone for all current scale and
   progression chords. They do not yet generate omission-based shell voicings.
@@ -397,13 +413,16 @@ synchronized exercise countdown, but not a reference-instrument system:
   highlight, an editable countdown, and manual completion state. The countdown
   starts after count-in, freezes while paused, and pauses playback at zero;
   subdivision controls event advancement and click density without rebuilding
-  or rewriting the TAB. Reference-instrument controls do not produce audio.
-  Displayed scores resolve from immutable
-  Standard E references; custom pitch-class tunings cannot claim an exact
-  octave register until octave-aware tuning input exists.
-- There are no drums, backing tracks, reference-note playback, progression
-  trainer, saved practice progress, practice scoring, or account system. Only
-  the visual theme preference is persisted.
+  or rewriting the TAB. The guitar presets reproduce resolved pitched notes,
+  authored timing, rests, simultaneous notes, and deterministic accents.
+  Displayed scores resolve from immutable Standard E references; custom
+  pitch-class tunings cannot play pitched audio until octave-aware tuning input
+  exists. Palm-mute depth changes tone and decay; legato softens attacks;
+  slides, bends, releases, and vibrato apply deterministic pitch automation
+  only where the TAB supplies the required relationship or target.
+- There are no drums, backing tracks, custom strumming editor, saved practice
+  progress, practice scoring, or account system. Progression playback is one
+  simultaneous chord attack per authored step, not a performance arrangement.
 - The Fretboard and Progression workspaces retain the intentional `1180px`
   desktop canvas and horizontal scrolling on narrower viewports. Practice Lab
   is the route-scoped exception and adapts its shell, library grid, score, and
@@ -428,9 +447,9 @@ following work remains deferred:
   required-tone, omission, and doubling policies.
 - Define an explicit registered-pitch workflow for supported custom and
   re-entrant tunings.
-- If explicitly reopened, add optional reference playback as separate work
-  beyond the current metronome layer. Keep drums, backing tracks, practice
-  scoring, accounts, cloud persistence, favorites/history, progression
-  building, and AI suggestions deferred.
+- Add dedicated recorded articulation layers beyond the current deterministic
+  sample processing. Keep drums, backing tracks, custom strumming, practice
+  scoring, accounts, cloud
+  persistence, favorites/history, and AI suggestions deferred.
 
 This remaining backlog should stay deferred until it is explicitly reopened.

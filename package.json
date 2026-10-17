@@ -8,6 +8,7 @@
     "start": "next start",
     "theory:check": "node --import tsx scripts/verify-theory.ts",
     "practice:audio:check": "node --import tsx scripts/verify-practice-audio.ts",
+    "progression:audio:check": "node --import tsx scripts/verify-progression-audio.ts",
     "progressions:candidates": "node --import tsx scripts/progression-pipeline/normalize-candidates.ts",
     "lint": "biome check",
     "format": "biome format --write"

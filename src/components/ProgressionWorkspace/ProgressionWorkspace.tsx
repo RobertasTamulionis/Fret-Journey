@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import ChordDiagram from "@/components/ChordDiagram/ChordDiagram";
 import FretboardNeck, {
@@ -10,11 +10,17 @@ import FretboardNeck, {
 } from "@/components/Fretboard/FretboardNeck";
 import FretCountSelector from "@/components/FretCountSelector/FretCountSelector";
 import ProgressionContext from "@/components/ProgressionContext/ProgressionContext";
+import ProgressionPlayback from "@/components/ProgressionPlayback/ProgressionPlayback";
 import { buildImprovisationGuidance } from "@/features/improvisation";
 import {
   analyzeProgressionContext,
   buildPitchClassContextMap,
 } from "@/features/musical-context";
+import {
+  buildProgressionAudioPlan,
+  getSelectedProgressionVoicings,
+  type ProgressionPlaybackSnapshot,
+} from "@/features/progression-audio";
 import {
   getResolvedChordToneIntervalLabel,
   type ProgressionTemplate,
@@ -139,6 +145,12 @@ export default function ProgressionWorkspace({
     voiceLeadingPolicy,
     visualizationMode,
   } = useAppSelector((state) => state.progressionLab);
+  const [playbackSnapshot, setPlaybackSnapshot] =
+    useState<ProgressionPlaybackSnapshot | null>(null);
+  const followPlaybackStep = useCallback(
+    (index: number) => dispatch(setProgressionActiveStep(index)),
+    [dispatch],
+  );
 
   useEffect(() => {
     dispatch(resetProgressionDetail());
@@ -159,6 +171,17 @@ export default function ProgressionWorkspace({
         getVoicings(chord, registeredTuning, stringCount, tuning),
       ),
     [registeredTuning, resolved.steps, stringCount, tuning],
+  );
+  const progressionAudioPlan = useMemo(
+    () =>
+      buildProgressionAudioPlan(
+        getSelectedProgressionVoicings(
+          resolved,
+          voicingsByStep,
+          selectedVoicingSignaturesByStepId,
+        ),
+      ),
+    [resolved, selectedVoicingSignaturesByStepId, voicingsByStep],
   );
   const activeVoicings = voicingsByStep[safeActiveStepIndex];
   const selectedVoicing =
@@ -368,19 +391,28 @@ export default function ProgressionWorkspace({
         </div>
       )}
 
+      <ProgressionPlayback
+        onActiveStepChange={followPlaybackStep}
+        onSnapshotChange={setPlaybackSnapshot}
+        plan={progressionAudioPlan}
+      />
+
       <fieldset
         aria-label="Progression chord timeline"
         className="progressionWorkspace__timeline"
       >
         {resolved.steps.map((step, index) => {
           const isActive = index === safeActiveStepIndex;
+          const isPlaybackActive =
+            playbackSnapshot?.phase !== "idle" &&
+            playbackSnapshot?.activeStepIndex === index;
 
           return (
             <button
               aria-controls="active-progression-chord"
               aria-label={`Select step ${index + 1}: ${step.chord.romanNumeral}, ${step.chord.name}, ${step.durationBeats} beats`}
               aria-pressed={isActive}
-              className="progressionWorkspace__timelineStep"
+              className={`progressionWorkspace__timelineStep${isPlaybackActive ? " is-playback-active" : ""}`}
               key={step.id}
               onClick={() => selectStep(index)}
               style={{ flexGrow: step.durationBeats }}

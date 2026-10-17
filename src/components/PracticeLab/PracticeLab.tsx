@@ -52,11 +52,13 @@ export default function PracticeLab({
     resolveContextCompatibility,
     remainingSeconds,
     setDurationMinutes,
+    setInstrumentVolume,
     setSubdivision,
     setMetronomeVolume,
     setTempo,
     state,
     toggleCountIn,
+    toggleInstrumentPlayback,
     toggleMetronome,
     transport,
   } = usePracticeExperience(exerciseId, journeyId);
@@ -123,6 +125,8 @@ export default function PracticeLab({
                 example={activeExample}
                 instrument={state.instrument}
                 instrumentPlaybackEnabled={state.instrumentPlaybackEnabled}
+                instrumentPlaybackError={transport.snapshot.instrumentError}
+                instrumentPlaybackStatus={transport.snapshot.instrumentStatus}
                 metronomeEnabled={state.metronomeEnabled}
                 metronomeVolume={state.metronomeVolume}
                 durationMinutes={state.durationSeconds / 60}
@@ -149,14 +153,10 @@ export default function PracticeLab({
                 onSubdivisionChange={setSubdivision}
                 onTempoChange={setTempo}
                 onToggleCountIn={toggleCountIn}
-                onToggleInstrumentPlayback={() =>
-                  dispatch({ type: "toggle-instrument-playback" })
-                }
+                onToggleInstrumentPlayback={toggleInstrumentPlayback}
                 onToggleMetronome={toggleMetronome}
                 onMetronomeVolumeChange={setMetronomeVolume}
-                onVolumeChange={(volume) =>
-                  dispatch({ type: "set-volume", volume })
-                }
+                onVolumeChange={setInstrumentVolume}
                 remainingSeconds={remainingSeconds}
                 routine={activeRoutine}
                 step={activeStep}
