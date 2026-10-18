@@ -248,6 +248,7 @@ export class MultisampleInstrument implements PitchedInstrument {
     output: AudioNode,
     chordScale: number,
     soundingDuration: number,
+    startSource: () => void,
   ): ScheduledVoice {
     const playback = getArticulationPlayback(note.articulation);
     const gain = this.context.createGain();
@@ -281,6 +282,7 @@ export class MultisampleInstrument implements PitchedInstrument {
     const voice = { nodes, source };
     source.onended = () => this.releaseVoice(voice);
     this.activeVoices.add(voice);
+    startSource();
     source.stop(stopTime + 0.005);
     return {
       stop: (atTime = this.context.currentTime) =>
@@ -353,8 +355,8 @@ export class MultisampleInstrument implements PitchedInstrument {
       output,
       chordScale,
       soundingDuration,
+      () => source.start(event.startTime, offset),
     );
-    source.start(event.startTime, offset);
     return voice;
   }
 
@@ -374,8 +376,8 @@ export class MultisampleInstrument implements PitchedInstrument {
       output,
       chordScale,
       duration,
+      () => source.start(event.startTime, 0, duration),
     );
-    source.start(event.startTime, 0, duration);
     return voice;
   }
 

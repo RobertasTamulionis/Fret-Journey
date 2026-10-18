@@ -15,6 +15,7 @@ import {
   getArticulationPlayback,
   getPitchAutomation,
   getPolyphonyGainScale,
+  MultisampleInstrument,
 } from "../src/features/audio/MultisampleInstrument";
 import type {
   GuitarPresetId,
@@ -825,7 +826,38 @@ class FakeOscillatorNode extends FakeAudioNode {
   }
 }
 
+class FakeBufferSourceNode extends FakeAudioNode {
+  buffer: AudioBuffer | null = null;
+  detune = new FakeAudioParam();
+  onended: (() => void) | null = null;
+  playbackRate = new FakeAudioParam();
+  started = false;
+  stopped = false;
+
+  start() {
+    this.started = true;
+  }
+
+  stop() {
+    assert.equal(
+      this.started,
+      true,
+      "AudioBufferSourceNode.start must run before stop",
+    );
+    this.stopped = true;
+  }
+}
+
+class FakeCompressorNode extends FakeAudioNode {
+  attack = new FakeAudioParam();
+  knee = new FakeAudioParam();
+  ratio = new FakeAudioParam();
+  release = new FakeAudioParam();
+  threshold = new FakeAudioParam();
+}
+
 class FakeAudioContext {
+  bufferSources: FakeBufferSourceNode[] = [];
   currentTime = 0;
   destination = new FakeAudioNode();
   gains: FakeGainNode[] = [];
@@ -840,6 +872,20 @@ class FakeAudioContext {
     const gain = new FakeGainNode();
     this.gains.push(gain);
     return gain;
+  }
+
+  createBufferSource() {
+    const source = new FakeBufferSourceNode();
+    this.bufferSources.push(source);
+    return source;
+  }
+
+  createDynamicsCompressor() {
+    return new FakeCompressorNode();
+  }
+
+  async decodeAudioData() {
+    return { duration: 2 } as AudioBuffer;
   }
 
   createOscillator() {
@@ -923,7 +969,31 @@ const baseConfig: PracticeMetronomeConfig = {
   volume: 70,
 };
 
+const verifyMultisampleSourceOrdering = async () => {
+  const context = new FakeAudioContext();
+  const instrument = new MultisampleInstrument(
+    context as unknown as AudioContext,
+    guitarPresets["clean-electric"],
+    { fetchArrayBuffer: async () => new ArrayBuffer(8) },
+  );
+  await instrument.load();
+  const voices = instrument.schedule(
+    {
+      duration: 0.5,
+      id: "source-order",
+      notes: [{ articulation: "normal", midi: 40, velocity: 0.8 }],
+      startTime: 0.05,
+    },
+    context.destination as unknown as AudioNode,
+  );
+  assert.equal(voices.length, 1);
+  assert.equal(context.bufferSources[0].started, true);
+  assert.equal(context.bufferSources[0].stopped, true);
+  instrument.dispose();
+};
+
 const verifyPracticeMetronomeEngine = async () => {
+  await verifyMultisampleSourceOrdering();
   const countInHarness = createFakeEnvironment();
   const countInEngine = new PracticeMetronomeEngine(baseConfig, {
     environment: countInHarness.environment,
