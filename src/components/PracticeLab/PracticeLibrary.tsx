@@ -9,11 +9,6 @@ import {
   practiceExerciseMetadata,
 } from "@/data/practiceExerciseMetadata";
 import {
-  getJourneyRecommendedExerciseId,
-  type PracticeJourneyId,
-  practiceJourneys,
-} from "@/data/practiceJourneys";
-import {
   type PracticeRoutine,
   type PracticeRoutineId,
   type PracticeStep,
@@ -32,10 +27,9 @@ import {
 import type { PracticeTabExample } from "@/features/practice/tablature";
 import { useAppSelector } from "@/lib/redux/store";
 import CompactPracticeTabPreview from "./CompactPracticeTabPreview";
+import Select from "@/components/ui/Select/Select";
 
 type PracticeLibraryProps = {
-  completedJourneyExerciseIds: readonly PracticeTabExampleId[];
-  onOpenJourney: (journeyId: PracticeJourneyId) => void;
   onSelectExercise: (routineId: PracticeRoutineId, stepIndex: number) => void;
 };
 
@@ -46,14 +40,6 @@ type ExerciseCardProps = {
   routine: PracticeRoutine;
   step: PracticeStep;
 };
-
-const featuredExerciseIds = [
-  "metal-three-three-two-engine",
-  "metal-pedal-assault",
-  "funk-pocket-stabs",
-  "sweep-progression",
-  "bends-phrase",
-] as const satisfies readonly PracticeTabExampleId[];
 
 const familyMarks: Record<string, string> = {
   "alternate-picking": "↕",
@@ -125,8 +111,6 @@ function ExerciseCard({
 }
 
 export default function PracticeLibrary({
-  completedJourneyExerciseIds,
-  onOpenJourney,
   onSelectExercise,
 }: PracticeLibraryProps) {
   const [search, setSearch] = useState("");
@@ -218,94 +202,14 @@ export default function PracticeLibrary({
     0,
   );
   const totalExerciseCount = practiceTabExampleIds.length;
-  const featuredExercises = practiceRoutines.flatMap((routine) =>
-    routine.steps.flatMap((step, stepIndex) =>
-      featuredExerciseIds.includes(
-        step.exampleId as (typeof featuredExerciseIds)[number],
-      )
-        ? [{ routine, step, stepIndex }]
-        : [],
-    ),
-  );
-  const journey = practiceJourneys[0];
-  const recommendedJourneyExerciseId = getJourneyRecommendedExerciseId(
-    journey,
-    completedJourneyExerciseIds,
-  );
-  const recommendedJourneyStep = practiceRoutines
-    .flatMap((routine) => routine.steps)
-    .find(
-      ({ exampleId, isSharedReference }) =>
-        exampleId === recommendedJourneyExerciseId && !isSharedReference,
-    );
-
   return (
     <div className="practiceLibrary">
       <header className="practiceLibrary__header">
         <span>Practice Library</span>
         <h1 data-practice-screen-heading tabIndex={-1}>
-          Choose one thing to work on
+          Exercises
         </h1>
-        <p>
-          Hear the shape of an exercise before you start. Every preview uses the
-          same resolved TAB and rhythm you will play in the session.
-        </p>
-        <small>
-          Start gently and stay relaxed. Stop for pain, weakness, tingling, or
-          loss of control.
-        </small>
       </header>
-
-      <section aria-label="Exercise Journeys" className="practiceJourneys">
-        <header>
-          <span>Exercise Journeys</span>
-          <h2>Build toward a musical destination</h2>
-        </header>
-        <button
-          className="practiceJourneyCard"
-          onClick={() => onOpenJourney(journey.id)}
-          type="button"
-        >
-          <span className="practiceJourneyCard__eyebrow">
-            {completedJourneyExerciseIds.length} / {journey.steps.length}{" "}
-            sessions
-          </span>
-          <strong>{journey.title}</strong>
-          <p>{journey.finalOutcome}</p>
-          <span>
-            {recommendedJourneyStep
-              ? `Recommended next · ${recommendedJourneyStep.title}`
-              : "Journey complete · revisit any step"}
-          </span>
-          <em>View Journey →</em>
-        </button>
-      </section>
-
-      <section
-        aria-label="Featured musical exercises"
-        className="practiceFeatured"
-      >
-        <header>
-          <span>Featured</span>
-          <h2>Start with something that sounds like music</h2>
-          <p>
-            Four authored phrases with groove, contrast, and a clear
-            destination.
-          </p>
-        </header>
-        <div className="practiceCategory__grid">
-          {featuredExercises.map(({ routine, step, stepIndex }) => (
-            <ExerciseCard
-              authoredContext={incompatibleContexts[step.exampleId] ?? null}
-              example={resolvedExamples[step.exampleId]}
-              key={step.exampleId}
-              onSelect={() => onSelectExercise(routine.id, stepIndex)}
-              routine={routine}
-              step={step}
-            />
-          ))}
-        </div>
-      </section>
 
       <section
         aria-label="Find a practice exercise"
@@ -330,22 +234,20 @@ export default function PracticeLibrary({
               value={search}
             />
           </label>
-          <label>
-            <span>Level</span>
-            <select
-              onChange={(event) =>
-                setDifficulty(event.target.value as PracticeDifficulty | "all")
-              }
-              value={difficulty}
-            >
-              <option value="all">All levels</option>
-              {practiceDifficulties.map((value) => (
-                <option key={value} value={value}>
-                  {formatPracticeTag(value)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select
+            label="Level"
+            onChange={(next) =>
+              setDifficulty(next as PracticeDifficulty | "all")
+            }
+            options={[
+              { value: "all", label: "All levels" },
+              ...practiceDifficulties.map((value) => ({
+                value,
+                label: formatPracticeTag(value),
+              })),
+            ]}
+            value={difficulty}
+          />
         </div>
         <div className="practiceFilters__categories">
           <button

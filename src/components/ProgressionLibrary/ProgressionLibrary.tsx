@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type MouseEvent, useEffect, useMemo, useState } from "react";
-import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
+import Select from "@/components/ui/Select/Select";
 import { progressionCatalog } from "@/data/progressionCatalog";
 import {
   type AuthoredProgression,
@@ -118,7 +118,6 @@ const getCompatibleScaleLabel = (progression: ProgressionTemplate): string =>
 
 function ProgressionCard({ item }: { item: LibraryItem }) {
   const router = useRouter();
-  const { beginTransition } = useRouteTransition();
   const { currentKey, currentScale } = useAppSelector(
     (state) => state.fretboard,
   );
@@ -136,11 +135,9 @@ function ProgressionCard({ item }: { item: LibraryItem }) {
         className="progressionCard__link"
         href={href}
         onClick={(event) => {
-          beginTransition("forward");
           rememberProgressionLibraryScroll(event);
         }}
         onFocus={prefetchProgression}
-        onPointerDown={() => beginTransition("forward")}
         onPointerEnter={prefetchProgression}
         prefetch
       >
@@ -181,7 +178,6 @@ function ProgressionCard({ item }: { item: LibraryItem }) {
 export default function ProgressionLibrary() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const { beginTransition } = useRouteTransition();
   const { currentKey, currentScale } = useAppSelector(
     (state) => state.fretboard,
   );
@@ -341,7 +337,6 @@ export default function ProgressionLibrary() {
 
     const selection =
       verifiedItems[Math.floor(Math.random() * verifiedItems.length)];
-    beginTransition("forward");
     router.push(
       buildProgressionHref(
         selection.progression.slug,
@@ -475,148 +470,126 @@ export default function ProgressionLibrary() {
             />
           </label>
 
-          <label>
-            <span>Style</span>
-            <select
-              onChange={(event) =>
-                dispatch(setProgressionStyle(event.target.value))
-              }
-              value={filters.style}
-            >
-              <option value="all">All styles</option>
-              {styles.map((style) => (
-                <option key={style} value={style}>
-                  {style}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select
+            label="Style"
+            onChange={(value) => dispatch(setProgressionStyle(value))}
+            options={[
+              { value: "all", label: "All styles" },
+              ...styles.map((style) => ({ value: style, label: style })),
+            ]}
+            value={filters.style}
+          />
 
-          <label>
-            <span>Mood</span>
-            <select
-              onChange={(event) =>
-                dispatch(setProgressionMood(event.target.value))
-              }
-              value={filters.mood}
-            >
-              <option value="all">All moods</option>
-              {moods.map((mood) => (
-                <option key={mood} value={mood}>
-                  {mood}
-                </option>
-              ))}
-            </select>
-          </label>
+          <Select
+            label="Mood"
+            onChange={(value) => dispatch(setProgressionMood(value))}
+            options={[
+              { value: "all", label: "All moods" },
+              ...moods.map((mood) => ({ value: mood, label: mood })),
+            ]}
+            value={filters.mood}
+          />
 
-          <label>
-            <span>Difficulty</span>
-            <select
-              onChange={(event) =>
-                dispatch(
-                  setProgressionDifficulty(
-                    event.target.value as ProgressionDifficultyFilter,
-                  ),
-                )
-              }
-              value={filters.difficulty}
-            >
-              <option value="all">Any difficulty</option>
-              <option value="beginner">Beginner</option>
-              <option value="intermediate">Intermediate</option>
-              <option value="advanced">Advanced</option>
-            </select>
-          </label>
+          <Select
+            label="Difficulty"
+            onChange={(value) =>
+              dispatch(
+                setProgressionDifficulty(value as ProgressionDifficultyFilter),
+              )
+            }
+            options={[
+              { value: "all", label: "Any difficulty" },
+              { value: "beginner", label: "Beginner" },
+              { value: "intermediate", label: "Intermediate" },
+              { value: "advanced", label: "Advanced" },
+            ]}
+            value={filters.difficulty}
+          />
 
-          <label>
-            <span>Chord count</span>
-            <select
-              onChange={(event) =>
-                dispatch(
-                  setProgressionChordCount(
-                    event.target.value as ProgressionChordCountFilter,
-                  ),
-                )
-              }
-              value={filters.chordCount}
-            >
-              <option value="all">Any length</option>
-              <option value="2-3">2–3 chords</option>
-              <option value="4">4 chords</option>
-              <option value="5-8">5–8 chords</option>
-            </select>
-          </label>
+          <Select
+            label="Chord count"
+            onChange={(value) =>
+              dispatch(
+                setProgressionChordCount(value as ProgressionChordCountFilter),
+              )
+            }
+            options={[
+              { value: "all", label: "Any length" },
+              { value: "2-3", label: "2–3 chords" },
+              { value: "4", label: "4 chords" },
+              { value: "5-8", label: "5–8 chords" },
+            ]}
+            value={filters.chordCount}
+          />
         </div>
 
         <details className="progressionFilters__advanced">
           <summary>Advanced filters</summary>
           <div className="progressionFilters__advancedGrid">
-            <label>
-              <span>Scale fit</span>
-              <select
-                onChange={(event) =>
-                  dispatch(
-                    setProgressionCompatibility(
-                      event.target.value as ProgressionCompatibilityFilter,
-                    ),
-                  )
-                }
-                value={filters.compatibility}
-              >
-                <option value="all">All, compatible first</option>
-                <option value="compatible">Compatible only</option>
-                <option value="incompatible">Incompatible only</option>
-              </select>
-            </label>
-            <label>
-              <span>Category</span>
-              <select
-                onChange={(event) =>
-                  dispatch(setProgressionCategory(event.target.value))
-                }
-                value={filters.category}
-              >
-                <option value="all">All categories</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {categoryLabels[category]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Harmonic device</span>
-              <select
-                onChange={(event) =>
-                  dispatch(setProgressionDevice(event.target.value))
-                }
-                value={filters.device}
-              >
-                <option value="all">All devices</option>
-                {devices.map((device) => (
-                  <option key={device} value={device}>
-                    {deviceLabels[device]}
-                  </option>
-                ))}
-              </select>
-            </label>
-            <label>
-              <span>Harmony</span>
-              <select
-                onChange={(event) =>
-                  dispatch(
-                    setProgressionHarmonicScope(
-                      event.target.value as ProgressionHarmonicScopeFilter,
-                    ),
-                  )
-                }
-                value={filters.harmonicScope}
-              >
-                <option value="all">Diatonic + color</option>
-                <option value="diatonic">Diatonic only</option>
-                <option value="borrowed-chromatic">Borrowed / chromatic</option>
-              </select>
-            </label>
+            <Select
+              fullWidth
+              label="Scale fit"
+              onChange={(value) =>
+                dispatch(
+                  setProgressionCompatibility(
+                    value as ProgressionCompatibilityFilter,
+                  ),
+                )
+              }
+              options={[
+                { value: "all", label: "All, compatible first" },
+                { value: "compatible", label: "Compatible only" },
+                { value: "incompatible", label: "Incompatible only" },
+              ]}
+              size="sm"
+              value={filters.compatibility}
+            />
+            <Select
+              fullWidth
+              label="Category"
+              onChange={(value) => dispatch(setProgressionCategory(value))}
+              options={[
+                { value: "all", label: "All categories" },
+                ...categories.map((category) => ({
+                  value: category,
+                  label: categoryLabels[category],
+                })),
+              ]}
+              size="sm"
+              value={filters.category}
+            />
+            <Select
+              fullWidth
+              label="Harmonic device"
+              onChange={(value) => dispatch(setProgressionDevice(value))}
+              options={[
+                { value: "all", label: "All devices" },
+                ...devices.map((device) => ({
+                  value: device,
+                  label: deviceLabels[device],
+                })),
+              ]}
+              size="sm"
+              value={filters.device}
+            />
+            <Select
+              fullWidth
+              label="Harmony"
+              onChange={(value) =>
+                dispatch(
+                  setProgressionHarmonicScope(
+                    value as ProgressionHarmonicScopeFilter,
+                  ),
+                )
+              }
+              options={[
+                { value: "all", label: "Diatonic + color" },
+                { value: "diatonic", label: "Diatonic only" },
+                { value: "borrowed-chromatic", label: "Borrowed / chromatic" },
+              ]}
+              size="sm"
+              value={filters.harmonicScope}
+            />
           </div>
         </details>
       </section>

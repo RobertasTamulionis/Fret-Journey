@@ -35,6 +35,7 @@ export type PracticeMetronomeConfig = {
   metronomeEnabled: boolean;
   tempo: number;
   volume: number;
+  playbackSpeedMultiplier?: number;
 };
 
 export type PracticeTransportSnapshot = {
@@ -128,6 +129,7 @@ const normalizeConfig = (
   ...config,
   instrumentVolume: clampVolume(config.instrumentVolume),
   tempo: clampPracticeTempo(config.tempo),
+  playbackSpeedMultiplier: Math.max(0.25, config.playbackSpeedMultiplier ?? 1),
   volume: clampVolume(config.volume),
 });
 
@@ -181,6 +183,9 @@ export class PracticeMetronomeEngine {
     const nextConfig = normalizeConfig(config);
     const previousConfig = this.config;
     const tempoChanged = previousConfig.tempo !== nextConfig.tempo;
+    const playbackSpeedChanged =
+      previousConfig.playbackSpeedMultiplier !==
+      nextConfig.playbackSpeedMultiplier;
     const pulsePlanChanged =
       previousConfig.clickSubdivision !== nextConfig.clickSubdivision ||
       previousConfig.metronomeEnabled !== nextConfig.metronomeEnabled;
@@ -193,8 +198,17 @@ export class PracticeMetronomeEngine {
       !nextConfig.countInEnabled &&
       this.getSnapshot().phase === "counting-in";
 
-    if (tempoChanged && this.mode === "running" && this.context && this.run) {
-      this.reanchorRunningTimeline(this.context.currentTime, nextConfig.tempo);
+    if (
+      (tempoChanged || playbackSpeedChanged) &&
+      this.mode === "running" &&
+      this.context &&
+      this.run
+    ) {
+      this.reanchorRunningTimeline(
+        this.context.currentTime,
+        nextConfig.tempo,
+        nextConfig.playbackSpeedMultiplier!,
+      );
     }
 
     if (cancelActiveCountIn && this.context && this.run) {
@@ -204,6 +218,7 @@ export class PracticeMetronomeEngine {
       this.run.anchor = {
         audioTime: this.context.currentTime,
         exerciseBeat: this.run.playbackStartBeat,
+        playbackSpeedMultiplier: nextConfig.playbackSpeedMultiplier!,
         tempo: nextConfig.tempo,
       };
     }
@@ -370,7 +385,8 @@ export class PracticeMetronomeEngine {
             this.run.countInBeats,
             Math.ceil(
               (this.run.playbackStartAudioTime - now) /
-                getPracticeSecondsPerBeat(this.run.anchor.tempo),
+                getPracticeSecondsPerBeat(this.run.anchor.tempo) /
+                this.run.anchor.playbackSpeedMultiplier!,
             ),
           ),
         ),
@@ -399,7 +415,8 @@ export class PracticeMetronomeEngine {
       countInBeatsRemaining: 0,
       elapsedExerciseSeconds:
         this.run.elapsedExerciseSecondsAtPlaybackStart +
-        Math.max(0, now - this.run.playbackStartAudioTime),
+        Math.max(0, now - this.run.playbackStartAudioTime) *
+          this.run.anchor.playbackSpeedMultiplier!,
       exerciseBeat,
       instrumentError: this.instrumentError,
       instrumentStatus: this.getInstrumentStatus(),
@@ -495,7 +512,9 @@ export class PracticeMetronomeEngine {
       ? Math.max(0, requestedCountInBeats)
       : 0;
     const countInStartAudioTime = context.currentTime + this.startLeadSeconds;
-    const secondsPerBeat = getPracticeSecondsPerBeat(this.config.tempo);
+    const secondsPerBeat =
+      getPracticeSecondsPerBeat(this.config.tempo) /
+      this.config.playbackSpeedMultiplier!;
     const playbackStartAudioTime =
       countInStartAudioTime + countInBeats * secondsPerBeat;
 
@@ -504,6 +523,7 @@ export class PracticeMetronomeEngine {
       anchor: {
         audioTime: playbackStartAudioTime,
         exerciseBeat: fromExerciseBeat,
+        playbackSpeedMultiplier: this.config.playbackSpeedMultiplier!,
         tempo: this.config.tempo,
       },
       countInBeats,
@@ -515,7 +535,11 @@ export class PracticeMetronomeEngine {
     this.restartScheduler();
   }
 
-  private reanchorRunningTimeline(now: number, nextTempo: number): void {
+  private reanchorRunningTimeline(
+    now: number,
+    nextTempo: number,
+    nextPlaybackSpeedMultiplier: number,
+  ): void {
     if (!this.run) {
       return;
     }
@@ -523,7 +547,8 @@ export class PracticeMetronomeEngine {
     const previousSecondsPerBeat = getPracticeSecondsPerBeat(
       this.run.anchor.tempo,
     );
-    const nextSecondsPerBeat = getPracticeSecondsPerBeat(nextTempo);
+    const nextSecondsPerBeat =
+      getPracticeSecondsPerBeat(nextTempo) / nextPlaybackSpeedMultiplier;
 
     if (now + audioTimeEpsilon < this.run.playbackStartAudioTime) {
       const elapsedCountInBeats = Math.max(
@@ -542,6 +567,7 @@ export class PracticeMetronomeEngine {
       this.run.anchor = {
         audioTime: this.run.playbackStartAudioTime,
         exerciseBeat: this.run.playbackStartBeat,
+        playbackSpeedMultiplier: nextPlaybackSpeedMultiplier,
         tempo: nextTempo,
       };
       return;
@@ -551,13 +577,13 @@ export class PracticeMetronomeEngine {
       this.run.anchor,
       now,
     );
-    this.run.elapsedExerciseSecondsAtPlaybackStart += Math.max(
-      0,
-      now - this.run.playbackStartAudioTime,
-    );
+    this.run.elapsedExerciseSecondsAtPlaybackStart +=
+      Math.max(0, now - this.run.playbackStartAudioTime) *
+      this.run.anchor.playbackSpeedMultiplier!;
     this.run.anchor = {
       audioTime: now,
       exerciseBeat,
+      playbackSpeedMultiplier: nextPlaybackSpeedMultiplier,
       tempo: nextTempo,
     };
     this.run.playbackStartAudioTime = now;
@@ -634,7 +660,9 @@ export class PracticeMetronomeEngine {
       return;
     }
 
-    const secondsPerBeat = getPracticeSecondsPerBeat(this.run.anchor.tempo);
+    const secondsPerBeat =
+      getPracticeSecondsPerBeat(this.run.anchor.tempo) /
+      this.run.anchor.playbackSpeedMultiplier!;
     const fromBeat =
       (fromAudioTime - this.run.countInStartAudioTime) / secondsPerBeat;
     const toBeat =
@@ -701,13 +729,9 @@ export class PracticeMetronomeEngine {
 
     const oscillator = this.context.createOscillator();
     const gain = this.context.createGain();
-    const duration = pulse.accented ? 0.055 : 0.04;
-    const peak = pulse.accented ? 0.42 : pulse.kind === "beat" ? 0.28 : 0.12;
-    const frequency = pulse.accented
-      ? 1_650
-      : pulse.kind === "beat"
-        ? 1_050
-        : 720;
+    const duration = 0.04;
+    const peak = 0.16;
+    const frequency = 820;
     const scheduledClick = { gain, oscillator };
 
     oscillator.frequency.setValueAtTime(frequency, audioTime);
@@ -756,7 +780,9 @@ export class PracticeMetronomeEngine {
       this.run.anchor,
       windowEnd,
     );
-    const secondsPerBeat = getPracticeSecondsPerBeat(this.run.anchor.tempo);
+    const secondsPerBeat =
+      getPracticeSecondsPerBeat(this.run.anchor.tempo) /
+      this.run.anchor.playbackSpeedMultiplier!;
 
     for (const event of planPracticeAudioEvents({
       events: this.config.instrumentPlan.events,

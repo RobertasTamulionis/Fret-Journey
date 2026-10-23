@@ -10,6 +10,7 @@ import {
   type ProgressionPlaybackSnapshot,
 } from "@/features/progression-audio";
 import "./progressionPlayback.scss";
+import Select from "@/components/ui/Select/Select";
 
 type Props = {
   onActiveStepChange: (index: number) => void;
@@ -170,19 +171,15 @@ export default function ProgressionPlayback({
           value={bpm}
         />
       </label>
-      <label>
-        Guitar sound
-        <select
-          onChange={(event) => setPreset(event.target.value as GuitarPresetId)}
-          value={preset}
-        >
-          {Object.values(guitarPresets).map((option) => (
-            <option key={option.id} value={option.id}>
-              {option.label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <Select
+        label="Guitar sound"
+        onChange={(next) => setPreset(next as GuitarPresetId)}
+        options={Object.values(guitarPresets).map((option) => ({
+          value: option.id,
+          label: option.label,
+        }))}
+        value={preset}
+      />
       <label className="progressionPlayback__volume">
         Volume <span>{volume}%</span>
         <input

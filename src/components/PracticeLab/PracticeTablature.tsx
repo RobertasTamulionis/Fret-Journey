@@ -12,7 +12,6 @@ import {
   getPracticeScoreSlotCount,
   getPracticeSequenceEvents,
   getPracticeTabBeatSize,
-  getPracticeTabCountLabels,
   getPracticeTabLegend,
 } from "@/features/practice/tablature";
 
@@ -96,7 +95,6 @@ export default function PracticeTablature({
   const previousExampleIdRef = useRef(example.id);
   const tuning = getPracticeExampleTuning(example);
   const slots = getPracticeScoreSlotCount(example);
-  const countLabels = getPracticeTabCountLabels(example.subdivision);
   const legend = useMemo(() => getPracticeTabLegend(example), [example]);
   const gridStyle = useMemo(
     () =>
@@ -223,20 +221,6 @@ export default function PracticeTablature({
           <span>Playable example</span>
           <strong>{example.pitchScope.label}</strong>
         </div>
-        <dl className="practiceTab__metrics">
-          <div>
-            <dt>Tempo</dt>
-            <dd>{example.bpm} BPM</dd>
-          </div>
-          <div>
-            <dt>TAB</dt>
-            <dd>Static sequence</dd>
-          </div>
-          <div>
-            <dt>Loop</dt>
-            <dd>×{example.repetitions}</dd>
-          </div>
-        </dl>
         <output className="practiceTab__playbackStatus">
           <span>{showFollowAlong ? "Current event" : "Ready"}</span>
           <strong>
@@ -268,41 +252,6 @@ export default function PracticeTablature({
               {(slot) => markerBySlot.get(slot) ?? null}
             </GridRow>
           )}
-
-          <GridRow
-            activeEventIndex={presentedActiveEventIndex}
-            authoredSlot={presentedAuthoredSlot}
-            className="practiceTab__annotations practiceTab__picking"
-            eventIndexBySlot={sequenceIndexByOccupiedSlot}
-            eventStartSlotByIndex={eventStartSlotByIndex}
-            label="Pick"
-            slots={slots}
-            style={gridStyle}
-            subdivision={example.subdivision}
-          >
-            {(slot) => {
-              const event = eventBySlot.get(slot);
-
-              if (restEventIndexBySlot.has(slot)) {
-                return <span className="practiceTab__rest">REST</span>;
-              }
-
-              if (!event) {
-                return null;
-              }
-
-              return (
-                <span className="practiceTab__attack">
-                  {event.accent && <b>&gt;</b>}
-                  {event.stroke === "down"
-                    ? "↓"
-                    : event.stroke === "up"
-                      ? "↑"
-                      : null}
-                </span>
-              );
-            }}
-          </GridRow>
 
           {hasPalmMute && (
             <GridRow
@@ -359,16 +308,6 @@ export default function PracticeTablature({
               </GridRow>
             ))}
           </div>
-
-          <GridRow
-            className="practiceTab__annotations practiceTab__count"
-            label="Count"
-            slots={slots}
-            style={gridStyle}
-            subdivision={example.subdivision}
-          >
-            {(slot) => countLabels[slot % countLabels.length]}
-          </GridRow>
         </div>
       </section>
 

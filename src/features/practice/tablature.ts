@@ -100,6 +100,7 @@ export type PracticeTabExample = {
   };
   tuning?: PracticeTabTuning;
   tuningId: PracticeTabTuningId;
+  playbackScoreLengthBeats?: number;
 };
 
 export const practiceTabSlotCount: Record<PracticeTabSubdivision, number> = {
@@ -114,10 +115,38 @@ export const getPracticeScoreMeasureCount = (
 ): number => example.measureCount ?? 1;
 
 export const getPracticeScoreSlotCount = (
-  example: Pick<PracticeTabExample, "measureCount" | "subdivision">,
+  example: Pick<
+    PracticeTabExample,
+    "measureCount" | "subdivision" | "playbackScoreLengthBeats"
+  >,
 ): number =>
-  practiceTabSlotCount[example.subdivision] *
-  getPracticeScoreMeasureCount(example);
+  example.playbackScoreLengthBeats !== undefined
+    ? Math.ceil(
+        example.playbackScoreLengthBeats *
+          getPracticeTabBeatSize(example.subdivision),
+      )
+    : practiceTabSlotCount[example.subdivision] *
+      getPracticeScoreMeasureCount(example);
+
+export const createPracticePlaybackTimeline = (
+  example: PracticeTabExample,
+  subdivision: PracticeTabSubdivision,
+): PracticeTabExample => {
+  let cursor = 0;
+  const events = getPracticeSequenceEvents(example).map((event) => {
+    const playbackEvent = { ...event, at: cursor };
+    cursor += Math.max(1, event.duration);
+    return playbackEvent;
+  });
+
+  return {
+    ...example,
+    events,
+    measureCount: undefined,
+    playbackScoreLengthBeats: cursor / getPracticeTabBeatSize(subdivision),
+    subdivision,
+  };
+};
 
 const countCycles: Record<PracticeTabSubdivision, readonly string[]> = {
   quarters: ["1", "2", "3", "4"],
@@ -233,7 +262,6 @@ export const getPracticeTabLegend = (
   let hasAccent = false;
   let hasDeadNote = false;
   let hasPalmMute = false;
-  let hasPicking = false;
 
   example.events.forEach((event) => {
     if (event.kind === "rest") {
@@ -242,7 +270,6 @@ export const getPracticeTabLegend = (
 
     hasAccent ||= event.accent === true;
     hasPalmMute ||= event.palmMuteDepth !== undefined;
-    hasPicking ||= event.stroke !== undefined;
 
     event.notes.forEach((note) => {
       hasDeadNote ||= note.fret === "x";
@@ -254,10 +281,6 @@ export const getPracticeTabLegend = (
   });
 
   const items: PracticeTabLegendItem[] = [];
-
-  if (hasPicking) {
-    items.push({ label: "pick direction", symbol: "↓ ↑" });
-  }
 
   if (hasPalmMute) {
     items.push({ label: "palm mute", symbol: "PM" });

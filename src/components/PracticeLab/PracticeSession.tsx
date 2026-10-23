@@ -9,7 +9,6 @@ import type { PracticeContextCompatibility } from "@/features/practice/resolvePr
 import {
   clampPracticeDurationMinutes,
   formatPracticeTime,
-  getPracticePositionSnapshot,
   type PracticeInstrument,
   type PracticeTransportStatus,
   practiceDurationMaximumMinutes,
@@ -34,6 +33,7 @@ import {
   practiceRevealVariants,
   practiceSwapVariants,
 } from "@/lib/motion";
+import Select from "@/components/ui/Select/Select";
 import PracticeDisclosure from "./PracticeDisclosure";
 import PracticeTablature from "./PracticeTablature";
 
@@ -360,11 +360,6 @@ export default function PracticeSession({
   const selectedInstrumentLabel =
     practiceInstrumentOptions.find(({ value }) => value === instrument)
       ?.label ?? "Guitar";
-  const position = getPracticePositionSnapshot(
-    example,
-    activeEventIndex,
-    authoredSlot,
-  );
   const metadata = practiceExerciseMetadata[step.exampleId];
   const timerExpired = remainingSeconds === 0;
   const primaryActionLabel = getPrimaryActionLabel(
@@ -419,18 +414,13 @@ export default function PracticeSession({
               <h1 data-practice-screen-heading tabIndex={-1}>
                 {step.title}
               </h1>
-              <p>{step.instruction}</p>
-              {journey && (
-                <p className="practiceSession__journeyObjective">
-                  <span>Journey objective</span>
-                  {journey.objective}
-                </p>
-              )}
               <div className="practiceSession__metadata">
                 <span>{formatPracticeTag(metadata.techniques[0])}</span>
                 <span>{formatPracticeTag(metadata.difficulty)}</span>
                 <span>{metadata.tempo.recommended} BPM recommended</span>
-                <span>{formatPracticeTag(example.subdivision)} score grid</span>
+                <span>
+                  Playback {formatPracticeTag(example.subdivision)} grid
+                </span>
                 {!contextCompatibility.compatible && (
                   <span>
                     Authored · {contextCompatibility.authoredContextLabel}
@@ -438,6 +428,13 @@ export default function PracticeSession({
                 )}
               </div>
               <small className="practiceSession__focus">{metadata.focus}</small>
+              <p>{step.instruction}</p>
+              {journey && (
+                <p className="practiceSession__journeyObjective">
+                  <span>Journey objective</span>
+                  {journey.objective}
+                </p>
+              )}
             </div>
             <div className="practiceTransportAction">
               <button
@@ -539,74 +536,6 @@ export default function PracticeSession({
               showFollowAlong={transportStatus !== "idle"}
             />
           </motion.div>
-
-          <motion.section
-            aria-label="Current playing position"
-            className="positionReadout"
-            custom={motionCustom}
-            variants={practiceRevealVariants}
-          >
-            <div className="positionReadout__pattern">
-              <span className="practiceVisuallyHidden">
-                Current pattern: {position.pattern}
-              </span>
-              <span aria-hidden="true">Current pattern</span>
-              <AnimatedReadoutValue
-                motionCustom={motionCustom}
-                value={position.pattern}
-              >
-                {position.pattern}
-              </AnimatedReadoutValue>
-            </div>
-            {position.fret && (
-              <div>
-                <span className="practiceVisuallyHidden">
-                  Position: {position.fret}
-                </span>
-                <span aria-hidden="true">Position</span>
-                <AnimatedReadoutValue
-                  motionCustom={motionCustom}
-                  value={position.fret}
-                >
-                  <span aria-hidden="true" className="positionReadout__icon">
-                    ⌖
-                  </span>
-                  {position.fret}
-                </AnimatedReadoutValue>
-              </div>
-            )}
-            {position.direction && (
-              <div>
-                <span className="practiceVisuallyHidden">
-                  Direction: {position.direction}
-                </span>
-                <span aria-hidden="true">Direction</span>
-                <AnimatedReadoutValue
-                  motionCustom={motionCustom}
-                  value={position.direction}
-                >
-                  <span aria-hidden="true" className="positionReadout__icon">
-                    {position.direction === "Downstroke" ? "↓" : "↑"}
-                  </span>
-                  {position.direction}
-                </AnimatedReadoutValue>
-              </div>
-            )}
-          </motion.section>
-
-          <motion.div
-            className="practiceSession__guidance"
-            custom={motionCustom}
-            variants={practiceRevealVariants}
-          >
-            <p>
-              <span>Pass when</span>
-              {step.success}
-            </p>
-            <PracticeDisclosure label="Technique note">
-              <p>{step.coach}</p>
-            </PracticeDisclosure>
-          </motion.div>
         </main>
 
         <motion.aside
@@ -632,22 +561,15 @@ export default function PracticeSession({
           </section>
 
           <section className="sessionControlGroup">
-            <label htmlFor="practice-subdivision">Metronome subdivision</label>
-            <select
+            <label htmlFor="practice-subdivision">Notes per beat</label>
+            <Select
               id="practice-subdivision"
-              onChange={(event) =>
-                onSubdivisionChange(
-                  event.target.value as PracticeTabSubdivision,
-                )
+              onChange={(next) =>
+                onSubdivisionChange(next as PracticeTabSubdivision)
               }
+              options={practiceSubdivisionOptions}
               value={subdivision}
-            >
-              {practiceSubdivisionOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
+            />
           </section>
 
           <div className="sessionToggles">
@@ -717,21 +639,14 @@ export default function PracticeSession({
               >
                 <div className="sessionControlGroup">
                   <label htmlFor="practice-instrument">Instrument</label>
-                  <select
+                  <Select
                     id="practice-instrument"
-                    onChange={(event) =>
-                      onInstrumentChange(
-                        event.target.value as PracticeInstrument,
-                      )
+                    onChange={(next) =>
+                      onInstrumentChange(next as PracticeInstrument)
                     }
+                    options={practiceInstrumentOptions}
                     value={instrument}
-                  >
-                    {practiceInstrumentOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
                 <div className="volumeControl">
                   <label htmlFor="practice-volume">

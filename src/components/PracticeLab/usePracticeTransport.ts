@@ -45,6 +45,7 @@ export default function usePracticeTransport({
   instrumentPreset,
   instrumentVolume,
   metronomeEnabled,
+  playbackSpeedMultiplier,
   tempo,
   volume,
 }: UsePracticeTransportOptions) {
@@ -63,6 +64,7 @@ export default function usePracticeTransport({
       instrumentPreset,
       instrumentVolume,
       metronomeEnabled,
+      playbackSpeedMultiplier,
       tempo,
       volume,
     }),
@@ -75,6 +77,7 @@ export default function usePracticeTransport({
       instrumentPreset,
       instrumentVolume,
       metronomeEnabled,
+      playbackSpeedMultiplier,
       tempo,
       volume,
     ],

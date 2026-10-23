@@ -10,6 +10,7 @@ import type { RegisteredTuningId } from "@/helpers/typesHelpers";
 import { setRegisteredTuningPreset } from "@/lib/redux/slices/fretboardSlice";
 import { useAppDispatch, useAppSelector } from "@/lib/redux/store";
 import "./tuningPresetSelector.scss";
+import Select from "@/components/ui/Select/Select";
 
 export default function TuningPresetSelector() {
   const dispatch = useAppDispatch();
@@ -29,24 +30,24 @@ export default function TuningPresetSelector() {
 
   return (
     <div className="tuningPresetSelector">
-      <label htmlFor={selectId}>Tuning preset</label>
-      <select
+      <Select
         id={selectId}
-        onChange={(event) =>
-          event.target.value !== "custom" &&
-          dispatch(
-            setRegisteredTuningPreset(event.target.value as RegisteredTuningId),
-          )
+        label="Tuning preset"
+        options={[
+          ...(selectedPreset
+            ? []
+            : [{ value: "custom", label: "Custom tuning" }]),
+          ...presets.map((preset) => ({
+            value: preset.id,
+            label: preset.label,
+          })),
+        ]}
+        onChange={(next) =>
+          next !== "custom" &&
+          dispatch(setRegisteredTuningPreset(next as RegisteredTuningId))
         }
         value={value}
-      >
-        {!selectedPreset && <option value="custom">Custom tuning</option>}
-        {presets.map((preset) => (
-          <option key={preset.id} value={preset.id}>
-            {preset.label}
-          </option>
-        ))}
-      </select>
+      />
       <span aria-live="polite">{openStringSummary}</span>
     </div>
   );

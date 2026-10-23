@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useRouteTransition } from "@/components/AppShell/RouteTransitionContext";
 import "./appNavigation.scss";
 
 const navigationItems = [
@@ -18,21 +17,11 @@ const isCurrentRoute = (pathname: string, href: string): boolean =>
 
 export default function AppNavigation() {
   const pathname = usePathname();
-  const { beginTransition } = useRouteTransition();
-  const currentIndex = navigationItems.findIndex(({ href }) =>
-    isCurrentRoute(pathname, href),
-  );
 
   return (
     <nav aria-label="Primary" className="appNavigation">
-      {navigationItems.map(({ href, label }, destinationIndex) => {
+      {navigationItems.map(({ href, label }) => {
         const isCurrent = isCurrentRoute(pathname, href);
-        const isReturningToParent = isCurrent && pathname !== href;
-        const direction =
-          isReturningToParent ||
-          (currentIndex >= 0 && destinationIndex < currentIndex)
-            ? "backward"
-            : "forward";
 
         return (
           <Link
@@ -40,7 +29,6 @@ export default function AppNavigation() {
             className="appNavigation__link"
             href={href}
             key={href}
-            onClick={() => beginTransition(direction)}
           >
             {label}
           </Link>

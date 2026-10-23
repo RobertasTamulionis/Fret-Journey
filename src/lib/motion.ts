@@ -11,12 +11,6 @@ export type FretJourneyMotionCustom = {
   reducedMotion: boolean;
 };
 
-export type RouteTransitionDirection = "backward" | "forward";
-
-export type FretJourneyRouteMotionCustom = FretJourneyMotionCustom & {
-  direction: RouteTransitionDirection;
-};
-
 export const getMotionTransition = (
   reducedMotion: boolean,
   duration: number = motionDurations.normal,
@@ -41,26 +35,14 @@ export const practiceScreenVariants: Variants = {
 };
 
 export const routeTransitionVariants: Variants = {
-  animate: ({ reducedMotion }: FretJourneyRouteMotionCustom) => ({
+  animate: ({ reducedMotion }: FretJourneyMotionCustom) => ({
     opacity: 1,
-    transition: getMotionTransition(reducedMotion, 0.25),
-    x: "0%",
+    transition: getMotionTransition(reducedMotion, 0.17),
+    y: 0,
   }),
-  exit: ({ direction, reducedMotion }: FretJourneyRouteMotionCustom) => ({
-    opacity: 1,
-    transition: getMotionTransition(reducedMotion, 0.25),
-    x: reducedMotion ? "0%" : direction === "forward" ? "-100%" : "100%",
-  }),
-  initial: ({ direction, reducedMotion }: FretJourneyRouteMotionCustom) => ({
-    opacity: 1,
-    x: reducedMotion ? "0%" : direction === "forward" ? "100%" : "-100%",
-  }),
-  pending: ({ direction, reducedMotion }: FretJourneyRouteMotionCustom) => ({
-    opacity: reducedMotion ? 1 : 0.82,
-    transition: getMotionTransition(reducedMotion, 0.25),
-    // Navigation can wait on an uncached App Router payload. Keep the current
-    // route visible while that work completes instead of leaving an empty shell.
-    x: reducedMotion ? "0%" : direction === "forward" ? "-2%" : "2%",
+  initial: ({ reducedMotion }: FretJourneyMotionCustom) => ({
+    opacity: reducedMotion ? 1 : 0,
+    y: reducedMotion ? 0 : 12,
   }),
 };
 

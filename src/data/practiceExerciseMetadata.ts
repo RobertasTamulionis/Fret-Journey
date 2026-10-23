@@ -124,7 +124,7 @@ export const practiceExerciseMetadata = {
     "beginner",
     "daily-foundation",
     2,
-    "Connect scale notes without a pause at the string change.",
+    "",
     70,
     100,
     { root: "A", scale: "minor" },

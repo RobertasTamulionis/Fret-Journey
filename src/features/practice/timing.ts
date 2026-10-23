@@ -13,6 +13,7 @@ export const practiceTempoMinimum = 30;
 export type PracticeTimelineAnchor = {
   audioTime: number;
   exerciseBeat: number;
+  playbackSpeedMultiplier?: number;
   tempo: number;
 };
 
@@ -41,6 +42,21 @@ export const clampPracticeTempo = (tempo: number): number =>
 export const getPracticeSecondsPerBeat = (tempo: number): number =>
   60 / clampPracticeTempo(tempo);
 
+export const getPracticePlaybackSpeedMultiplier = (
+  subdivision: PracticeTabSubdivision,
+): number => {
+  switch (subdivision) {
+    case "eighths":
+      return 2;
+    case "triplets":
+      return 3;
+    case "sixteenths":
+      return 4;
+    default:
+      return 1;
+  }
+};
+
 export const getPracticeSubdivisionUnitsPerBeat = (
   subdivision: PracticeTabSubdivision,
 ): number => getPracticeTabBeatSize(subdivision);
@@ -57,7 +73,9 @@ export const getPracticeExerciseBeatAtAudioTime = (
   audioTime: number,
 ): number =>
   anchor.exerciseBeat +
-  (audioTime - anchor.audioTime) / getPracticeSecondsPerBeat(anchor.tempo);
+  (audioTime - anchor.audioTime) /
+    (getPracticeSecondsPerBeat(anchor.tempo) /
+      (anchor.playbackSpeedMultiplier ?? 1));
 
 export const getPracticeAudioTimeAtExerciseBeat = (
   anchor: PracticeTimelineAnchor,
@@ -65,17 +83,25 @@ export const getPracticeAudioTimeAtExerciseBeat = (
 ): number =>
   anchor.audioTime +
   (exerciseBeat - anchor.exerciseBeat) *
-    getPracticeSecondsPerBeat(anchor.tempo);
+    (getPracticeSecondsPerBeat(anchor.tempo) /
+      (anchor.playbackSpeedMultiplier ?? 1));
 
 export const getPracticeScoreLengthBeats = (
-  example: Pick<PracticeTabExample, "measureCount" | "subdivision">,
+  example: Pick<
+    PracticeTabExample,
+    "measureCount" | "subdivision" | "playbackScoreLengthBeats"
+  >,
 ): number =>
+  example.playbackScoreLengthBeats ??
   getPracticeScoreSlotCount(example) /
-  getPracticeSubdivisionUnitsPerBeat(example.subdivision);
+    getPracticeSubdivisionUnitsPerBeat(example.subdivision);
 
 export const getPracticeAuthoredSlotAtBeat = (
   exerciseBeat: number,
-  example: Pick<PracticeTabExample, "measureCount" | "subdivision">,
+  example: Pick<
+    PracticeTabExample,
+    "measureCount" | "subdivision" | "playbackScoreLengthBeats"
+  >,
 ): number => {
   const eventsPerBeat = getPracticeSubdivisionUnitsPerBeat(example.subdivision);
   const scoreSlotCount = getPracticeScoreSlotCount(example);
@@ -95,7 +121,10 @@ export const getPracticeAuthoredSlotAtBeat = (
  */
 export const getPracticeActiveEventIndexAtBeat = (
   exerciseBeat: number,
-  example: Pick<PracticeTabExample, "events" | "measureCount" | "subdivision">,
+  example: Pick<
+    PracticeTabExample,
+    "events" | "measureCount" | "subdivision" | "playbackScoreLengthBeats"
+  >,
 ): number | null => {
   const authoredSlot = getPracticeAuthoredSlotAtBeat(exerciseBeat, example);
   const sequenceEvents = getPracticeSequenceEvents(example);

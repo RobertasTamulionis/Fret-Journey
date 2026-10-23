@@ -13,8 +13,6 @@ type CompactPracticeTabPreviewProps = {
   example: PracticeTabExample;
 };
 
-const strokeLabels = { down: "↓", up: "↑" } as const;
-
 export default function CompactPracticeTabPreview({
   example,
 }: CompactPracticeTabPreviewProps) {
@@ -63,7 +61,6 @@ export default function CompactPracticeTabPreview({
           return (
             <span className={event?.accent ? "isAccent" : undefined} key={slot}>
               {isPalmMuted ? "PM" : ""}
-              {event?.stroke ? strokeLabels[event.stroke] : ""}
             </span>
           );
         })}

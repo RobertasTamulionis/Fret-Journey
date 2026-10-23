@@ -200,115 +200,6 @@ $practice-accent: var(--semantic-practice-accent);
   }
 }
 
-.practiceFeatured {
-  display: grid;
-  gap: 18px;
-  padding: 24px;
-  border: 1px solid color-mix(in srgb, $practice-accent 20%, var(--color-border));
-  border-radius: 26px;
-  background:
-    radial-gradient(circle at 8% 0%, color-mix(in srgb, $practice-accent 7%, transparent), transparent 28%),
-    var(--panel-background-soft);
-
-  > header {
-    max-width: 680px;
-
-    > span {
-      color: $practice-accent;
-      font-size: 9px;
-      font-weight: 720;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    h2 {
-      margin: 6px 0 0;
-      color: var(--color-text-strong);
-      font-size: 22px;
-      letter-spacing: -0.035em;
-    }
-
-    p {
-      margin: 7px 0 0;
-      color: var(--color-text-muted);
-      font-size: 12px;
-    }
-  }
-}
-
-.practiceJourneys {
-  display: grid;
-  gap: 16px;
-
-  > header {
-    span {
-      color: $practice-accent;
-      font-size: 14px;
-      font-weight: 720;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-
-    h2 {
-      margin: 6px 0 0;
-      color: var(--color-text-strong);
-      font-size: 22px;
-      letter-spacing: -0.035em;
-    }
-  }
-}
-
-.practiceJourneyCard {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 8px 24px;
-  padding: 24px;
-  border: 1px solid color-mix(in srgb, $practice-accent 28%, var(--color-border));
-  border-radius: 24px;
-  background:
-    radial-gradient(circle at 8% 0%, color-mix(in srgb, $practice-accent 10%, transparent), transparent 34%),
-    var(--panel-background);
-  box-shadow: var(--shadow-panel);
-  color: var(--color-text-muted);
-  text-align: left;
-
-  &__eyebrow,
-  > span,
-  > em {
-    font-size: 14px;
-  }
-
-  &__eyebrow {
-    color: $practice-accent;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-
-  strong {
-    grid-column: 1;
-    color: var(--color-text-strong);
-    font-size: 26px;
-    letter-spacing: -0.04em;
-  }
-
-  p {
-    max-width: 660px;
-    margin: 0;
-    color: var(--color-text-soft);
-    font-size: 15px;
-  }
-
-  > em {
-    grid-column: 2;
-    grid-row: 1 / span 4;
-    align-self: center;
-    color: $practice-accent;
-    font-style: normal;
-    font-weight: 700;
-  }
-}
-
 .practiceJourney {
   display: grid;
   gap: 28px;
@@ -1953,14 +1844,8 @@ $practice-accent: var(--semantic-practice-accent);
     padding: 17px;
   }
 
-  .practiceJourneyCard,
   .practiceJourneyStep {
     grid-template-columns: 1fr;
-  }
-
-  .practiceJourneyCard > em {
-    grid-column: 1;
-    grid-row: auto;
   }
 
   .practiceJourneyStep__number {

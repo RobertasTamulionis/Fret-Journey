@@ -44,7 +44,6 @@ export default function PracticeLab({
     hasNextExercise,
     journeyAttemptQualified,
     openExercise,
-    openJourney,
     openJourneyExercise,
     openNextExercise,
     repeatExercise,
@@ -98,11 +97,7 @@ export default function PracticeLab({
             variants={practiceScreenVariants}
           >
             {state.screen === "library" && (
-              <PracticeLibrary
-                completedJourneyExerciseIds={completedJourneyExerciseIds}
-                onOpenJourney={openJourney}
-                onSelectExercise={openExercise}
-              />
+              <PracticeLibrary onSelectExercise={openExercise} />
             )}
 
             {state.screen === "journey" && activeJourney && (

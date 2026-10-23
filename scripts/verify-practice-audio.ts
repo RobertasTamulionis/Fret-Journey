@@ -39,6 +39,7 @@ import {
   getPracticeRemainingSeconds,
 } from "../src/features/practice/session";
 import {
+  createPracticePlaybackTimeline,
   getPracticeSequenceEvents,
   type PracticeTabExample,
 } from "../src/features/practice/tablature";
@@ -49,6 +50,7 @@ import {
   getPracticeExerciseBeatAtAudioTime,
   getPracticeScoreLengthBeats,
   getPracticeSecondsPerBeat,
+  getPracticePlaybackSpeedMultiplier,
   getPracticeSecondsPerEvent,
   planPracticeMetronomePulses,
 } from "../src/features/practice/timing";
@@ -61,6 +63,51 @@ import {
 assert.equal(getPracticeSecondsPerBeat(120), 0.5);
 assert.equal(getPracticeSecondsPerBeat(1), 2);
 assert.equal(getPracticeSecondsPerBeat(400), 0.25);
+
+const dailyFoundation = practiceTabExamples["daily-foundation"];
+assert.deepEqual(
+  dailyFoundation.events.map((event) => event.at),
+  [0, 1, 2, 3, 4, 5, 6, 7],
+  "Daily foundation is authored as eight eighth-note events, not four quarter notes",
+);
+for (const [subdivision, notesPerBeat, expectedLength] of [
+  ["quarters", 1, 8],
+  ["eighths", 2, 4],
+  ["triplets", 3, 8 / 3],
+  ["sixteenths", 4, 2],
+] as const) {
+  const playback = createPracticePlaybackTimeline(dailyFoundation, subdivision);
+  assert.deepEqual(
+    playback.events.map((event) => event.at),
+    [0, 1, 2, 3, 4, 5, 6, 7],
+    `${subdivision} playback must keep eight sequential events in order`,
+  );
+  assert.equal(
+    playback.playbackScoreLengthBeats,
+    expectedLength,
+    `${subdivision} playback must place eight notes at ${notesPerBeat} per beat`,
+  );
+}
+assert.deepEqual(
+  [0, 0.5, 1, 1.5, 2, 2.5, 3, 3.5].map((beat) =>
+    getPracticeActiveEventIndexAtBeat(beat, dailyFoundation),
+  ),
+  [0, 1, 2, 3, 4, 5, 6, 7],
+  "Daily foundation must activate each authored eighth-note event once",
+);
+assert.equal(getPracticePlaybackSpeedMultiplier("quarters"), 1);
+assert.equal(getPracticePlaybackSpeedMultiplier("eighths"), 2);
+assert.equal(getPracticePlaybackSpeedMultiplier("sixteenths"), 4);
+assert.equal(
+  getPracticeSecondsPerBeat(120) /
+    getPracticePlaybackSpeedMultiplier("eighths"),
+  0.25,
+);
+assert.equal(
+  getPracticeSecondsPerBeat(120) /
+    getPracticePlaybackSpeedMultiplier("sixteenths"),
+  0.125,
+);
 assert.equal(getPracticeSecondsPerEvent(120, "sixteenths"), 0.125);
 assert.equal(getPracticeSecondsPerEvent(60, "triplets"), 1 / 3);
 assert.equal(getPracticeDurationSeconds("7 min"), 420);
@@ -994,6 +1041,49 @@ const verifyMultisampleSourceOrdering = async () => {
 
 const verifyPracticeMetronomeEngine = async () => {
   await verifyMultisampleSourceOrdering();
+  const diagnosticPlan = {
+    available: true as const,
+    events: [0, 1, 2, 3].map((startBeat) => ({
+      durationBeats: 1,
+      id: `diagnostic:${startBeat}`,
+      notes: [{ articulation: "normal" as const, midi: 40, velocity: 0.8 }],
+      startBeat,
+    })),
+    scoreLengthBeats: 4,
+  };
+  for (const [multiplier, expectedSpacing] of [
+    [1, 1],
+    [2, 0.5],
+    [4, 0.25],
+  ] as const) {
+    const diagnosticHarness = createFakeEnvironment();
+    const diagnosticEngine = new PracticeMetronomeEngine(
+      {
+        ...baseConfig,
+        countInEnabled: false,
+        instrumentEnabled: true,
+        instrumentPlan: diagnosticPlan,
+        playbackSpeedMultiplier: multiplier,
+        tempo: 60,
+      },
+      { environment: diagnosticHarness.environment, lookAheadSeconds: 4.1 },
+    );
+    await diagnosticEngine.start({ countInBeats: 0 });
+    const scheduled = diagnosticHarness.instrument.scheduled.slice(0, 4);
+    assert.equal(scheduled.length, 4);
+    assert.deepEqual(
+      scheduled.map((event) =>
+        Number((event.startTime - scheduled[0].startTime).toFixed(6)),
+      ),
+      [0, expectedSpacing, expectedSpacing * 2, expectedSpacing * 3],
+      `Diagnostic guitar onsets must use the ${multiplier}x playback timeline`,
+    );
+    assert.equal(
+      Number((scheduled[0].duration - expectedSpacing).toFixed(6)),
+      0,
+    );
+    await diagnosticEngine.dispose();
+  }
   const countInHarness = createFakeEnvironment();
   const countInEngine = new PracticeMetronomeEngine(baseConfig, {
     environment: countInHarness.environment,

@@ -163,8 +163,7 @@ export const practiceRoutines: PracticeRoutine[] = [
           "Use a small pick motion and listen for an unwanted accent when you move from low E to A, then from A to D.",
         duration: "7 min",
         exampleId: "daily-foundation",
-        instruction:
-          "Alternate pick the displayed eight-note ascent: three notes on the first string, three on the next, then two on the third, without pausing at either crossing.",
+        instruction: "",
         pattern: "3 notes · cross · 3 notes · cross · 2 notes",
         phase: "Foundation",
         success:

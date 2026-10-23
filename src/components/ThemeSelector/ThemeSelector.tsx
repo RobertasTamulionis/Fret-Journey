@@ -1,6 +1,6 @@
 "use client";
 
-import { type ChangeEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   type AppThemeId,
   appThemeStorageKey,
@@ -9,6 +9,7 @@ import {
   isAppThemeId,
 } from "@/features/theme/themes";
 import "./themeSelector.scss";
+import Select from "@/components/ui/Select/Select";
 
 const readDocumentTheme = (): AppThemeId => {
   const documentTheme = document.documentElement.dataset.theme;
@@ -46,27 +47,20 @@ export default function ThemeSelector() {
     return () => window.removeEventListener("storage", handleStorage);
   }, []);
 
-  const handleChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    const nextTheme = event.target.value;
-
-    if (!isAppThemeId(nextTheme)) {
-      return;
-    }
-
-    setTheme(nextTheme);
-    applyTheme(nextTheme);
-  };
-
   return (
-    <label className="themeSelector">
+    <div className="themeSelector">
       <span>Theme</span>
-      <select onChange={handleChange} value={theme}>
-        {appThemes.map(({ id, label }) => (
-          <option key={id} value={id}>
-            {label}
-          </option>
-        ))}
-      </select>
-    </label>
+      <Select
+        options={appThemes.map(({ id, label }) => ({ value: id, label }))}
+        onChange={(nextTheme) => {
+          if (isAppThemeId(nextTheme)) {
+            setTheme(nextTheme);
+            applyTheme(nextTheme);
+          }
+        }}
+        size="sm"
+        value={theme}
+      />
+    </div>
   );
 }

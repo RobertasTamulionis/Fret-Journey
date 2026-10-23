@@ -38,6 +38,7 @@ import {
   practiceDefaultCountInBeats,
 } from "@/features/practice/session";
 import type { PracticeTabSubdivision } from "@/features/practice/tablature";
+import { createPracticePlaybackTimeline } from "@/features/practice/tablature";
 import {
   setKey,
   setScale,
@@ -312,10 +313,15 @@ export default function usePracticeExperience(
         : practiceTabExamples[activeStep.exampleId],
     [activeStep.exampleId, contextCompatibility.compatible, practiceContext],
   );
+  const playbackExample = useMemo(
+    () =>
+      createPracticePlaybackTimeline(activeExample, state.selectedSubdivision),
+    [activeExample, state.selectedSubdivision],
+  );
   const contextSignature = getPracticeContextSignature(practiceContext);
   const instrumentPlan = useMemo(
-    () => buildPracticeAudioEvents(activeExample),
-    [activeExample],
+    () => buildPracticeAudioEvents(playbackExample),
+    [playbackExample],
   );
   const previousContextSignature = useRef(contextSignature);
   const [contextAnnouncement, setContextAnnouncement] = useState("");
@@ -325,7 +331,7 @@ export default function usePracticeExperience(
   );
   const nextExercise = exerciseOrder[orderIndex + 1];
   const transportConfig = {
-    authoredScore: activeExample,
+    authoredScore: playbackExample,
     clickSubdivision: state.selectedSubdivision,
     countInEnabled: state.countInEnabled,
     instrumentEnabled: state.instrumentPlaybackEnabled,
@@ -333,6 +339,7 @@ export default function usePracticeExperience(
     instrumentPreset: state.instrument,
     instrumentVolume: state.volume,
     metronomeEnabled: state.metronomeEnabled,
+    playbackSpeedMultiplier: 1,
     tempo: state.tempo,
     volume: state.metronomeVolume,
   };
@@ -687,7 +694,7 @@ export default function usePracticeExperience(
   };
 
   return {
-    activeExample,
+    activeExample: playbackExample,
     activeJourney,
     activeJourneyStepIndex,
     activeRoutine,

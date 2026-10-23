@@ -112,10 +112,10 @@ export const practiceSubdivisionOptions: ReadonlyArray<{
   label: string;
   value: PracticeTabSubdivision;
 }> = [
-  { label: "Quarter notes", value: "quarters" },
-  { label: "Eighth notes", value: "eighths" },
-  { label: "Triplets", value: "triplets" },
-  { label: "Sixteenth notes", value: "sixteenths" },
+  { label: "Quarter (1)", value: "quarters" },
+  { label: "Eighth (2)", value: "eighths" },
+  { label: "Triplet (3)", value: "triplets" },
+  { label: "Sixteenth (4)", value: "sixteenths" },
 ];
 
 export const practiceInstrumentOptions: ReadonlyArray<{
